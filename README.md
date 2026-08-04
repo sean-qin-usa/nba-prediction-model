@@ -59,6 +59,68 @@ the project.
 The last two lines are the whole finding: **the information is real, it is
 measurable, and it is smaller than the vig.**
 
+### We beat the opening line. We do not beat the price of betting it.
+
+Tested on **22,742 games across 19 seasons** against the real opening spread —
+the largest and cleanest test in this repository, and one with no probability
+conversion anywhere in it (see *For non-bettors* below for what these terms
+mean):
+
+| our margin vs the opening spread | result |
+|---|---|
+| beats a coin flip (50%)? | **yes — 50.65%, +0.65pp, significant** |
+| beats the break-even a bookmaker charges (52.38%)? | **no — short by 1.73pp, significant** |
+
+Both statements are true at once, and the second one is what decides whether
+money is made. On the 14 seasons the model has never seen, the edge over a coin
+flip is positive but **not** statistically significant, so the honest version of
+"we beat the open" is: *demonstrated over the full 19 seasons, not demonstrated
+on out-of-sample data alone, and never large enough to pay for itself.*
+
+**How small is the edge, concretely?** We disagree with the opening line by
+**2.455 points** per game on average. If that disagreement were entirely real
+information, we would cover 57.6% of the time. We cover 50.65%. So the genuine
+content of our disagreement is **0.206 points — 8.4% of what we claim, and the
+rest is noise.** Breaking even requires 0.751 points. **We deliver 27% of the
+edge needed.**
+
+For scale, a fair comparison nobody asked for and we ran anyway: *betting every
+road team* returns −3.26%. We return −3.25%. Our selection genuinely adds
++1.18pp over a composition-matched random selector — it simply spends that
+advantage buying back the road exposure the trivial strategy gets for free.
+
+### For non-bettors: the four terms that matter
+
+- **The spread** is a handicap that makes an uneven game a coin flip. "Lakers
+  −6.5" means back the Lakers and they must win by 7+ for you to collect. It is
+  a *prediction of the margin*, which is exactly what this model outputs — so
+  comparing our margin to the spread is the most direct test of the model there
+  is, with no probability maths in between.
+- **The vig** (or juice) is the bookmaker's fee, charged by making both sides
+  pay less than even money. Standard is −110: risk $110 to win $100 on either
+  side. That's why break-even is **52.38%**, not 50% — you must be right 52.38%
+  of the time just to stand still. The vig is why a real edge can still lose
+  money, and it is the single most important number in this repository.
+- **Line shopping** is placing each bet at whichever bookmaker offers the best
+  number. Books disagree — one may post −6.5 while another posts −6 — and since
+  our edge is roughly the size of the fee, a half-point of price is material.
+  More books means more chances to find the best number. *Caveat measured here:*
+  36% of the time our two books post exactly the same number, so extra books
+  duplicate rather than add, and the benefit flattens fast.
+- **An exchange** (Betfair, Sporttrade, Prophet X) is a marketplace where you
+  bet against other people instead of against the house. The difference is how
+  it charges: a bookmaker bakes its fee into every price, win or lose, while an
+  exchange takes commission **only on net winnings**. That cuts the cost of
+  trading from about 3.00 points to about 0.41 — which is why it is the largest
+  single lever in this project, and it is an access problem rather than a
+  modelling one.
+
+**What data we actually hold for those last two, stated plainly:** two books,
+historically, for 2021-26. Our own multi-book logger can pull eight or more US
+books but **has never run during a season**. We hold **no exchange data at
+all** — the exchange figures below are our existing bets repriced under an
+assumed commission, never executed. Treat both as arithmetic, not evidence.
+
 ### Closing prices vs opening prices
 
 Those headline ROIs are struck at the **close**, where market odds exist for all
@@ -71,8 +133,9 @@ for an unavoidable reason: real opening moneylines only exist in our data for
 |---|---|---|---|
 | **Close**, real moneylines | **19** | **−3.40%** | **significantly negative** |
 | Close, 15 seasons no gate ever saw | 15 | **−5.60%** | **significantly negative** |
-| **Open**, real moneylines, live injury feed | **3** | **−0.66%** | not significant |
-| Open, real moneylines, availability-blind | 3 | −1.19% | not significant |
+| **Open, real spreads (ATS)** | **19** | **−3.25%** | **significantly negative** |
+| Open, ATS, 14 seasons never seen | 14 | **−3.64%** | **significantly negative** |
+| Open, real moneylines, live injury feed | 3 | −0.66% | not significant (2 dof) |
 
 So: **at the close we can prove the rules lose. At the open we can prove
 nothing** — the point estimate is roughly breakeven and the interval swallows it.
