@@ -144,22 +144,47 @@ is the 3-season moneyline test, which has two degrees of freedom and cannot
 settle the question in either direction; it is kept for continuity, not as
 counter-evidence.
 
+### Execution, at firm-grade access
+
 Execution is the larger lever, and it is an access problem rather than a
-modelling one. Holding the model fixed and varying only where the bet is placed
-(fully-equipped model tier, at the open):
+modelling one. **The table below is presented under a stated assumption: that
+access is a professional multi-book operation rather than a single retail
+account.** One book is shown as the degenerate reference, not the baseline.
+Holding the model fixed and varying only where the bet is placed (fully-equipped
+model tier, at the open):
 
-| execution | cost over fair | union ROI |
-|---|---|---|
-| 1 retail book (our access) | 3.00 pts | −0.95% |
-| 2 books | — | +0.39% |
-| 5 books | 1.10 pts | +1.76% |
-| 8 books | 0.67 pts | +2.39% |
-| exchange, 2% commission | **0.41 pts** | **+2.69%** |
+| execution | cost over fair | union ROI | |
+|---|---|---|---|
+| 1 retail book | 3.00 pts | −0.95% | degenerate reference |
+| 2 books | — | +0.39% | measured |
+| **5 books** | **1.10 pts** | **+1.76%** | **firm baseline** |
+| 8 books | 0.67 pts | +2.39% | optimistic bound |
+| exchange, 2% commission | **0.41 pts** | **+2.69%** | arithmetic — we hold no exchange data |
 
-A single exchange account structurally beats an extrapolated eight-book shop,
-because commission scales with the payout and these rules are 68% favourites.
-**None of these cells survives the three-season significance bound**, so they
-are reported as point estimates and a direction, not as a result.
+A single exchange account structurally beats an eight-book shop, because
+commission scales with the payout and these rules are ~68% favourites.
+
+**What the firm assumption also buys you, and what it costs.** Granting
+firm-grade *execution* without firm-grade *friction* would flatter every row
+above, so the frictions are named rather than omitted:
+
+- **Limits.** Best-of-N always transacts at whichever book is furthest offside.
+  11.6% of games carry a >3-point best-worst range and 8.1% of best prices sit
+  >1.5 points off the next book — precisely the prices that get limited,
+  lowered, or voided. Nothing in this table charges for that.
+- **Our own flow moves the line.** The closing-line value measured here
+  (+0.166 spread points) is a price-taker's number at zero size. A firm betting
+  meaningful stake into a soft opening line is *part of* the flow that closes
+  that gap, so some of the measured edge is mechanically unavailable to anyone
+  large enough to want it.
+- **Paid data buys almost nothing.** Measured, not assumed: the whole purchasable
+  stack — professional minutes projections, tracking feeds, premium talent
+  ratings — is worth **+0.0012 of log loss combined, not significant.** 80% of
+  everything purchasable is free public data (the 5PM injury report and the T-30
+  inactive list). A firm's data budget does not help here.
+
+**None of these cells survives its significance bound**, so they are point
+estimates and a direction, not a result.
 
 ### The one thing that clears the vig: walk-forward *selection*
 
@@ -293,6 +318,15 @@ files are ground truth and the database is derived and rebuildable by design.
 ## Where this goes next
 
 Ranked by what the evidence actually supports, not by appetite.
+
+0. **Read the results under the access you actually have.** Every trading number
+   in this repository is reported at two access levels, because they give
+   materially different answers: a single retail account (cost over fair ~3.00
+   points) and a professional multi-book operation (~1.10 at five books, ~0.41
+   on an exchange). Our own edge is roughly the size of that difference, which is
+   why *where* the bet is placed matters more here than any remaining modelling
+   choice. What the firm assumption does **not** buy is information — the entire
+   purchasable data stack is worth +0.0012 of log loss, not significant.
 
 1. **Pressure-test the walk-forward selection result.** It is the only candidate
    that clears the vig and beats its noise control. The open questions are
