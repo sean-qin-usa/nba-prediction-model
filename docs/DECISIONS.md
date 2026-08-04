@@ -1,0 +1,8649 @@
+# Master Decision Register
+
+Every material decision, win, loss, and rejection — chronological, each with its
+evidence trail. Journal ids refer to `.priorstates/journal/entries/` (full TL;DR
+bodies there); scripts/logs are in-repo. Companion docs: FEATURE_LEDGER.md
+(per-feature verdicts + false-rejection review), COMPLEXITY.md (the gate),
+LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
+
+## Ground rules that govern everything below
+- G1 Ablation gate: a feature ships only if OOS improvement's bootstrap 95% CI
+  excludes zero (COMPLEXITY.md). Pre-registered before any live line existed.
+- G2 Market-blind simulator: odds are benchmark/CLV/blend only, never model
+  input (handoff I.6).
+- G3 Walk-forward only; PIT as-of joins; trailing windows (LEAKAGE.md).
+- G4 Construction-artifact checklist applied to acceptances AND rejections
+  (FEATURE_LEDGER.md bottom; grew from real bugs found).
+
+## 2026-07-26 — data layer
+- D1 Repo/v0 built; odds logger never touches DuckDB (single-writer). [a0109b]
+- D2 $0 constraint (Sean): free stack; paid options ledgered not pursued.
+  [866d86; docs/PAID_OPTIONS.md]
+- D3 DARKO adopted as daily talent prior; 2K demoted to thin-data prior.
+  [705199; docs/PRIORS.md]
+
+## 2026-07-27 — models, baselines, bar
+- D4 Feature substrate validated (stats reconcile 99.96%; stints exact).
+  [7d0cce]
+- D5 Market bar measured: de-vig close 0.5893 (2007-23); Elo 0.6168. [c900c5]
+- D6 v0 engine failed internal validity (0.693) -> diagnosed opponent-blindness.
+  [b2c393 loser]
+- D7 Opponent-adjusted ratings: 0.605 beats Elo -> CORE. [c89880]
+- D8 RAPM sign bug found+fixed (DARKO corr 0.107->0.628). [6860fa]
+- D9 Win-prob = direct model; MC engine reserved for props (sim adds noise to
+  margins). [34c4df decision]
+- D10 Props pipeline calibrated (PIT). Engine's job = joint distributions. [f8df21]
+- D11 Injury adjustments rejected 3x (base rating already prices availability).
+  [80ef39; later vindicated-adjacent by D19]
+- D12 Kalman filter: beats EWMA standalone; wash in props -> minutes is the
+  bottleneck (11.2% of prop error, oracle test). [c9cf46, 208b0f]
+
+## 2026-07-28 — audits, breakthroughs, v1 completion
+- D13 Capstone: model-vs-close disagreements hit 29% -> NEVER bet main lines on
+  model divergence; gap is information not modeling. [2e85bd]
+- D14 Blend test: optimal market weight on us ~0.1, NS -> win-prob feature work
+  bounded; edge must come from props/timing. [same evidence]
+- D15 Construction-error audits (Sean's hypothesis): conditioning bug fix =
+  biggest prop gain (+0.066 CRPS); phantom-roster bug fixed; date-key bug had
+  zeroed 3 analyses. [208b0f, 9ecec6 gotcha]
+- D16 Cold-start priors (Sean's idea): PASS (+0.025 early-season; robust plateau
+  regress 0.65-0.85; warm wins EVERY season like-for-like). SHIPPED. [ee5ee8,
+  9540dc; charts/coldwarm_by_season.png]
+- D17 Rejections with clean construction: rest (empirical B2B ratio 0.9973),
+  overdispersion, empirical-minutes, EWMA-minutes projector, blowout-throttle,
+  pace (retested shrunk — still dead), margin-capping (blowouts ARE signal).
+  [278dd9, bbe957, 7136ea]
+- D18 Rejection re-review (Sean): FEATURE_LEDGER.md created; recency direction
+  FLIPPED under proper construction (60d + rescaled ridge) but NS -> stays out.
+  [9540dc]
+- D19 BREAKTHROUGH (Sean's lineup idea): availability-composition (DARKO x
+  trailing-min, active roster) 0.5455/0.5465 vs refit-ratings 0.5611. SHIPPED
+  w_comp=0.7. Frozen-asof validation artifact documented (rosters decay).
+  [40cba4, 531396]
+- D20 Team-specific home advantage (literature): PASS (+0.0020, CI +0.0004..
+  +0.0036, monotone in shrinkage). SHIPPED (team_home_ridge=200). [7136ea]
+- D21 Four-factors (literature): PASS big (+0.0178 CI +0.008..+0.027); REPLICATED
+  2024-25 (+0.0078). SHIPPED. 8-factor extension TIE both seasons -> parsimony
+  keeps 4F (decomposition noise ceiling located). [a4df61, 484807, d54f56]
+- D22 GBM challenger: REJECTED (0.5688 vs logistic 0.5501 vs fixed-50/50 0.5292);
+  fitted blend weights lose to fixed -> production uses fixed 0.5*ff+0.5*comp.
+  [d54f56]
+- D23 Production final (pre-season): margin = 0.5*FourFactors + 0.5*Composition,
+  ratings+cold-start as early-season fallback; team-home in ratings. 2025-26
+  full-season 0.5916 vs market 0.5711. [charts/h2h_production_by_season.png]
+- D24 v1 Bayesian fit COMPLETE: 10 dims + stint-RAPM joint, GPU 318s; betas
+  sensible (blk .71 ... tov .12); net vs DARKO 0.625. [ebe33b]
+- D25 Capture decisions: Underdog prop logger live+cron (size-guard data-loss
+  bug found via Sean's question, fixed); PrizePicks blocked (documented);
+  defended-FG ingest completed. [ebe33b, d54f56]
+- D26 Pending validation: does the Bayes posterior PREDICT future performance
+  better than raw/EB rates? (scripts/validate_bayes_updating.py — running;
+  register updated when it lands.)
+
+## 2026-07-28/29 — v2 event-level, star-out science, defense axes
+- D26 (resolved) Bayes updating VERIFIED predictively: Bayes > EB > raw-MLE on
+  all dims, gap largest low-sample (FT -0.644 raw -> -0.536 Bayes). [343cae]
+- D27 Prior head-to-head: 2K per-dimension prior BEATS DARKO-aggregate prior on
+  every dim -> division of labor settled (DARKO=daily talent, 2K=dim priors).
+  [343cae]
+- D28 Age curves: aging PROFILE real (19-24 improve, 32+ decline 3PT) but
+  age-ADJUSTING rates adds ~zero (NS) -> rejected for shooting cold-start;
+  reserved for athleticism/minutes if tracking-speed data appears. [75008e]
+- D29 v2 first-cut possession-points fit FAILS (net vs DARKO -0.059; funnel
+  suspected). [1ec59e loser]
+- D30 SGP correlation audit: assist->teammate-pts coupling EMPIRICALLY DEAD
+  (+0.009, n=94k pairs; killed pre-build); same-player pts-ast sim coupling 6x
+  too strong (shared-minutes artifact) -> assists decoupled from minutes draw.
+  [8d5e15]
+- D31 v2b (non-centered + v1 priors, healthy sampler) STILL fails -> sufficiency
+  conclusion: possession-points-RAPM ≡ stint RAPM; v2 value must be EVENT-level
+  (who shot, action, matchup). Possession-margin fitting RETIRED with proof.
+  [078ddd]
+- D32 v2 event cut #1: usage softmax P(shooter|lineup) beats uniform decisively,
+  ~ties renormalized shares -> value is principled star-out redistribution +
+  scaffold for make-model. [6d2a5c]
+- D33 SOFTMAX star-out attempt redistribution PASSES (Poisson LL +0.044, CI
+  +0.033..+0.055, n=14,581; mean lift 1.198 vs folklore 1.02). First v2 win;
+  overturns the earlier flat-lift rejection (too small/uniform, not wrong in
+  kind). [e66896]
+- D34 Points-side CRPS gate FAILS for naive lift (-0.40) -> empirically confirms
+  the USAGE-EFFICIENCY SKILL CURVE: attempts move ~5x more than points.
+  Ship path: attempts-markets, or attempts-lift PAIRED with efficiency-drop.
+  [345a5a]
+- D35 Skill-curve redistribution still fails points-CRPS (-0.077) — root cause
+  BACKTEST CONTAMINATION (trailing rates already embed ongoing absences);
+  fresh-news case untestable until October. G3 dependency reversal: C&S-dependent
+  players gain MORE star-out (+2.85% pts/min) than self-creators (+0.44%).
+  Data haul: matchups, hustle, Synergy playtypes, drives/touches, C&S/pull-up —
+  all free, all cached. [7d093b]
+- D36 Matchup-based individual defense (who-guarded-whom, EB-shrunk) = REAL
+  on-ball axis, ORTHOGONAL to DARKO d_dpm (-0.165) -> defense is 3-axis: rim/help
+  (DARKO/zone-RAPM), on-ball (matchup), scheme (zone allowance). [38615b]
+- D37 Creation-axis: creation×on-ball interaction REJECTED (direction reversed —
+  stoppers guard stars; team aggregate misses actual assignments); creation-split
+  stability rejected (≡ pooled). G3 reversal replicated stronger (+3.93% vs
+  +0.07%). [100dd6]
+- D38 Conditional C&S-tilted attempt redistribution REJECTED (delta -0.013 CI
+  negative, n=20,566) -> uniform softmax stands; C&S gain is efficiency/FT-side
+  not volume-side. Mix-shift empirics: 88% of players show >=1 zone-mix "shift"
+  but median drift 0.07 = noise-sized. STAT_INVENTORY.md created. [ed0bff]
+- D39 POSITION-TILT minutes redistribution VALIDATED (same-position +2.91 min vs
+  +2.09 diff-position when star sits, t=8.2, n=24k). Star-out structure now
+  complete: attempts=proportional softmax (D33), minutes=positional (D39),
+  efficiency=C&S-tilted (G3; October-gated). Regime-change adaptation grades:
+  trades B-, draft rookies C+, coach overhaul C. [abc76d]
+- D40 W5 NEW_COACH window flag implemented (2026-07-29, pre-live-lines):
+  first 15 regular-season games under a new head coach flagged for bet
+  eligibility (rationale: coach-change adaptation graded C — slowest regime
+  type; flag the window rather than pretend the model caught up). Manual
+  COACH_CHANGES registry (no free feed); PIT via flagged_ts. [windows.py]
+
+## Standing no-bet rules (justification for anyone who asks)
+- Main lines (moneyline/spread/totals): NO BETS. Evidence: D13 (29% hit),
+  D14 (no incremental info), totals blend-weight ~0. The market's close is
+  better-informed; betting divergence = betting our ignorance.
+- Props/SGP: models calibrated but NO EDGE CLAIM until real lines are scored
+  (October). Pre-registered windows W1-W4 + CLV protocol define success BEFORE
+  any bet. [dbb634]
+
+## 2026-07-29 (cont.) — capstone, playtypes, PIT DARKO
+- D41 CAPSTONE per-season rerun (3 seasons post-backfill): 23-24 0.6234/mkt
+  0.5809; 24-25 0.6092/0.5815; 25-26 0.5875/0.5711 (best ever, was 0.5916).
+  Gap shrinks monotonically toward present = DARKO-staleness handicap on
+  historical seasons; 25-26 gap +0.0164 is the honest live estimate. [2eeeab]
+- D42 Synergy playtype "styles make fights" prior REJECTED: naive gate passed
+  (+16.5, CI +10.8..+21.9) but was 100% opponent-overall-defense confound —
+  with opponent fixed effects, style-match slope = -0.12 CI(-7.9,+8.0), dead
+  zero. Same lesson family as D37: aggregates aren't assignments. [623618]
+- D43 PIT DARKO discovered free (Sean's Wayback idea, upgraded): darko.app
+  player pages server-render FULL daily DPM series back to 2017 incl. o/d
+  split, box variants, and x_minutes (DARKO's own minutes projection).
+  Ingest: nbapred/ingest/darko_history.py -> darko_history table (1,009
+  players pulled). Unlocks: PIT composition backtests (kills staleness
+  artifact), x_minutes as gated challenger to trailing-minutes. [pull log
+  data/logs/darko_history_pull.log]
+- D44 PIT CAPSTONE (supersedes D41 numbers): with as-of DARKO, 23-24 0.6081 /
+  24-25 0.6028 / 25-26 0.5931 (mkt 0.5809/0.5815/0.5711). TWO artifacts died:
+  staleness inflated historical logloss AND end-of-season snapshot had
+  leak-FLATTERED 25-26 (0.5875 -> honest 0.5931). Real gap ~+0.022 in every
+  season; the "improvement trend" was opposing measurement biases. All prior
+  per-season numbers superseded. Live production unchanged (as-of today =
+  snapshot). [5d42ba]
+- D45 x_minutes (DARKO minutes projection) REJECTED as props minutes projector:
+  beat a flat trail-20 strawman but loses to the shipped recency-weighted
+  projector (-0.049, CI -0.077..-0.023). Rule reinforced: gate against the
+  SHIPPED baseline. Bonus: x_minutes stabilizes settled rotations but lags
+  role changes worse than trailing. [b4f96c]
+- D46 SHIPPED (autopsy-driven, from Sean's rejection re-review directive):
+  walk-forward SCHEDULE LAYER — empirical home edge (hardcoded 3.0 was ~1.1pts
+  stale) + revived B2B (FALSE REJECTION: props-level test measured the wrong
+  aggregation; schedule level: home-b2b -3.4, away-b2b +1.5). Paired gate
+  +0.00539 CI(+0.0024,+0.0085), better EVERY season. New capstone:
+  0.5999/0.5962/0.5918 (gaps +0.019/+0.015/+0.021). [34f412]
+- D47 Dead-team incentive term NS at gate despite strong residual signal
+  (late-season lottery teams -8pp at home): coefficient too noisy walk-forward.
+  Not shipped; retry with fixed effect/elimination math/injury-feed. [59cb94]
+- Re-gates pooled 3 seasons: recency-FF conclusively dead; fitted blend weights
+  still ns; comp-heavy 60/40 hairline-pass PROVISIONAL. [34f412]
+- DATA UNLOCK: official NBA injury-report PDF archive confirmed live
+  (ak-static.cms.nba.com date-pattern URLs, 200s back to ~2021) — real PIT
+  injury feed; next major ingest.
+- D48 Hardcoded-constants audit (Sean's directive after HOME_EDGE payout):
+  SCALE=7.2 checked post-sched-layer — implied 6.69 in-sample but held-out
+  recal WORSENS (0.5918->0.5923): not era-stable, LEAVE. Residual platt bias
+  -0.13 logit (halved by D46). Constants still ungated, queued in priority
+  order: (1) cold-start ramp /20 games (ratings fallback), (2) ROSTER_DAYS=12
+  (comp roster window), (3) trailing-10 minutes window, (4) props
+  half_life_games=10, sd_min floor 2.0, (5) ridge 25 (ratings/FF). Gated
+  already: PRIOR_REGRESS 0.75 (plateau), team_home_ridge 200 (monotone),
+  w_comp 0.7 (moot post-FF), 50/50 blend (re-gated 3 seasons).
+- QUEUED EXPERIMENT (Sean): fit-time motivation handling — downweight/exclude
+  dead-team late-season games when FITTING FF/ratings (the dual of D47's
+  predict-time term, which was ns). Rationale: tanking games contaminate the
+  strength estimates carried into next games; D47 only patched predictions.
+  Also queued: motivation via national-TV schedule flags (free), contract-year
+  (no free source, PAID_OPTIONS).
+- D54 AUDIT SWEEP (4 agents): CRITICAL — cold-start prior silently DEAD in all
+  published backtests (games_played missing before-cutoff; wh=0 always). Fixed.
+  Also: darko snapshot fallback now fails loud for past cutoffs; 5 majors
+  queued for re-gates (D33 usage random-split, D38 season leaks, D45 600s
+  recurrence, Kalman universe confound, sim 10-vs-12min truncation). [b008aa]
+- D55 NEW HEADLINE with fix: 0.5993/0.5947/0.5908 (mkt 0.5809/0.5815/0.5711);
+  paired +0.00099 CI(+0.00013,+0.00185). 24-25 gap +0.0132 = closest ever.
+  [580fb9]
+- D56 Early-season program launched (Sean's chart thesis: mature model ≈ market;
+  gap = convergence noise): continuity-weighted cross-season rolling, fade-shape
+  family, runtime component verification. [f928d4]
+- D57 All 4 audit re-gates HOLD (D33 survives PIT refit +0.0437 CI +0.027..+0.061;
+  D38/D45/Kalman stand). SHIPPED: props minutes_hist draw recentered on proj_min
+  (live center was flat mean — +0.09-0.12 MAE free, 10/10 seeds). [4d7ecc]
+- D58 V3 contract written: docs/V3_SPEC.md (StateBank 18-dim daily player states,
+  event-shock Q inflation, M0-M6 gateable build order, EKF-daily/SVI-monthly on
+  2070) + docs/V3_KEEPKILL.md (59 rows: 39 keep, 9 absorb, 7 re-gate-first,
+  1 delete). Live-path fix: predict_today.py NS x4 opp-defense shift removed.
+  Zero-evidence modules flagged: clv.py, windows.py (unscored), referee signal.
+- D60 Trade/event studies (Sean's Luka question): FAMILIARITY RAMP NOT SUPPORTED
+  — teammate finishing on arriver's passes is at steady state from game 1
+  (bounded <1.5% eFG first 100 shared min; 89 arrivals, 209k assist dyads);
+  only transition cost is the ARRIVER'S OWN TS% (-1.6%, NS, ~60-min half-life).
+  WHAT TRAVELS (n=76 midseason movers): volume ~1:1 (REB 1.02, AST .91, FTr .90,
+  FGA .77) but EFFICIENCY HALF (TS .48, 3P% .59) -> shrink shooting to long-run
+  prior post-trade; arrival effort spike +0.41 REB/36 (5 games, decays);
+  minutes -2.6/g initially; usage overshoots only on low-talent destinations;
+  audition-then-trim (pts BELOW season mean by games 11-15). DARKO trade
+  half-life ~30d but NOT exploitable. Gotcha: PBP assists need diacritic
+  folding (Doncic/Jokic silently dropped). [7bdf31 + tradedecomp journal]
+- D61 Stat mini-battery: SHIPPED CONSTRUCTIONS VINDICATED THRICE. (1) Link
+  family all NS; hindsight-optimal logistic scale = 7.20 EXACTLY (zero
+  parametric headroom). (2) MoM precision-weighted blend ~= 50/50 (inverse-
+  variance corroborates the fixed weights; do-not-ship magnitude). (3)
+  Cross-fitted W-map FAIL. KEY REFRAME: the heavy-favorite hole is NOT
+  calibration — OUR heavy favorites are calibrated (we even beat the close
+  there on shipped margins). The entire hole lives in "MARKET-heavy-favorite
+  AND we are not" (n~250-270, +0.052-0.058/game, ~55% of market-heavy games;
+  hindsight isotonic cannot touch it) = margin MAGNITUDE deficit on
+  market-identified blowouts. Named, sized (~0.004 pooled), and localized —
+  the top target for the next investigation + likely overlaps D50 chaos/
+  dead-team/April. [wf_e8896b35]
+- D62 HARD-STOP CROSS-SEASON CARRY PASSES (pre-registered single config, no
+  sweep): seed FF with prior-season rows x 0.3 x continuity, drop entirely at
+  ff-ready (bitwise-verified handover ~Nov 4-6). Pooled +0.00097
+  CI(+0.000085,+0.001816); early-season +0.0039 sig; gp[0,5) +0.0154
+  (replicates pre-registered basis); carried-subset +0.0170; NO slice harmed.
+  24-25 early window BEATS MARKET (0.59728 vs 0.60477). Caveat: pooled driven
+  by 24-25 (25-26 +NS, 23-24 inert until 2022-23 rows land). TO SHIP: port
+  scripts/es2_hardstop.py construction into production.py/four_factors.py,
+  then rerun capstone (expected ~0.5993/0.5929/0.5897). GATE B (D20
+  restoration) agent died without output — RERUN. [b58002]
+- D63 CARRY SHIPPED TO PRODUCTION: new headline 0.5996/0.5929/0.5900 (gaps
+  +0.0187/+0.0114/+0.0189; mkt 0.5809/0.5815/0.5711). 24-25 +0.0114 = closest
+  full season ever. 23-24 +0.0003 tick from carrying INCOMPLETE 2022-23 (548/
+  1230 games; retry refilling). Two-tier policy live (PAID_ORACLES): headline =
+  bought-availability tier; free tier ~+0.0035 worse. Tracking oracle (#7,
+  committed would-buy) building. [carry construction: production.py
+  continuity_map + FourFactors carry_rows, hard stop at 200 rows]
+  D63 ADDENDUM (honesty): production-port ship-confirm paired delta +0.00083
+  CI(-0.00018,+0.00181) ns — weaker than the authorizing gate (+0.00097 PASS)
+  because (a) port uses stricter PIT roster (date<before) and (b) 2023-24 now
+  carries INCOMPLETE 2022-23 (548/1230) adding noise the gate's inert-23-24
+  didn't have. Ship stands on the pre-registered gate; RE-CONFIRM scheduled
+  after the 2022-23 retry completes (23-24 expected to improve).
+- D64 NS-PORTFOLIO joint gate: NO-SHIP per pre-registration (+0.00266 pooled,
+  cleared the +0.0015 bar but CI(-0.00068,+0.00592) includes 0). CRITICAL
+  learnings: (a) the 4 effects stack ADDITIVELY (overlap 0.00007 — naive sum
+  honest; blocker is variance not overlap); (b) 24-25 alone PASSES +0.0063
+  (joint 0.5866 = gap +0.0051, closest-ever); (c) heavy-fav intersection subset
+  PASSES +0.0219 CI(+0.0029,+0.0403) — dead-FE (+0.0175) + evrec (+0.0098)
+  reach the D61 hole; (d) 60/40 comp-heavy HURTS early post-carry (predates
+  carry — recorded as carry-era-superseded, no longer provisional); (e) D63
+  stale-caveat resolved: 2022-23 fully reflected in carry2, no re-confirm due.
+- D65 INTERSECTION LOCALIZED (D61 hole named): "late-season collapse cluster" —
+  market prices CURRENT-STATE capitulation, we price season aggregates.
+  Decomposition of the +0.048/game (n=281, growing: 25-26 +0.060): late-season
+  66%, dog-crushed-last-5 47% (only CI-solid factor), outs>=4 37%, April 27%,
+  dead-dog 13%; star-outs NEGATIVE (we handle those). Market calibrated there
+  (fav 89.0% vs implied 88.1%); our fav prob 9.6pp short. Top closer: LATE-GATED
+  trailing-form margin term (hindsight bound: closes 36%, -0.00185 pooled) —
+  distinct from globally-dead recency: localized where the market provably
+  prices current state. [wf_d63e66b0]
+- D66 LEAN-INTO-BEATS (Sean): W6 EARLY-SEASON model-edge window pre-registered
+  (either team gp<20; evidence: 24-25 early absolute beat -0.0084, carry
+  window 0.5973 vs mkt 0.6048). Star-outs measured as RELATIVE strength
+  (market edge 44% smaller: +0.0125 vs +0.0223) -> routed to props program.
+  25-26 mid-season beat (-0.0086) unexplained — investigate before trusting.
+  All windows validate via live CLV in October before sizing.
+- D67 IMPLEMENTATION-GAP REVIEW (3 probe-agents + codex5): Sean's thesis
+  CONFIRMED. R1: LIVE-PATH ASYMMETRY — predict_today passed no outs/b2b/date
+  (+0.002-0.007/game missing live; b2b alone +0.0023 measured) + traded-player
+  roster lingering; FIXING NOW. R2: SCALE 7.2 ~8% underconfident current era
+  (fitted 6.65, era drift 7.20->6.64) + home intercept -0.07..-0.13 -> T1 gate
+  walk-forward (a,b) calibration layer (+0.0005-0.001). R3: NEW DEAD COMPONENT
+  — carry makes ff.ready from opening night -> ENTIRE fallback branch (D16
+  prior, D20 devs, w_comp, ratings) dead again; D55 attribution stale; 23-24
+  -0.0003 regression is the carry-x-prior interaction flag -> single joint
+  gate queued. R4: handover cliff real (|dP| to 0.23) but smoothing LOSES —
+  keep hard stop (registered negative). R5: ROSTER_DAYS=12 cliff
+  self-compensating (prices return rust accidentally) — naive fade negative;
+  injury-feed-informed return weight = T2 candidate. R6: refit staleness
+  DOESN'T EXIST (slope CI spans 0) — weekly cadence closed. R7: HAZARD —
+  dead-team betas (raw -11!) fitted-but-never-applied; wiring flags without
+  re-gate would inject them -> docstring guard needed. GATE_POLICY_V2.md
+  written (T1 solo / T2 portfolio tiers). [wf_e342cadf]
+- D68 LIVE-PARITY FIX SHIPPED (D67 R1): predict_today now passes game_date,
+  b2b flags (yesterday-schedule lookup), OUT sets from the official injury
+  report feed, and a departed-player filter (traded players no longer linger
+  in the 12-day comp roster live). Live path now matches the free-tier
+  backtest construction. Remaining live/backtest delta = availability tier
+  only (report vs oracle, ~0.0035, priced in PAID_ORACLES).
+- D69 BETTING SIM (IS 23-25 / OOS 25-26, -110 vig): NO rule OOS-profitable vs
+  the CLOSE. W6-early was IS-positive vs FAIR close (+1.7-3.1%) but vig eats
+  it and the early edge didn't recur OOS (25-26's beat was MID-season) —
+  windows are regime-dependent year to year. Implication: money vs the close
+  needs better prices (earlier lines/soft books/props), not just eligibility.
+  WIN INTUITION: sharper-edge = star-out FAVORITES (availability machinery,
+  70.8% hit); 25-26 mid beat = converged-ratings precision in stable-roster
+  regime (zero dead teams in window). LOSS PROFILE: flatness bleed is UNIFORM
+  across strength/teams (+0.07 prob shortfall everywhere) = GLOBAL margin
+  underconfidence, matching D67-R2 (scale 6.65 vs 7.2) -> the walk-forward
+  calibration layer is the fix, launching T1 gate. DATA GOTCHA: game_inactives
+  covers only 20/1230 of 25-26 — backfill needed. [2ab5b2, 91fdfb]
+- D70 GATE B (D20 restoration into sched layer): FAIL — pooled -0.00002 exact
+  null; 25-26 nearly significantly HARMFUL; DEN/UTA altitude subset shows NO
+  concentration. Root cause: NONSTATIONARITY — home_dev collapsed across eras
+  (DEN +1.02->+0.32, UTA +0.27->-0.30); the original D20 pass was era-specific.
+  D20 stays vestigial; team-home advantage closed as a dead vein. Control
+  verified vs carry capstone at 1.7e-14. [3977de]
+- D71 WINDOWED PORTFOLIO: NO-SHIP (pooled +0.00155 CI(-0.00268,+0.00562) NS)
+  BUT the discovery is the LATE-GATED FORM term alone: isolation +0.00178
+  CI(+0.00076,+0.00275), late-season +0.0053 CI-solid, D61-hole +0.0116 —
+  captures ~96% of D65's hindsight bound with ZERO hindsight (walk-forward k
+  rising 0.03->0.11 across seasons, mirroring the growing collapse cluster).
+  NOT shipped (third look on spent data); FROZEN for 2026-27 live confirm per
+  GATE_POLICY_V2. Anti-additivity lesson: dead-FE and form both price
+  capitulation — carry only ONE late-season term (form dominates). D61 subset
+  +0.0276 PASS = ~58% of the hole closed by the portfolio. [7a104a]
+
+## 2026-27 FREEZE LIST (candidates locked before opener; one-shot live tests)
+- F1 late-gated form term (D71 primary; solo)
+  **[RETIRED by D143 — and the earlier "struck because D90 absorbs it" reason
+  is SUPERSEDED, not merely restated. D90 was reverted at D112/D118, so RT2's
+  killer no longer exists; re-gated against the D132 certified control with
+  `fit_form_k` imported verbatim (walk-forward k BIT-IDENTICAL to RT2's on
+  every shared refit date) the term is pooled **-0.00000076**, season-cluster
+  CI(-0.00099,+0.00099), cluster-mean t 4 dof CI(-0.00159,+0.00159), MDE80
+  0.00126 so the null is INFORMATIVE. On D71's own dev seasons it is +0.00052
+  = 29% of its registered +0.00178; on the never-selected-on seasons -0.00078;
+  rolling-origin 2/4 with drift +0.00109/season. There is nothing left for a
+  2026-27 one-shot to confirm.]**
+- F2 event-recency window blend (3 consistent positives, D52/D64/D71)
+  **[RETIRED by D124: settled on the certified stack at 5-season power —
+  pooled +0.00002 CI(-0.00152,+0.00166) NS; dev NS, holdout negative]**
+- F3 walk-forward calibration layer (pending T1 verdict)
+- F4 W6 early-season window + sharper-side CLV rules (bet layer, D69)
+- D72 TRACKING ORACLE (#7, bought-tier ceiling): pooled NS (+0.00043) BUT
+  heavy-favorite subset +0.00590 CI(+0.00263,+0.00898) significant, positive
+  ALL seasons — closes ~22% of the heavy-fav gap to market; the "unreachable"
+  favorites hole is partly MATCHUP INFORMATION, reachable at margin level.
+  Chaos teams: wrong side (tracking does NOT fix D50). Purchase case for
+  Second Spectrum: strengthened but conditional-use-shaped; a live conditional
+  term must condition on OUR confidence (market-blind), needs own gate.
+  PAID_ORACLES #7 row updated. [9a50ab]
+- D73 APRIL TANK PROGRAM **PASSES, DECISIVELY** (pre-registered one config)
+  — **[SUPERSEDED BY D112: DEMOTED. "Decisively" was a dev-season claim. With
+  the corpus floor derived from data and the coefficient WARM, the held-out
+  effect is +0.00147 CI(-0.00036,+0.00329) NS on 2021-22+2022-23 and +0.00032
+  NS on 2023-24. Still shipped (TANK_TERM=1 default) because the held-out
+  point estimate is positive and removing it is worse in all five seasons —
+  but it is UNCONFIRMED out-of-sample, not proven.]**:
+  margin += k*tank_score_diff, active gp>=55 only; tank composite = vet-minutes
+  shift + rotation experimentation + shutdown listings + standings incentive
+  (all PIT); k walk-forward ~-2.5..-3.3, stable. Pooled +0.00401
+  CI(+0.00112,+0.00672); Mar/Apr +0.0134 CI-solid; D65-hole +0.0210 PASS.
+  New capstone: 0.5993/0.5891/0.5819 -> gaps +0.0184/+0.0076/+0.0108.
+  Validation: tank composite vs margin residual r=-0.20 (active), collapse-
+  cluster AUC 0.73; top tankers face-valid (PHI-25, TOR-24). SHIPPING to
+  production. Overlap warning: replaces/blocks F1 form term (one capitulation
+  term only, D71 anti-additivity). [apr_results.json]
+- D74 T1 CALIBRATION: pooled NS (+0.0001 CI -0.0013..+0.0015) — the uniform-
+  underconfidence fix does NOT generalize walk-forward (third calibration null:
+  D48, D61, T1). Flatter-lands subset +0.0027 PASS but zero-sum vs rest.
+  SCALE stays 7.2; calibration vein CLOSED permanently. [t1_calibration_results.json]
+- D73-SHIPPED (2026-07-30): April tank term IN PRODUCTION. nbapred/model/tanking.py
+  (composite ported verbatim from apr_program.py — reproduces the gate table to
+  2e-15; TankModel prefit per-(team,date) map applied INSIDE Predictor.margin,
+  callers pass nothing new; live slates primed via get_tank_model virtual rows,
+  parity test vs truncated-DB <1e-9, tests/test_tanking.py). Production k
+  DIFFERS from the gate's MLE by design: self-contained walk-forward OLS
+  home_margin ~ [1, tank_diff, wpct-diff control] on all completed active
+  (gp>=55) games incl 2022-23 burn-in, n/(n+600) shrink toward 0 (mirrors
+  fit_schedule_layer) -> k ~ -1.6..-2.3 (~70-75% of gate MLE -2.5..-3.3).
+  Shipped capstone 0.5975/0.5891/0.5833 (gaps +0.0166/+0.0075/+0.0122), pooled
+  delta vs ctrl +0.00418 CI(+0.00239,+0.00589); vs gate arm (expected
+  0.5993/0.5891/0.5819): 23-24 BETTER -0.0019 (port has 2022-23 active history,
+  gate's accumulated-hist started empty and its n=20 MLE overshot k=-5.4),
+  24-25 -0.0001 match, 25-26 +0.0014 worse (the 600-shrink undershoots the
+  grown effect; no-shrink counterfactual matches the gate arm to -0.0004).
+  Zero-outside-window HOLDS: term adds exactly +0.0 when inactive; observed
+  1.5e-14 diffs on both-gp<55 games = pre-existing rerun jitter (two PRE-port
+  runs differ 1.8e-14, D63 gotcha). NEW HONEST HEADLINE 0.5975/0.5891/0.5833.
+  [capstone_pergame_tank.csv, logs/capstone_tank.log]
+- D75 BET SIM v2 (tank model): protocol verdict still NEGATIVE (selected R5
+  tank-signal rules reversed OOS on n=7/12 — dead). BUT non-selected
+  diagnostics: R4 LOW-THRESHOLD (late-season window, the tank term's home)
+  went flat-OOS-POSITIVE AT VIG: R4(.02) +5.59% (n=46, 73.9% hit), R4(.04)
+  +8.42% (n=29); fair +10-13%. Honesty flags: no selection protection;
+  quarter-Kelly NEGATIVE on same bets (sizing-miscalibration signature).
+  ACTION: R4 low-t promoted to PRIMARY pre-registered bet rule for 2026-27
+  paper-trading with CLV logging (F4 updated); line shopping (~2-5c on
+  favorites) covers remaining gaps on the band. First flat-OOS-vig-positive
+  result in program history. [39b63d]
+- D76 ADVERSE-SELECTION HYPOTHESIS TESTS: H10 REFUTED (p_mkt calibrated at
+  extremes; benchmark honest, even slightly flatters us). H1 REFUTED WITH
+  REVERSAL: divergence damage concentrates in QUIET games (no unresolved
+  Questionables: d=+0.088, 35.7% win) while high-news divergences are fine
+  (d=-0.009, 51.5% win) — market's divergence edge is STRUCTURAL, not late
+  injury news; news-step-aside rule CONTRAINDICATED. H2: return minutes-cap
+  real (-4.9 min, ramp 3 games) but causes no losses (D51-consistent).
+  H4 REFUTED + candidate edge: market OVER-shades clinched teams (-0.73 pts
+  vs us) with no payoff — we beat market's number there (n=164). H9 URGENCY
+  directionally supported: market shades must-win play-in teams +0.47 pts
+  CI(+0.03,+0.93) vs us — best-supported next margin feature; underpowered
+  n=229, needs 2021-22 data or wider definition. ALL late-news stories now
+  dead across the program. [49fc23,1ebabc,191d64,92d7d6]
+- D77 MARKET-BLOWUP AUTOPSY (150 worst L_mkt games + codex): market blowups are
+  PRICED VARIANCE, not systematic error — every sizable pocket (tanky dogs,
+  early heavy favs, rested favs) is favorite-SAFER than priced; q>0.9 favs
+  over-deliver. Our blowup "dominance" (116/150) is 100% MECHANICAL flatness
+  (real signal on those games: -1.5 nats). CRITICAL REFRAME: our real deficit
+  is LARGER ON TOSS-UPS (-0.0116/gm) than confident games (-0.0065/gm) — the
+  market's edge lives in the MIDDLE of the distribution, i.e. margin PRECISION
+  (the v3 state-space thesis), not tail events. No anti-favorite harvest
+  exists; "fade favorites" explicitly contraindicated. Research lead only:
+  market-residual dog overlay (div>=0.10 + dog outs: upsets 24.3% vs 16.9%
+  implied, fair +0.39) — overlaps OOS-negative families, needs forward test.
+  Strategic read: market OVER-reacts to availability news both ways →
+  pro-shaded-side structure, consistent with our star-out-favorite wins.
+  [ab1add]
+- D78 BET SIM v3 (tail-tier, Sean's thesis refined): decile curve CONFIRMS
+  tails-least-bad pooled (only top |p_us| decile positive; deciles 0-7
+  -0.0121/gm) BUT tail advantage reversed in 25-26 (IS-only) — naive
+  tail-betting not robust standalone. FIRST SELECTION-PROTECTED OOS-VIG-
+  POSITIVE RULE in program history: T20.D03-10+W flat +3.18% qkelly +3.60%
+  (n=11, noise-compatible; Kelly-consistency signature GONE = sizing sane).
+  ROBUST STRUCTURAL FINDING: +W late-season window OOS-positive at vig in
+  4/4 rules — THIRD consecutive sim where late-season survives OOS. News
+  overlay (+N) failed OOS (H1 reversal didn't carry). Closest-to-profitable
+  at real n: T20.D03-10 base (n=63, flat -0.65%, fair +3.83%) — needs only
+  ~0.8c/$1 shopping, smallest gap ever at n>50. 2026-27 PAPER-TRADE REGISTRY
+  (F4 final): R4-low-t + T20.D03-10+W + T20.D03-10 base, flat stakes, CLV
+  logging from opening night. [241f07]
+- D79 PROPS BUG CLUSTER (codex source review): ALL REAL, FIXED in props.py —
+  (1) missing 002 filters: 21,177 non-regular-season rows contaminated rates
+  (869/1006 players had preseason in their last-20 at Nov 1!); (2) or-zero
+  fallbacks replaced 16 valid 0.0 shooting estimates with league avg (hall-of-
+  shame #6 again); (3) Kalman forward step was literally predict(0) no-op —
+  fixed to design. Validation: 20/20 tests green; PIT 0.498->0.484, paired
+  dCRPS +0.021 NS — contamination was BIAS CANCELLATION masking an early-season
+  minutes over-projection -> explicit gated "early minutes ramp" candidate
+  queued in place of hidden contamination. any_value(team_id) diagnosed:
+  fragile UB, 1 misattribution/3 seasons; robust fix = arg_max (queued).
+  OTHER INSTANCES reported (not yet fixed): pit.py:47, compose.py:43/78,
+  skill_priors:102-105 (002 filters); v1_fit:54 `or np.nan` (suspicious),
+  possessions_v2:86, adjusted.py:47 (truthiness) — fix round queued. [063f19]
+- D80 ARRIVAL adjustment NULL (-0.00006 CI spans 0 — traded-player efficiency
+  shrink doesn't move TEAM margins; D60 coefficients stay a PROPS asset).
+  URGENCY +0.00028 CI(-0.00025,+0.00079) positive-NS as predicted underpowered
+  — FROZEN as F5 for re-gate when 2021-22 lands (with tank-term interaction
+  check). [mr_*_results.json]
+- D81 LIVE-PATH FIX CLUSTER: codex's "tank dead live" REFUTED (stale bundle;
+  runtime probe: alive, parity 5e-16) BUT the REAL October-killer found: the
+  hardcoded season default would have fed virtual rows gp=82 -> tank wrongly
+  active with stale composites on opening night. FIXED: dynamic
+  current_season() in config, wired through predict_today/windows/team_ratings/
+  referees/v1_fit. arg_max composition fix: zero behavior change (pure
+  determinism). Full hygiene cluster fixed (pit/compose/skill_priors 002,
+  v1_fit or-nan, windows arg_max, darko validation, possessions zone-zeroing
+  now defers instead of freezing). NEW PROBE-DISCOVERED BUG: cached PBP lacks
+  homeTeamId -> possessions_v2/defense_zone had home/away SWAPPED on every
+  home-offense possession (zone defense attributed ALL shots to the home
+  five!) — fixed via gamerotation team ids; downstream zone-defense features
+  need rebuild before reuse. Backtest bitwise-intact (0.5833 repro), 20/20
+  tests. [895c07]
+- D82 EDGE SYNTHESIS (where/why we win — lean-in directive): our demonstrated
+  edges share ONE mechanism: availability/effort INFORMATION processed without
+  over-reaction. (1) LATE-SEASON tank window: only demonstrated info advantage
+  (OOS-vig+ in 3 consecutive sims) — market underprices capitulation; (2)
+  STAR-OUT sharper-side favorites: 70.8% hit — redistribution science beats
+  market's absence over-reaction (D77 pro-shaded-side); (3) EARLY-SEASON
+  carry convergence (regime-dependent, eligibility only); (4) our-confidence
+  tails w/ capped divergence (near-profitable, 0.8c short). We lose where
+  mid-distribution margin precision + aggregation dominate. PAPER-TRADE
+  registry +rule 4: sharper-side star-out favorites (pre-registered from
+  bet_diagnose evidence). PRODUCTION LEAN-IN: wire D33/D39 star-out
+  redistribution into LIVE props (the un-shipped half of our best science).
+- D83 STAR-OUT SCIENCE WIRED INTO LIVE PROPS (nbapred/engine/starout.py):
+  KEY DISCOVERY — full D33/D39 magnitudes DOUBLE-COUNT live: the trailing
+  EWMA baseline already absorbs ~2/3 of redistribution (absences cluster;
+  contamination 0.26 mean), so as-written application made points CRPS -0.63
+  WORSE. Shipped the RESIDUAL-magnitude version (lift=1+0.16(L-1),
+  tilt=0.39xD39, walk-forward fitted): held-out attempts LL +0.049
+  CI(+0.036,+0.062) BETTER, rebounds +0.004 BETTER, points ~match (exactly
+  D34's attempts-move-5x prediction). Fresh-news stratum (October analog)
+  attempts +0.043. 24/24 tests. The D35 contamination mystery is now
+  MECHANISM-ATTRIBUTED and the correction shipped. [a92248]
+- D84 REGIME WAR (4 deep-dives): [A EARLY — BREAKTHROUGH] Week-1 comp leg is a
+  LITERAL DEAD ZERO (ROSTER_DAYS=12 + 002-only -> empty October rotation, cm=0
+  AND outs channel dead — opening-night star absences invisible!) = 49% of
+  early loss. "OCTOBER COMPOSITION BRIDGE" (preseason 001 rosters + prior-
+  season trailing min + PIT DARKO + outs) reaches MARKET PARITY week 1
+  (+0.0340 active CI(+0.0049,+0.0631); week1 ll 0.6056 vs mkt 0.6041).
+  Discovery-data disclosure -> FREEZE-LIST October one-shot confirm (F6) +
+  live-package (cm_ps path in predict_today + ps-continuity carry weights +
+  001 ingest pre-opener). Rookie draft-slot prior = candidate #4. Preseason
+  point-diff honestly rejected (attenuation artifact). gp10-20 already at
+  parity — the problem was gp<10. [B TRANSITIONS] Sean's symmetry HALF-RIGHT,
+  sharp split: traded-away lift = benched lift (1.115 vs 1.113) UNTIL the
+  trade executes; post-execution re-equilibration differs. [C CORE] BATTERY
+  NULL: 49 PIT features, ZERO survive confirmation split — mid-distribution
+  deficit resists feature mining entirely; v3 precision architecture is the
+  only remaining path (D77 confirmed twice). [D LATE] residual NOT uniform
+  (Mar near parity); LATE-STATE LAYER v1 spec takes +0.0168->+0.0112 active;
+  remainder = April margin precision. [wf_f9bb526c]
+- D85 ROOKIE DRAFT-SLOT PRIOR (D84-A candidate #4) REJECTED at the incremental
+  gate: adding current-class rookies to the October bridge (walk-forward slot
+  curve dpm=a+b*ln(pick) x preseason-implied minutes/48, same outs convention)
+  is sign-consistently HARMFUL — active-window paired delta -0.00222
+  CI(-0.00636,+0.00182), 0/3 seasons positive; bridge ll 0.6056->0.6078 (mkt
+  0.6041); harm concentrates in the 133/156 games where a rookie played.
+  Control bitwise-replicates rw_early_v1_gate (+0.03395). Second consistent
+  refutation of rookie terms (D84 battery's rookie_ps_share t-stats never
+  convert) — the parity bridge already prices rookie weakness; F6 freeze-list
+  package stays rookie-free. ASSETS SHIPPED: nbapred/ingest/draft.py +
+  draft_history table (8,434 rows, classes through 2026); slot->rookie-DPM
+  curve (stable: pick1 -1.0, pick30 -2.0, pick60 -2.2 = undrafted level);
+  PIT minutes map reg_mpg = -4.24+1.089*ps_mpg (corr .75). GOTCHA: darko_history
+  has NO pre-debut rookie rows (first row = day after debut). [bb1948]
+- D86 PROPS PIT REVALIDATION (post-D57-recenter + post-D79-fixes, 2025-26,
+  n=1500): NO new drift — LIVE PIT 0.484/0.292, CRPS 5.122 (benchmarks
+  0.507/5.11; CRPS at benchmark), cover80 0.821, z2 1.025; PIT mean sits
+  exactly at D79's clean-universe state (0.484-0.485). Mechanism confirmed by
+  month split: proj_min over-projects minutes -0.51/game, concentrated Oct
+  (-1.38 min, PIT 0.461), mild persistent tail (Jan -0.40, PIT 0.493) ->
+  the D79-queued "early minutes ramp" is the right gated fix. Assists marginal
+  still ~17% under-dispersed (z2 1.169); 3PA/FTA compensation pattern intact.
+  [7fb2d5; scripts/diag_props_pit_drift.py; data/logs/thread5_props_20260731.txt]
+- D87 ASSIST-EXPOSURE MINUTES-COUPLING (codex6 props item) FAILS decisively —
+  scalar ast_expo (D30) re-affirmed: partial coupling c=0.5 HARMS ast CRPS
+  -0.0074 CI(-0.0084,-0.0064); independent-minutes mixing (ig_props_variants E,
+  zero coupling) -0.0270 CI(-0.0296,-0.0245); harm MONOTONE in mixing weight
+  (c=0.25 -0.0019, c=1.0 -0.0279); control reproduced bitwise. Key: full mixing
+  fixes the z2 under-dispersion (1.169->1.047) yet worsens CRPS — the missing
+  assists variance is RATE over-dispersion (NB-mixed rate = future candidate),
+  not exposure. NO SHIP. [af76da; scripts/gate_ast_expo.py]
+- D88 PACE PATH (apply_pace) REJECTION CONFIRMED under first clean construction
+  (2025-26, n=1200, post-D79 002-clean team_pace; ran the queued-never-run
+  ig_pace_fix.py): shipped form has +1.9% uniform level bias (stale
+  LEAGUE_PACE=99.5 divisor; mult mean 1.0188) -> CRPS harm -0.0240
+  CI(-0.0351,-0.0125); level-corrected form (game_pace/own_pace, mult mean
+  1.0000 sd 0.0095) STILL harmful-side NS -0.0030 CI(-0.0089,+0.0029). Prior
+  rejections (ablate_pace_props, retest_rejected EB-shrunk) were pre-D79 and
+  divisor-biased but NOT overturned — honest pace signal is ~±1% volume, too
+  small. apply_pace stays out of live; team_zone_defense/apply_opp_defense
+  remain unused per D58. [a7e103; data/logs/thread5_props_20260731.txt]
+- D89 CODEX-7 REGIME RECONCILIATION + LOOSE-ENDS SWEEP (thread-6): codex's
+  4-regime theory answers (regime_review.md, grounded only through D80)
+  reconciled vs D84 -> docs/REGIME_RECONCILE.md. Convergences: bridge ==
+  codex's role/system state (its #1 bet, already banked); attractor split ==
+  D84-B half-right symmetry; "preseason makes barely count" independently
+  matches our preseason point-diff reject. Refuted-by-our-data: core/bench
+  split (D84-C battery contained bs_* features, all null), rookie variance
+  (D85). EXTRACTED NEW CANDIDATES (untested by us, specs in doc), priority:
+  R4a Quit-x-Urgent coarse bin surface (covers saturation + two-sidedness +
+  the D80-mandated F5 interaction check in one gate) > R4b urgency from
+  observed rotation shortening (inputs already in tanking.py) > R3a
+  rotation-instability PRECISION term (v3 variance-channel handoff — the one
+  mid-core idea the D84-C mean-channel null does NOT cover) > R2a arrival
+  compression operator (props, residual-calibrated per D83) > R1a
+  scheme-residual carry > R4c spread-bucket interaction > R3b matchup
+  geometry (BLOCKED on D81 zone rebuild). LOOSE ENDS: (1) game_inactives
+  20/1230 gotcha (D69) ROOT-CAUSED — not a load gap: BoxScoreSummaryV2 is
+  broken upstream for games >=4/10/2025 (nba_api warns; live refetch still
+  empty; cache 1223/1230 for 25-26 but only 20 non-empty = exactly the DB),
+  affects 35 late-24-25 games too, and game_officials identically; V3
+  (boxScoreSummary.*.inactives) HAS the data (verified). Fix chained:
+  scripts/backfill_inactives_v3.py (V2-cache sweep + V3 fetch + officials
+  top-up, lock-retry single write) runs after backfill_multi -> officials
+  retry (runner pid 1634062, marker INACTIVES_V3_DONE, log
+  data/logs/inactives_v3.log). NOTE: the pre-existing chained officials
+  retry is V2-based and will no-op on the broken window. (2) 2021-22
+  player_game_stats VERIFIED landed (1230 games/31,321 rows/619 players,
+  25.5 rows-per-game + 1137 avg-sec in family) -> F5 urgency re-gate
+  unblocked feature-side; bridge's 2022-23 fallback quasi-holdout unblocked;
+  2022-23 carry basis re-confirmed (1230/1230, per 7ec64e). (3)
+  backfill_multi status: 2021-22 pass done ok=328 fail=902 — failures are
+  ALL gamerotation (endpoint returns empty body on archive seasons;
+  boxscoresummaryv2/v3 fetches work) — 2020-21 in progress ~230/1080 at
+  ~17% ok; player_game_stats 2020-21 partial (32 games), expect incomplete.
+  (4) STAT_INVENTORY.md updated (carry/tank/urgency/bridge/late-layer/
+  starout/draft/availability-PIT sections + D81 zone-rebuild caution).
+  [docs/REGIME_RECONCILE.md]
+- D85 EXTERNAL-MODEL INVENTORY (the DARKO pattern, $0): docs/EXTERNAL_MODELS.md
+  ranks 12 free external model outputs by PIT-history availability. HEADLINE:
+  **EPM has full DAILY PIT history back to 2002, free and anonymous** —
+  dunksandthrees serves the complete as-of table for any date via
+  /epm/__data.json?date= (has_access:0 is UI-only; 552/552 values verified
+  2024-01-15; each date is its own cumulative decayed-RAPM run per their
+  methodology = data-PIT by construction, same D43 epistemic status as DARKO).
+  Probes green + raw-cached: ext_epm.py, ext_bbref_bpm.py (current scrape +
+  weekly Wayback PIT, 72/30/27 days per backtest season; BUILD in-house BPM
+  for daily exact PIT — formula is published, box scores already loaded),
+  ext_raptor538.py (RAPTOR CSVs on GitHub + nba_elo.csv 73,363 games w/
+  pregame elo/carm-elo/raptor probs via Wayback — PIT by construction but
+  ENDS 2023-06: benchmark oracle only, not an ensemble leg). TALENT-ENSEMBLE
+  GATE pre-registration drafted (DARKO+EPM+BPM equal-weight z-avg, zero
+  fitted params, gp<20 concentration window per D62 clause; error-correlation
+  diagnostic runs first — DARKO/EPM are cousin architectures, BPM is the
+  diversifier). MARKET-BLIND GUARD flags registered: ESPN BPI (Vegas win
+  totals in preseason prior) FORBIDDEN as input; Massey composite + any
+  market-derived rating likewise; G2 subset-use only. BUILD>take decided for:
+  ref effects (game_officials loaded ⇒ exact PIT), travel/schedule (D46 layer
+  + arena coords), RAPM (fit_rapm.py). Risk hedge: pull the ~650-date EPM
+  backtest grid EARLY (access could tighten); Wayback-stability diff vs
+  archived 2022 /epm pages before any gate. [docs/EXTERNAL_MODELS.md]
+- D90 LATE-STATE LAYER v1 (D84-D top candidate) **PASSES its pre-registered
+  one-config gate and is SHIPPED** (thread-2)
+  — **[REVERSED BY D112: DEMOTED AND REVERTED, `LATE_STATE` now defaults to
+  "0" and the layer is OFF in production. This entry's registered confirm (a)
+  "2021-22 fresh-data confirm" is the test that killed it: with the corpus
+  floor derived from data the layer is warm on the genuine holdout and its
+  effect there is +0.00014 CI(-0.00085,+0.00108) — a precise null, 5% of its
+  dev effect — while dev stays +0.00267 PASS and the 2023-24 gate season goes
+  NEGATIVE (-0.00085) with the layer active on 33.6% of games. DiD
+  dev-minus-held +0.00253 CI(+0.00005,+0.00492) SIG. The "monotone growth =
+  the collapse cluster" story below was observationally equivalent to
+  development overfit, and the holdout has now separated them.]**:
+  margin += c_f*(form5diff) +
+  c_o*(outsdiff), active either-gp>=55 only (tanking.py activation, exactly
+  0 otherwise); daily walk-forward OLS margin~[1,tsd,fdiff,outdiff,wdiff] on
+  all completed active games since 2022-23 (414 burn-in rows, outdiff=0
+  there), n/(n+600) shrink, sign guards c_f>=0/c_o<=0; tsd+wpct fit-time
+  controls ONLY; shipped tank k untouched (L4 anti-additivity). GATE
+  (scripts/ov_latestate_gate.py; same-run control = full production incl.
+  carry+tank, replicated capstone_pergame_tank.csv at 2.0e-14 on all 3690;
+  window exactly n=1242 = tsd!=0): POOLED +0.00189 CI(+0.00053,+0.00329) —
+  ship rule (pooled CI excludes 0) MET; active +0.00560 CI(+0.00122,
+  +0.00976) = 7.0/20.9 nats (33% of the D84-D residual), 58% of active
+  games improved; per-season active +0.0000/+0.0039/+0.0128 (monotone
+  growth = the collapse cluster); pockets JanFeb +0.0055/Mar +0.0032/Apr
+  +0.0111; active d-vs-market +0.0168 -> +0.0112, April coefs c_f +0.031 /
+  c_o -0.562 — the D84-D spec's expectations reproduced almost exactly;
+  zero-outside-window bitwise. PORTED: nbapred/model/latestate.py (fit
+  frame self-contained; historical out counts reconstructed as-of game
+  date from the comp roster definition — documented design difference vs
+  the gate's weekly-refit counts, 88.6% exact/97.1% within +-1, |c_o| ~3-5%
+  smaller, same class as D73-SHIPPED's k), wired inside Predictor.margin
+  both branches, LATE_STATE=0 kill switch (mirrors OCT_BRIDGE), live parity
+  inherited from the primed TankModel (no predict_today changes). SHIP-
+  CONFIRM capstone under OCT_BRIDGE=0 (like-for-like: the D84-A bridge
+  landed mid-thread, after this gate ran): 0.59759/0.58767/0.57894 vs gate
+  arm 0.59745/0.58774/0.57901 = +0.00015/-0.00007/-0.00007, all within the
+  registered 0.0005/season; only off-parity inactive games = the 156 week-1
+  games touched by the bridge thread's non-env-gated refit-1 ps-continuity
+  (outside this layer's window). Tests 5/5 new (incl. truncated-DB live-
+  parity) + full suite 48 passed. LAYER HEADLINE (bridge off): 0.5976/
+  0.5877/0.5789 (gaps +0.0167/+0.0062/+0.0078). COMBINED current-production
+  headline (D84-A bridge + D90 layer, oracle tier): 0.5960/0.5861/0.5806
+  [capstone_pergame_late.csv] — note for the D84-A owners: the week-1
+  package helps 23-24/24-25 (-0.0016 each) but costs +0.0017 on 25-26 vs
+  layer-only in this oracle-tier run. Freeze-list: F1 solo-form is
+  SUPERSEDED by this layer (do not run both); registered confirms remain
+  (a) 2021-22 fresh-data confirm (player_game_stats landed per D89; needs
+  2020-21 burn-in + odds), (b) 2026-27 live one-shot. Honesty flags:
+  discovery session exploratory (~6 families); outs term gated on ORACLE
+  tier — live report-tier April attenuation expected (D49 premium
+  ~0.0037). Remaining active residual +0.0112 = April mkt-heavy margin
+  precision (v3 territory). [ov_latestate_results.json,
+  ov_latestate_verify.json, 515219]
+- D91 OCTOBER LIVE PACKAGE SHIPPED (D84-A build; the GATE remains the F6
+  October one-shot confirm): (a) nbapred/model/october_bridge.py — the
+  rw_early_v1_gate construction ported verbatim (001-roster argmax-minutes
+  UNION prior-season primary team; contrib = PIT DARKO x trailing-min/48;
+  outs live via the injury-feed sets predict_today already passes), wired
+  INSIDE Predictor.margin behind a per-game rotation-empty guard (no comp
+  player of either team within ROSTER_DAYS -> the literal cm=0 dead state),
+  so backtest and predict_today share ONE code path. D73-style parity:
+  truncated-live-DB bridge == gate table (rw_week1_psroster.csv cm_ps_o,
+  itself 5e-15 vs the gate script) <1e-9 on all 53 2025-26 week-1 games;
+  Predictor probe (ON-OFF)==0.5*cm_ps to 3e-13; mid-season ON-vs-OFF 4e-14
+  = zero-outside-window HOLDS. (b) refit-1 carry weights: continuity_map
+  now uses the preseason ps_cont_any proxy (corr 0.93 / MAE 0.034) when a
+  team has no 002 roster yet — kills the all-30-teams DEFAULT-0.5556
+  opening-night gotcha; refit-1 fm shift sd 0.28 pts. Wired 25-26 week-1
+  slice -0.0011 CI(-0.054,+0.050) == the gate's own 25-26 active arm
+  (-0.0035 NS; the pooled +0.0340 power sits in 23-24/24-25). ENTIRE
+  package behind one OCT_BRIDGE=0 kill switch = exact old shipped behavior
+  (F6 same-run control; also resolves the D90 off-parity note on week-1
+  games). (c) 001 ingest: pull_nba_daily now also pulls the UPCOMING season
+  during September (preseason 001 games appear under the new label while
+  current_season() still resolves to the finished one) and cron gains
+  build_player_stats (001 boxscores -> player_game_stats BEFORE the
+  opener — bridge + carry proxy inputs). (d) PAPER-TRADE ENGINE
+  scripts/bet_engine.py: the pre-registered D75/D78/D82 four-rule registry
+  (R4_LOWT same-side edge>.02 & either-gp>=55; T20.D03-10+W; T20.D03-10;
+  STAR_FAV_SHARPER = sharper fav with a 28-trailing-min OUT, live-feed
+  analog of ba_intersection), flat 1u stakes, consensus de-vig (median
+  across books) + best-price capture from raw odds JSONL with odds_quotes
+  fallback, first-emission-wins INSERT OR IGNORE into NEW table bet_paper,
+  --settle fills outcome/PnL/CLV vs the last pre-tip snapshot, offseason
+  no-op verified; predict_today refactored onto shared
+  nbapred/engine/slate.py so the engine prices the SAME slate numbers.
+  10 new tests, full suite 48 green. [tests/test_october_bridge.py,
+  tests/test_bet_engine.py, ops/crontab.example]
+- D92 v3 M1 TEAM-DLM: GATE FAIL — STOPPED per pre-registered stop rule before
+  player-level. DLM beats FF standalone (+0.0021 NS) and passed its cheap
+  falsification (R2 +0.017, t=7.3) but LOSES inside the blend (-0.0021):
+  filtered margin is attenuated (sd 6.48 vs 7.69) and comp-correlated (0.842)
+  — swapping removes orthogonal information. Its entire net value is OCTOBER
+  (+0.0096 CI(+0.0016,+0.0169) every season) — real continuity dividend but
+  F6 bridge is stronger there (0.6056 vs 0.6559 week-1). Leads if resumed:
+  M2 variance/link head could fix attenuation; October-DLM overlay gateable.
+  MLE rediscovered D16's 0.75 regress (kappa 0.5-0.75) — nice consistency.
+  9 new tests green; StateBank infra stays (shadow harness works). [5a95d8,
+  04e109]
+- D86 TALENT-ENSEMBLE GATE PRE-REGISTRATION + EPM ACCESS CORRECTION (external-
+  models track continuing the D85 inventory above; NOTE: a parallel thread
+  independently used D85/D86 for rookie-prior/props-PIT — numbering forked,
+  entries distinguished by content). (1) CORRECTION to D85's EPM headline:
+  `/epm/__data.json?date=` serves VALUES for any date but MASKS IDENTITY
+  beyond the top 5 players for anonymous users ("Locked Player", player_id=4)
+  — on historical dates AND today; `has_access:0` is NOT UI-only. The D85
+  probe verified non-null `tot` counts, never identity fields. The free
+  identity-bearing PIT path is the LIVE /epm page (fully named, server-
+  rendered today) and its Wayback captures: in-season density 2023-24 ~61
+  days, 2024-25 ~36, 2025-26 ~15; two embed formats both parsed
+  (pull_epm_wayback.py era A positional arrays / era B literal with true
+  as-of date). Era-A as-of = capture-date-1 (ET) — can only OVERSTATE
+  freshness (staleness risk, zero lookahead risk). Masked endpoint grid
+  (~640 daily dates) still pulled + raw-cached as the value hedge
+  (pull_epm_grid.py); deliberate statistical re-identification of masked
+  rows is NOT built (access-control circumvention — needs Sean's explicit
+  call; logged in FUTURE_PAID-equivalent terms: the paid tier presumably
+  unmasks). (2) IN-HOUSE BPM SHIPPED: nbapred/features/bpm.py implements
+  published BPM 2.0 (coefficients, position/role estimation, team adjustment
+  w/ SRS-per-100 + lead correction, published low-minutes regression) on our
+  box scores = exact daily PIT; validated vs basketball-reference season
+  advanced pages: corr 0.985 all stints / 0.994 mp>=500, MAE 0.24 (target
+  >0.95, scripts/validate_bpm.py; deviations documented in-module: neutral
+  50-min position prior, season-level method, B-R possession estimator).
+  (3) GATE REGISTERED (ONE config, zero fitted params, family register +1):
+  ens = equal-weight (1/3) z-average of {DARKO PIT, EPM capture-asof<d, BPM
+  asof d} on the common player set, mapped to DPM via darko mu/sd; missing-
+  source players = mean of available legs (incl. league-wide EPM-absent
+  refits before a season's first capture); swap at composition-talent level
+  via variant margin = m - 0.5*cm_pit + 0.5*cm_ens (ORACLE_MINUTES/ao
+  precedent), standalone capstone scripts/ens_talent_gate.py, same-run
+  control replication-checked vs capstone_pergame_tank.csv, nbapred/
+  untouched. PRIMARY endpoint (execution directive 2026-07-31): pooled
+  3-season paired bootstrap 2000x seed 20260730; SECONDARY: gp<20 window
+  (D62 clause; the EXTERNAL_MODELS draft had this primary — both reported)
+  and mid-distribution |p_mkt-0.5|<=0.35 (D77). Calibration veto per
+  COMPLEXITY.md. Pre-gate diagnostic REGISTERED TO RUN FIRST
+  (scripts/ens_error_corr.py): per-date cross-sectional signal AND error
+  correlations vs realized fwd-30d on-court net/48; if error rho-bar > 0.9
+  the ensemble is recorded a measured no-op WITHOUT spending the gate.
+  Wayback-stability diff (D85 caveat-1 falsification) runs pre-gate
+  (scripts/epm_wayback_diff.py; by-rank + top-5 identity under the mask).
+  [results appended after the run]
+- D86-RESULTS (same day): (1) EPM GRID PULLED: 636/636 endpoint dates
+  (daily Oct-Apr x3 seasons + today) raw-cached in 32 min, 0 errors —
+  VALUES ONLY (identity masked, see correction above); identity-bearing
+  path: 112/112 in-season Wayback captures pulled+parsed -> epm_history
+  loaded (48,078 rows, 101 asof dates 2023-10-02..2026-06-13, 842 players;
+  capture density per season 61/36/15, median asof gap 2/5/13 days).
+  (2) STABILITY DIFF: endpoint REWRITES pre-late-2024 history (2022: rank
+  corr 0.993-0.995 but mean|dTot| 0.27-0.28, stars to 1.5; 2023-24 era:
+  0.41-1.0) yet matches Dec-2024+ captures to 0.011-0.026 -> model-version
+  boundary ~Nov/Dec 2024; backtests use AS-PUBLISHED capture values (live
+  parity; zero lookahead). (3) DIAGNOSTIC (ran first, 59 dates, universe
+  272): ERROR rho-bar D-E 0.889 / D-B 0.864 / E-B 0.868, offdiag mean
+  0.874 < 0.90 no-op line -> gate spent; skill vs fwd-30d net/48: DARKO
+  0.374 > EPM 0.341 ~ BPM 0.336. (4) GATE VERDICT: **NULL — NO-SHIP,
+  measured no-op**. Pooled (PRIMARY) -0.00006 CI(-0.00144,+0.00131) n=3690;
+  gp<20 (D62 window) +0.00112 CI(-0.00150,+0.00369) n=927; mid-dist (D77)
+  +0.00016 CI(-0.00129,+0.00171) n=3171 — ensemble talent does NOT move
+  toss-ups; per-season -0.00049/-0.00008/+0.00040 (no 2/3 sign
+  consistency; pooled point below the T2 NS-portfolio band [0.0005,0.002)
+  -> no T2 either). Calibration veto clean (decile gap 0.0215 vs ctrl
+  0.0237). The swap was SUBSTANTIVE (mean |cm shift| 1.04 pts, fallback
+  share 5.9%), so the null is informative: EPM+BPM are ~redundant with
+  DARKO at composition granularity, and equal-weighting dilutes the best
+  single leg by exactly the diversification gain. NOTE control lineage:
+  D90 latestate shipped mid-day by a parallel thread -> control =
+  current production incl. D90; capstone CSV comparison is lineage-
+  diagnostic only (max|diff| 0.289), paired gate is same-run and unaffected.
+  ASSETS BANKED regardless of the null: in-house daily-PIT BPM
+  (nbapred/features/bpm.py, corr 0.994 vs B-R at mp>=500), epm_history +
+  raw capture/endpoint caches, live-page EPM parser for a daily feed.
+  [scripts/ens_talent_gate.py; data/ens_talent_gate_results.json;
+  data/logs/ens_error_corr.json; data/logs/epm_wayback_diff.json]
+- D93 ROSTER-DELTA TERM SHIPPED (D84-B unified build; trade-aware extension of
+  nbapred/engine/starout.py + predict_today wiring + validate_rosterdelta.py):
+  (1) DEPARTURE SUPPRESSION — a star whose most recent 002 game is for another
+  team (trade EXECUTED, PIT box-score signal) no longer triggers the D83
+  star-out lift (bd0208: post-execution lift collapses to placebo 1.005 vs
+  benched 1.115; newcomers absorb 17->31% of FGA); pre-execution absence keeps
+  the D83 behavior (verified live: Vucevic CHI ctx 1.022 pre, None post).
+  (2) SELLER ATTENUATION — frozen incumbents x0.9728 attempts over post-
+  departure k1-30 (shape -0.08 x walk-forward s=0.34: the live EWMA absorbs
+  most of regime-B's -6..-10%; full-strength would have overshot ~3x — the
+  D83 double-count trap, avoided by calibrating on live-baseline residuals
+  NETTED vs pre-event windows). (3) ARRIVAL COMPRESSION — buyer incumbents in
+  games the arriver plays: attempts x(1+1.08*shape), shape 0/-.12/-.07/-.04
+  at k1-3/4-7/8-12/13-30 (b89f4a), bottom-usage tercile SHIELDED (measured
+  live net 0.963 vs 0.899-0.930 mid/top); minutes tilt 0.64x(-3.6 same/-2.5
+  diff); reb/ast per-min untouched — per-game FLOWS DOWN with minutes (net
+  reb 0.949/ast 0.898; opposite of D83's tail-only case). GATE (held-out
+  events > q0.6, player-clustered bootstrap 2000x): ARR points CRPS +0.1072
+  CI(+0.0566,+0.1633), reb +0.0361, ast +0.0324 all CI-solid BETTER; DEP
+  points +0.0220 CI(+0.0054,+0.0399); pooled points +0.0652. Caveats: DEP reb
+  -0.0019 "worse" = verified RNG-stream-coupling artifact (identical
+  distributions; paired MC noise +/-0.0013); DEP attempts LL -0.0036 NS;
+  suppression-only arm NS (n=178, underpowered, structurally mandated).
+  41 DEP + 43 ARR events, 6,643 eval rows, 4 seasons; 50/50 tests. [803f72]
+- D94 EPM GRID RE-IDENTIFIED (authorized by Sean 2026-07-31) + D86 SECOND
+  LOOK: (1) The masked ?date= grid masks DEMOGRAPHICS too (every locked row
+  = generic 25yo 6'5" 205lb G rookie-2018), so the planned cumulative-stat
+  fingerprint join was impossible — identity carriers are the ~26 continuous
+  model fields. scripts/epm_reid.py instead does value-vector TRACKING:
+  backward chaining over 539 distinct game_dt slates (mutual-NN, gap-scaled
+  gates, margin guards; NN margins 30-60x adjacent days, 7-22x across
+  offseasons) + one endpoint-stitch pass, anchored at the fully-named
+  2026-07-31 live page (602/602 exact value join). VALIDATION (held out of
+  naming): named top-5 rows across all dates 2690/2690 = 100.0%; era-B
+  value-consistent Wayback captures (15 caps, 6449 pairs) 98.6% correct
+  given covered; independent DB check (roster-based universe: no player may
+  have PLAYED while his row was absent) 84% pass with flags = fragment
+  coverage holes, not misnames; rewritten-era captures consistency: identity
+  corr 0.998 (B-rewritten) / 0.923 (era A, sorted ceiling 0.996, known-
+  correct star drift med 0.77 — endpoint rewrite, not misassignment). NOTE
+  the D86 "matches Dec-2024+ captures to 0.011-0.026" is by-rank; per-player
+  the endpoint re-runs ALL history (per-pair drift ~0.04-0.06, only 1 cap
+  bit-exact) — as-published discipline for value-critical uses stands.
+  LOADED: epm_history_daily (255,534 rows, 539 asof dates 2023-06-12..
+  2026-06-13, 699 players; coverage 85.1% of rows, 93.5% of rotation
+  p_mp_48>=12 rows; confidence tiers A=chain-live/top-5, B=wayback-B,
+  C=wayback-A trajectory). (2) SECOND LOOK (labeled, no new registration
+  spent; EPM leg = current-model PIT-in-data i.e. D43-DARKO epistemic
+  class): D86 gate rerun with the daily leg (median EPM age 1 day vs 2-13
+  weekly) — pooled +0.00021 CI(-0.00106,+0.00142) n=3690, gp<20 +0.00142
+  NS, mid-dist +0.00031 NS, no per-season consistency: **D86 NULL STANDS**.
+  Error-corr rerun EXPLAINS it: fresh EPM skill 0.341->0.355 but DARKO-EPM
+  error rho 0.889->0.909 (crosses the 0.90 no-op line; offdiag mean 0.874->
+  0.883) — the ensemble null is REDUNDANCY, not staleness. Talent-metric
+  purchases stay measured ~0. [scripts/epm_reid.py, ens_talent_gate_daily.py,
+  ens_error_corr_daily.py; data/logs/epm_reid_validation.json,
+  ens_error_corr_daily.json; data/ens_talent_gate_daily_results.json]
+- D95 PAID RETROSPECTIVE (Sean: "figure out what we could have paid for"):
+  docs/PAID_RETROSPECTIVE.md consolidates PAID_OPTIONS + PAID_ORACLES + the
+  codex money-spec into a final worth-it table with measured/bounded values:
+  availability wire +0.0037 (WOULD-BUY, $5-20k), tracking +0.0059 heavy-favs
+  only / pooled NS (CONDITIONAL, $300k+), Odds API 20K + historical + VPS
+  ~$520/yr (WOULD-BUY FIRST — prices not model, per D69/D13/D14), EPM sub /
+  projection services / talent metrics / news / odds screens all SKIP at
+  measured-or-bounded ~0 (D86+D94, oracle-minutes <=0.003, D45, market-blind
+  rule). Ranked list bottom line: cheap execution tier first, wire second,
+  nothing else until institutional scale; expected total model gain from the
+  sane list ~+0.004-0.006 pooled sides. [docs/PAID_RETROSPECTIVE.md]
+- D96 ALTITUDE w/ PHYSIO PRIOR (Sean's D70 retry): NULL — pooled -0.00002
+  CI(-0.00041,+0.00037); DEN/UTA-home subset -0.0003 CI(-0.0059,+0.0053)
+  n=246. Even with a decaying positive floor and only the two altitude cities,
+  no signal. Altitude CLOSED for good (two constructions, two nulls).
+- D97 PERFECT-TALENT ORACLE (bounds every paid talent product): +0.00400
+  CI(+0.00339,+0.00463) pooled — perfect 60-day-centered talent knowledge is
+  worth only 0.004, i.e. it closes ~1/3 of the market gap and leaves
+  -0.0081 STILL BEHIND the close. MID-DISTRIBUTION (D77 region): +0.00440
+  CI(+0.0037,+0.0051) but still -0.0073 behind market there. **DECISIVE FOR
+  v3**: even PERFECT talent precision cannot close the toss-up deficit —
+  the mid-distribution gap is NOT talent-resolution, so v3's player-level
+  state-space (M2/M3) is NOT the answer either (consistent with D92 M1 fail,
+  D84-C 49-feature null, D86/D94 ensemble nulls). Remaining mid-distribution
+  gap = matchup geometry (D72: tracking, heavy-fav +0.006) + irreducible
+  market aggregation. STRATEGIC CLOSE: sides-model improvement is now
+  bounded; the program's remaining value is WINDOWS + PROPS + PRICES.
+- D98 WIN-WINDOW CONSISTENCY TEST (Sean's suspicion CONFIRMED — important
+  negative): our per-phase gap profile is NOT stable across seasons.
+  Phase-profile correlations between seasons: 23-24 vs 24-25 r=-0.915(!),
+  24-25 vs 25-26 r=-0.033, 23-24 vs 25-26 r=+0.265 — i.e. where we beat the
+  close in one season we tend to LOSE in another. Examples: gp0-10 -0.0029
+  (24-25 beat) vs +0.0309/+0.0284 (other two); gp20-35 -0.0081 (25-26 beat)
+  vs +0.0168 (24-25); October -0.0010/+0.0904/+0.0160. IMPLICATIONS: (a) the
+  "early-season edge" (W6) and "mid-season edge" are NOT established regimes —
+  single-season pockets; W6 must stay eligibility-only pending live CLV
+  (already its status — vindicated); (b) any window selected on ONE season's
+  outperformance is suspect by default — add to construction checklist;
+  (c) the ONE consistent pattern is late-season LOG-LOSS deficit (55-70:
+  +0.0012/+0.0255/+0.0207 all positive) coexisting with POSITIVE BET ROI in
+  three sims — log-loss gap and bet profitability are different objects
+  (bets select price-misalignment games, not accuracy games). Keep the
+  late-season bet rules; do NOT infer accuracy windows from them.
+- D99 CONTAMINATED-GATES AUDIT (Sean's bias-class (c): verdicts whose EVAL
+  UNIVERSE was poisoned by bugs we later fixed). docs/CONTAMINATED_GATES.md +
+  scripts/cg_*.py. FORENSICS (mechanical, full corpus, read-only): D79 —
+  21,177/201,904 stat rows (10.49%) are non-002; at each Nov 1, 79.6-79.9% of
+  players carried non-002 games inside props.py's trailing-20 (32-34% of the
+  window's ROWS; season-to-date view 99.4-100% of players / 54-64% of rows).
+  D81 — cached playbyplayv3 has NO homeTeamId in 0/4,800 games, so
+  defense_zone attributed 100% of 850,797 zone shots to the HOME five with
+  49.9% wrong; possessions_v2 IN THE DB TODAY has def_team=0 on 100% of
+  375,295 rows and off_lineup matches off_team on only 0.5004 of 1.88M
+  player-slots. THREE UNFIXED COPIES of the D81 lookup found: def_rapm.py:44,
+  fit_v2_usage.py:30 (silently DROPS every home shot — 424,285/847,142 kept =
+  49.9% loss, so every n in the D32/D33/D34/D35/D38 family is a 2x
+  overstatement), audit_usage_pit.py:84 (the D57 PIT refit replicated the bug
+  it was meant to test around). VERIFIED CLEAN (blast radius bounded):
+  lineup_stints (stints.py's home_id is a dead variable; home/away comes from
+  the rotation feed) -> D8/D19/D24 untouched; player_game_stats zone columns
+  are shooter-attributed -> props.team_zone_defense (the arm D58 actually
+  gated) is a BOX path, D79-poisoned but never D81-poisoned; test_8factor
+  (D21) clean. THREE RE-RUNS ON CLEAN DATA, ZERO REVERSALS:
+  (1) D58 defender-aware STANDS — on D58's own construction the clean re-run
+  is +0.0037 CI(-0.0027,+0.0098) NS (contaminated was +0.0049 NS); an apparent
+  PASS (+0.0084 CI(+0.0029,+0.0143), cg_zone_props) did NOT replicate on the
+  stride sample, and the D88 trap check shows >half the pooled RAW gain
+  (+0.0080) is a LEVEL effect carrying zero defensive information (+0.0043
+  CI(+0.0026,+0.0060)) while the pure-defense REL arm is NS pooled and 3/3
+  seasons — hardcoded league constants {rim .613, mid .44, thr .359} are stale
+  by -0.030..-0.038 logit, but shipping that knob would cancel the KNOWN D86
+  minutes over-projection, so it is a diagnostic, NOT a feature. def-RAPM
+  rejection also survives (clean +0.0011 NS) even though the D81 fix is worth
+  +0.0016 CI(+0.0002,+0.0029) to it and moves fitted ratings a lot (corr
+  fixed-vs-buggy 0.55/0.44/0.54).
+  (2) D12/D54/D57 KALMAN CONFIRMED AND HARDENED from "wash" to a clean reject:
+  with universe aligned, 002 filter on, and the forward step running, EWMA
+  beats Kalman by -0.00137 (-0.90%) CI[-0.00166,-0.00107] SIG, n=63,393
+  player-games / 697 players, sign-consistent 3/3 seasons.
+  TWO HONEST NEGATIVES ABOUT OUR OWN FIXES: the D79 002 filter made the
+  incumbent EWMA WORSE at one-step rate prediction (-0.00056, -0.36%, SIG,
+  3/3) and D79's Kalman forward-step "fix to design" made it WORSE than the
+  predict(0) no-op it replaced (-0.00023, -0.15%, SIG, 3/3). Candidate:
+  re-admit 001/004 games as down-weighted rate observations — but gate on
+  CRPS/PIT only, since D79 attributed the pre-fix PIT centring to bias
+  cancellation against the minutes over-projection.
+  (3) D32/D33/D34/D35 USAGE FAMILY ALL STAND on a clean both-halves PIT fit:
+  corr(u_clean, u_buggy)=0.9392; D32 held-out shooter LL reproduces exactly
+  (cond-logit 1.5756 vs uniform 1.6094, ~ties share 1.5768); D33 +0.08107
+  CI(+0.05557,+0.10758) KEEP; D34 -0.3991 CI(-0.5167,-0.2893) HARMS vs the
+  registered -0.4034 — reproducing to 3 decimals, which independently
+  corroborates D83 (the CRPS failure is the trailing-EWMA double-count, not a
+  data artifact).
+  STILL OPEN, HIGH: D29/D31 ("possession-margin fitting RETIRED with proof")
+  were fitted on the swapped/def_team=0 possessions_v2 — the proof is void and
+  not yet re-run. HAZARDS LOGGED: possessions_v2 is stale-and-wrong in the DB
+  and its build() `have` guard will NEVER rebuild those 2,123 games; the three
+  unfixed homeTeamId copies; defense_zone.build_zone_defense scans the whole
+  cache with no 002 filter and no date cutoff (non-PIT); player_rates_kalman
+  still trains on a 22.8%-larger universe than player_rates_from_stats and is
+  dead code in production. NOTHING SHIPPED, nbapred/ UNTOUCHED.
+  [docs/CONTAMINATED_GATES.md; data/cg_forensics.json, data/cg_zone_props.json,
+  data/cg_defaware_confirm.json, data/cg_kalman_clean.json,
+  data/cg_usage_redis_clean.json]
+- D101 DATA-STARVATION AUDIT + CORPUS FIX (Sean's directive: "many rejections
+  were made when 2023-24 was our FIRST season — the 23-24-is-bad pattern may
+  be a DATA-STARVATION ARTIFACT, not a model property. AUDIT AND RE-TEST").
+  (1) THE GAP, FOUND AND FIXED: `nba_games` held only 2022-23..2025-26. Every
+  cross-season trailing consumer reads it unqualified, so
+  `fit_schedule_layer`'s 730-DAY window was half-fed on 2023-24 and EMPTY at
+  the start of 2022-23. scripts/ds_ingest_schedules.py (backfill of the
+  existing load_season_games/leaguegamefinder loader, DB backed up to
+  nba.duckdb.pre_ds_ingest.bak) ingested 2021-22 (1394 games / 1230 reg),
+  2020-21 (1221 / 1080) and 2019-20 (1258 / 1059). Corpus is now 2019-20..
+  2025-26.
+  (2) STARVATION QUANTIFIED (scripts/ds_starvation_diag.py, per weekly refit,
+  sched_n = team-game pairs in the 730d window, w = n/(n+600) = the weight on
+  DATA vs the hardcoded SCHED_PRIOR):
+      season   PRE-FIX n@open / w   median w   carry     POST-FIX w@open
+      2022-23      0 / 0.000          0.507   NONE          0.794
+      2023-24   1230 / 0.672          0.753   yes           0.802
+      2024-25   2424 / 0.802          0.801   yes           0.802
+      2025-26   2455 / 0.804          0.804   yes           0.804
+      2021-22   (not in corpus at all)                      0.781
+  So 2024-25/2025-26 were NEVER starved; 2023-24 was MODERATELY starved
+  (~half the schedule corpus, converging by March); 2022-23 was SEVERELY
+  starved — its opening weeks ran on the hardcoded constants with NO D62
+  carry at all. The audit's ranked suspect list, with class (a) verdict
+  driven by 23-24 being bad, (b) measured with no prior season in the
+  trailing corpus, (c) explicitly "23-24 inert/incomplete", (d) NEW: scored
+  on the crippled 2022-23 arm:
+      1 F2 eventrecency 4-season re-gate (d)+(a) — its headline reason for
+        "evidence WEAKENED" was literally "NEW season 2022-23 NEGATIVE"
+      2 F5 urgency 4-season re-gate (d) — "3/3 positive became 3/4
+        (2022-23 -0.00009)"; note 23-24 was its BEST season (+0.00054)
+      3 D62/D63 carry (c) — "23-24 inert until 2022-23 rows land"; ship-
+        confirm weakened by "23-24 now carries INCOMPLETE 2022-23 (548/1230)"
+      4 D64 NS-portfolio (a) — 23-24 -0.00005 EXACT ZERO vs 24-25 +0.0063
+        PASS; the pooled point missed the bar because of 23-24 alone
+      5 D71 windowed portfolio (a) — 23-24 -0.00312 vs 24-25 +0.00620
+      6 tanking.py `season >= '2022-23'` (x3) + latestate.py
+        BURN_IN_SEASON='2022-23' (b) — literals that WERE the corpus floor
+      7 D22 fitted blend weights / GBM challenger (b) — fitted on ONE
+        season, n~500
+      8 D46's "fitted blend weights still ns; 60/40 hairline-pass" (b)
+      9 D59 fade shapes (a) — 23-24 liked the prior (+0.0024..+0.0066 on
+        6/6 configs), 24-25 disliked it; but the mechanism is D67-R3's dead
+        fallback branch, not the corpus -> demoted
+     10 D17/D18 recency-weighted ratings (b) — the ledger itself says
+        "direction FLIPPED, revisit with more seasons"
+     11 D21 8-factor tie (b) — 2 seasons only; low value (D84-C located the
+        decomposition noise ceiling independently)
+  EXPLICITLY NOT STARVATION (checked and cleared): D80 arrival (per-season
+  deltas all ~1e-5 with tight CIs = a true measured zero), D70/D96
+  team-home + altitude (root cause verified NONSTATIONARITY via era split),
+  D86/D94 talent ensemble (error-correlation diagnostic predicts the null
+  mechanistically), D97 perfect-talent oracle (bounds the whole family),
+  D13/D14 no-bet rules.
+  (3) SCORABILITY MATRIX (which seasons can be EVAL seasons): 2021-22 YES
+  (nba_games 1230, player_game_stats 002 1230/1230, odds_market se2022
+  1321) with the caveat that its carry leans on 2020-21 player_game_stats
+  at 780/1080; 2022-23..2025-26 YES; 2020-21 NO (player_game_stats 780/1080
+  — 300 boxscores short, backfill_multi was mid-pass per D89); 2019-20 NO
+  (no player_game_stats at all). LONGEST SCORABLE CORPUS = 5 SEASONS,
+  2021-22..2025-26, and every re-test below runs on it.
+  NUMBERING NOTE: a parallel thread independently used D99 for the
+  def-RAPM / defender-aware clean re-gates (see FEATURE_LEDGER.md rows);
+  this audit takes D101/D102 to avoid the collision (same convention as the
+  D85/D86 fork).
+  [scripts/ds_ingest_schedules.py, ds_corpus.py, ds_starvation_diag.py;
+  data/ds_starvation_diag.json]
+- D102 STARVATION RE-TEST BATTERY: **4 GATES, 4 NULLS, NOTHING SHIPPED** —
+  the "2023-24 is bad" pattern is a SEASON property, not a corpus property.
+  nbapred/ untouched (the rules only authorize an edit on a PASS).
+  * RT1 (HEADLINE, scripts/ds_rt1_capstone.py) — same-script paired arms,
+    the ONLY difference being the view under `nba_games`: ARM_STARVED
+    (season >= '2022-23' = the exact state D46..D94 were all measured in)
+    vs ARM_FULL. Control fidelity: ARM_STARVED reproduces the shipped
+    data/capstone_pergame.csv at max|dp| 5e-15..1e-14 on all three shipped
+    seasons. VERDICT NULL: 23-24 gap +0.01514 -> +0.01469 (delta +0.00045
+    CI(-0.00098,+0.00191) NS); 22-23 gap +0.00818 -> +0.00833 (delta
+    -0.00015 NS, i.e. the fix made the severely-starved season very
+    slightly WORSE); pooled +0.00005 CI(-0.00113,+0.00127) n=4920; early
+    (either gp<20) -0.00025 NS. NEGATIVE CONTROL HOLDS: 24-25 -0.00009 and
+    25-26 -0.00003 with mean|dp| 0.0003/0.0001 = the arms are identical
+    where the diagnostic said they should be. THE NULL IS INFORMATIVE, NOT
+    UNDERPOWERED: the intervention was large where it applied — mean |dp|
+    0.0275 on 2022-23 (early window 0.0414, max 0.394) and 0.0062 on
+    2023-24 (early 0.0110) — probabilities moved a lot and log loss did
+    not move at all.
+  * NEW SEASON SCORED: 2021-22 = 0.62371 vs market 0.60429, gap **+0.01942
+    — the WORST season gap in program history**, on a fully-fed corpus.
+    Combined with 2022-23's +0.0083 sitting BELOW 2023-24's +0.0147 at
+    equal corpus depth, this kills the starvation story outright: the gap
+    is not monotone in corpus depth (or in time) — it is per-season, which
+    is exactly D98's finding that per-phase profiles are ANTI-correlated
+    across seasons (23-24 vs 24-25 r=-0.915).
+  * RT2 (scripts/ds_rt2_formontop.py) — does D71's late-gated FORM term add
+    ON TOP of the shipped D90 late-state layer? fit_form_k imported VERBATIM
+    from the D71 gate script (ba_windowed.py); control margins recovered
+    exactly from RT1's FULL arm via m = SCALE*logit(p). VERDICT NULL:
+    pooled -0.00012 CI(-0.00111,+0.00085) n=4910; late window (either
+    gp>=55, the term's own footprint) -0.00036 CI(-0.00320,+0.00256)
+    n=1656; per-season signs split 2/2, all NS. Zero-outside-window 1.1e-16.
+    DECISIONS.md's "F1 is SUPERSEDED by this layer (do not run both)" is now
+    MEASURED rather than asserted — D90 fully absorbs F1, and F1 can be
+    struck from the freeze list.
+  * RT3 (scripts/ds_rt3_evrec5.py) — F2 event-recency at 5-SEASON power on
+    the un-starved corpus; pg_eventrecency.py rerun verbatim, only the
+    corpus + season tuple changed. VERDICT NULL, EVIDENCE WEAKENED AGAIN:
+    pooled isolation -0.00013 CI(-0.00168,+0.00149) n=6148 — the point
+    estimate has now walked +0.00138 (3-season) -> +0.00037 (4-season) ->
+    -0.00013 (5-season); per season -0.00036/-0.00103/-0.00191/+0.00248/
+    +0.00015, only 2 of 5 positive; CI width -9% vs the 4-season run.
+    CRITICALLY, THE STARVATION EXCUSE IS REFUTED: the properly-fed 2022-23
+    arm is STILL negative (-0.00103 vs -0.00095 when starved), so the
+    season that "broke the three consistent positives" broke them for real.
+    F2 stays FROZEN; ship-prior marked DOWN again. Cross-script validation:
+    RT3's control log losses match RT1's FULL arm to the 4th decimal in all
+    five seasons (0.6237/0.6327/0.5955/0.5862/0.5807).
+  * RT4 (scripts/ds_rt4_blend.py) — D22 fitted blend weights at 5-season
+    power, the original having been fitted on ONE season (n~500). Walk-
+    forward logistic MLE for w in the margin blend w*fm + (1-w)*cm,
+    sign-constrained to [0,1], shrunk n/(n+600) toward the shipped 0.5
+    (house convention), 200-game burn-in; component dump reconstructs RT1's
+    control at 9e-15. VERDICT NS — CLOSEST OF THE FOUR, STILL NO SHIP:
+    pooled +0.00077 CI(-0.00036,+0.00187) n=6148 (unshrunk MLE arm
+    +0.00078, same story); ll 0.60375 -> 0.60298 vs market 0.59244.
+    NEW FACT WORTH KEEPING: the fitted weight is REMARKABLY STABLE at
+    w_ff ~ 0.27-0.34 across five expanding seasons (never near the
+    constraint), i.e. the likelihood wants ~30/70 FF/comp, not 50/50 —
+    D22's "fixed beats fitted" was indeed a small-sample artifact in
+    DIRECTION. But the per-season profile DECAYS MONOTONICALLY
+    (+0.00106/+0.00163/+0.00223/+0.00012/-0.00120) and is NEGATIVE on the
+    most recent season, which is the season that matters for forward use —
+    same do-not-ship signature as D64(d)'s comp-heavy 60/40. D22 stands;
+    the fixed 50/50 is retained.
+  NET: the audit was worth doing (it found and fixed a real 3-season hole in
+  `nba_games` and unlocked a 5th eval season), and it returns a decisive
+  negative — the corpus was NOT what made 2023-24 look bad, and none of the
+  starvation-suspect rejections survive re-test at 5-season power. Combined
+  with D97's oracle bound and D98's window instability, the sides model is
+  now bounded from three independent directions.
+  [scripts/ds_rt1_capstone.py, ds_rt2_formontop.py, ds_rt3_evrec5.py,
+  ds_rt4_blend.py; data/ds_rt1_results.json, ds_rt2_results.json,
+  ds_rt3_evrec5_summary.json, ds_rt4_results.json, ds_starvation_diag.json]
+- D103 SIDE-EFFECT OF THE D101 CORPUS FIX ON THE F6 OCTOBER BRIDGE (found by
+  the test suite, quantified, NOT papered over). OctoberBridge's trailing-
+  minutes leg is SEASON-AGNOSTIC by design ("last 10 002 games with >=12 min
+  strictly before the cutoff, spans the prior season") and reaches
+  player_game_stats THROUGH a join on nba_games. 002 rows for 2021-22/2020-21
+  had always existed in player_game_stats but were silently dropped by that
+  join; after D101 they are visible, so the construction WIDENED. Both roster
+  legs are correctly season-scoped (001 this season; prior-season primary
+  002), so no stale player enters via the roster rule — the change is purely
+  in how many qualifying games the 10-game trailing average can see.
+  MEASURED (scripts/ds_bridge_impact.py, the exact 2025-26 week-1 gate window,
+  n=53): with the corpus pinned to the registered vintage the bridge still
+  reproduces data/rw_week1_psroster.csv cm_ps_o at 5.3e-15 (so the CODE is
+  unchanged and the parity claim stands); with the fixed corpus 5 of 53 games
+  move, mean |dcm_ps| 0.025 pts, max 0.604 pts; 16 players change contribution,
+  6 join the roster (their only >=12-min 002 history predates 2022-23), 0 drop.
+  Production impact is the 25-26 capstone moving 0.58064 -> 0.58067 (+0.00003).
+  HANDLING: tests/test_october_bridge.py's parity test now pins
+  REGISTERED_CORPUS_FLOOR='2022-23' so the F6 pre-registration stays
+  verifiable, and a NEW test (test_corpus_widening_bounded) asserts the delta
+  stays within 8 games / 1.0 pt max / 0.10 pt mean so a future ingest cannot
+  move it silently. 51/51 tests green.
+  **ACTION FOR THE F6 OWNER (open decision, not taken here):** the October-2026
+  one-shot must declare which corpus it runs on. The unbounded lookback is a
+  real design question the widening exposes — a player's 2021-22 minutes now
+  project his 2025-26 role — but capping it is a construction change that needs
+  its own gate, and F6 is a pre-registered one-shot, so nothing was changed.
+  [scripts/ds_bridge_impact.py; data/ds_bridge_impact.json;
+  tests/test_october_bridge.py]
+  D99 CROSS-THREAD FLAG (not a D99 finding, found by D99's post-audit test run):
+  tests/test_october_bridge.py::test_bridge_matches_gate_construction now FAILS
+  (game 0022500086 MIL/WAS: bridge margin 10.4257 vs stored gate cm_ps_o 9.9248,
+  diff 0.5009 >> 1e-9 tolerance). D99 changed no code in nbapred/ and wrote
+  nothing to the DB, and the other 49 tests pass — the parity test rebuilds
+  OctoberBridge from the LIVE DB, so the D101 corpus fix (nba_games extended to
+  2019-20..2025-26) is the prime suspect: extra prior seasons change the bridge's
+  prior-season-primary-team UNION and its trailing-minutes map. The D91 "<1e-9
+  parity, 53/53 week-1 games" claim needs re-confirming against the new corpus,
+  and the F6 October one-shot package depends on it. OWNER: D101/D102 thread.
+- D100 CONTAMINATION FORENSICS (bias class c; docs/CONTAMINATED_GATES.md):
+  contamination QUANTIFIED (D79: 79.6-79.9% of players carried non-002 games
+  in their Nov-1 trailing window; D81: 100% of 850,797 zone shots attributed
+  to the home five, 49.9% wrong; possessions_v2 def_team=0 on 100% of 375k
+  rows). THREE UNFIXED COPIES of the D81 bug found: def_rapm.py:44,
+  fit_v2_usage.py:30 (its guard silently drops EVERY home shot -> every n in
+  the D32-D38 family is a 2x overstatement), audit_usage_pit.py:84 (D57's PIT
+  refit replicated the bug it was testing). RE-RUNS: D58 defender-aware STANDS
+  (apparent reversal was a LEVEL arm carrying zero defensive info — the D88
+  trap; pure-defense arm NS 3/3); Kalman rejection HARDENED to decisive
+  (EWMA -0.00137 SIG 3/3) with two uncomfortable diagnostics (the D79 002
+  filter made EWMA WORSE; the D79 Kalman forward-step "fix" made it worse than
+  the no-op — both SIG, both queued for reversal review); D32/D33/D34/D35 ALL
+  STAND (u corr 0.939; D34 reproduces to 3 decimals). ZERO reversals, but
+  D29/D31 possession-RAPM "sufficiency proof" is VOID (proved on a table with
+  def_team identically 0) — re-run required before that conclusion can stand.
+  Hazards: possessions_v2 stale+unrebuildable (have-guard), build_zone_defense
+  non-PIT. Cross-thread: October-bridge parity test now fails after the
+  corpus extension — F6 package needs re-confirmation.
+- D104 STARVATION HYPOTHESIS REFUTED (Sean's hypothesis, tested honestly):
+  giving 2023-24 its full prior corpus moves its gap only +0.00045
+  CI(-0.00098,+0.00191) NS — probabilities moved a LOT (mean |dp| 0.0275 on
+  22-23, max 0.394) but log loss did not. Decisive counter-evidence: newly
+  scored 2021-22 = 0.62371 vs mkt 0.60429, gap +0.0194 = WORST IN PROGRAM
+  HISTORY on a FULL corpus; and 2022-23 (+0.0083, severely starved: opened on
+  hardcoded constants, no carry) beats 2023-24 (+0.0147, better fed). The
+  season-to-season gap is NOT a function of corpus depth — it is per-season
+  variation, the same phenomenon as D98's anti-correlated phase profiles.
+  Corpus now 5 scorable seasons (2021-22..2025-26, n=6148).
+  Downstream: F1 windowed-form STRUCK from the freeze list (measured
+  superseded by D90: -0.00012 NS on top). F2 eventrecency weakened a THIRD
+  time (+0.00138 -> +0.00037 -> -0.00013) with the starvation excuse now
+  refuted (properly-fed 2022-23 still -0.00103) — recommend striking F2 too.
+  D22 blend weights: NS overall (+0.00077) BUT the 5-season sign-constrained
+  MLE is stable at w_ff 0.27-0.34 — the likelihood wants 30/70, so D22's
+  DIRECTION was a small-sample artifact even though the fixed 50/50 stands
+  (per-season decays monotonically, negative on the newest season).
+- D105 F6 CORPUS DECLARATION (pre-registered BEFORE October, no live data
+  seen): the October-2026 one-shot runs on the LIVE corpus as it exists at
+  game time, with the bridge's trailing-minutes leg CAPPED AT 2 PRIOR SEASONS
+  (an unbounded lookback would let 2021-22 minutes project a 2026 role — the
+  corpus-widening exposed this; capping is the principled choice and is
+  declared now, before any live evidence). Both capped and uncapped variants
+  will be reported for transparency; the CAPPED variant is the registered
+  primary. Parity fixture pinned + test_corpus_widening_bounded added by the
+  audit thread stands as the drift guard.
+- D106 SEASON-COMPARABILITY CORRECTION (Sean caught the agent's error; two
+  fixes to D104): (1) THE AGENT'S "2021-22 worst gap on a FULL corpus" CLAIM
+  IS WRONG — 2021-22 has no 2020-21 behind it (2020-21 is only 780/1230
+  games, unscorable), so it is the MOST starved season, not a fed one. That
+  removes D104's "decisive counter-evidence"; Sean's starvation hypothesis is
+  NOT refuted by it. (2) The real 2022-23-vs-2023-24 anomaly is explained and
+  it is NOT an implementation problem: RAW LOG-LOSS GAPS ARE NOT COMPARABLE
+  ACROSS SEASONS because seasons differ in intrinsic predictability — the
+  MARKET's own log loss ranges 0.6244 (2022-23, chaotic) to 0.5711 (2025-26,
+  predictable). Normalizing by market skill above coin-flip
+  (gap / (0.6931 - mkt_ll)):
+      2022-23 12.1% | 2023-24 13.1% | 2024-25 4.1% | 2025-26 7.8%
+  22-23 and 23-24 are IDENTICAL once normalized — the anomaly dissolves.
+  ALL future season comparisons use the normalized measure.
+  SOBERING COROLLARY (must not be forgotten): our two best normalized seasons
+  (24-25, 25-26) are exactly the seasons the current feature set was DEVELOPED
+  ON. 2022-23 (12.1%) is the closest thing to out-of-sample we have, and it
+  sits at the older level — consistent with development overfit, and another
+  reason the 2026-27 one-shots are the only clean verdicts.
+- D107 D100 REPAIRS SHIPPED (the three unfixed D81 copies + both poisoned
+  tables). (a) `def_rapm.py:44`, `fit_v2_usage.py:30`, `audit_usage_pit.py:84`
+  now derive home_id from the rotation feed via `possessions_v2._team_ids`,
+  as D81 did in the two files it patched. RUNTIME-PROBED over a 400-game
+  stride sample (70,313 shots): def_rapm defenders went from home5 100.0% ->
+  50.3%/49.7%; the two usage collectors from "50.0% kept, 100% away" to
+  "99.5% kept, 49.7% home / 50.3% away" (the residual 0.5% is a genuine
+  rotation-feed miss), and they still agree with each other exactly.
+  (b) `possessions_v2.build()` gained force/chunked/only_002; the table was
+  regenerated (scripts/rebuild_possessions_v2.py, self-verifying): 375,295
+  rows/2,123 games with def_team=0 on 100% and off-lineup agreement 0.5004 ->
+  886,836 rows/5,010 games, def_team zero-or-null 0, off-lineup agreement
+  1.0000 AND def-lineup agreement 1.0000 (3.9M slots each side, 77s).
+  (c) `defense_zone.build_zone_defense` gained only_002 (DEFAULT TRUE),
+  before= (new `games_before()`) and allowed_gids, closing the non-PIT hazard;
+  rebuilt clean to data/zone_defense.json. fixed-vs-buggy rating corr
+  0.50/0.46/0.47 (D81 was as costly here as in def_rapm) but the 002 filter is
+  nearly inert (0.991-0.993) — consistent with D100 RE-RUN #1's finding that
+  the zone verdicts were D79-driven. `def_rapm.collect_shots` got the same two
+  filters with defaults OFF so the published re-runs stay bit-reproducible.
+  NOT DONE (logged): data/v2_usage*.npz are still the away-only fits — the
+  collectors are fixed, the artifacts are not refitted, so every n in the
+  D32-D38 family remains a 2x overstatement until someone reruns them.
+  [scripts/rebuild_possessions_v2.py, scripts/rebuild_zone_defense.py,
+  docs/CONTAMINATED_GATES.md]
+- D108 **D29 REVERSED AND D31 REFUTED — "POSSESSION-MARGIN FITTING RETIRED
+  WITH PROOF" IS WITHDRAWN IN FULL AND THE v2 POSSESSION LEVEL IS REOPENED WITH
+  POSITIVE EVIDENCE.** Re-run on the force-rebuilt table (849,225 regular-season
+  possessions, 4,786 games, 1,117 players), fully PAIRED: the BUGGY arm is the
+  exact pre-fix design matrix, reconstructed by swapping off/def lineups on
+  every home-offense row (precisely what `is_home = cur_team == None` did),
+  same seeds, same 200k subsample, verbatim fit_v2/fit_v2b.
+  (1) THE FITS. BUGGY reproduces the register (D29 net-vs-DARKO -0.014 vs the
+  registered -0.059; net-vs-v1 +0.001 = literally zero). FIXED: D29 **+0.541**,
+  D31 **+0.606 against the v1 STINT fit's own 0.625**, and D31's data-residual
+  (possession signal BEYOND the v1 prior) flips **-0.220 ANTI-CORRELATED ->
+  +0.438**. The possession fit was never broken.
+  (2) THE HELD-OUT TEST the register never had: game-level 70/30 split
+  (leakage-safe), Poisson ridge RAPM by IRLS, held-out per-possession Poisson
+  LL, paired bootstrap 2000x CLUSTERED BY GAME (test 254,756 poss / 1,436
+  games), against TWO stint opponents — v1_posterior.npz and stint RAPM
+  REFITTED on the same train games. BOTH ridges selected on a train-internal
+  80/20 validation split, NEVER on test. FIXED: v1-vs-null +0.000518
+  CI(+0.000383,+0.000659) SIG; same-data-stint-vs-null +0.000790
+  CI(+0.000568,+0.001013) SIG; possession-vs-null **+0.001137
+  CI(+0.000924,+0.001348) SIG**; **possession-vs-v1 +0.000619
+  CI(+0.000434,+0.000805) BETTER**; **possession-vs-same-data-stint +0.000346
+  CI(+0.000199,+0.000508) BETTER**. Possession-net vs v1 stint-net corr +0.591.
+  BUGGY: ratings corr +0.018, both stint arms measure EXACTLY ZERO (the swap
+  destroys the offence-minus-defence contrast for every arm alike), possession
+  advantage halved to +0.000164. Everything D29/D31 observed reproduces as an
+  artifact.
+  (3) RIDGE SELECTION IS LOAD-BEARING, NOT HYGIENE. At a hand-picked possession
+  ridge of 200 the head-to-head reads NS; at 50 WORSE; at 800 BETTER. Selected
+  values are interior optima on validation: possession 3,200 (val LL -0.9917890
+  / -0.9917168 / -0.9917876 at 1,600/3,200/6,400) and stint 128,000 (verified
+  out to 1.28e8: -0.9922636 / -0.9921890 / -0.9922345 at 32k/128k/512k), so the
+  stint opponent was given every advantage and is NOT handicapped.
+  SCOPE LIMITS, STATED: the effect is on the POSSESSION LOG-LIKELIHOOD only.
+  NOTHING IS SHIPPED, no gate has been run, and no production number has moved;
+  +0.000346/possession is real and significant but small, and converting it to
+  a game-level edge requires its own measurement. The event-level directive D31
+  spawned is unharmed (D32/D33 survived D100 RE-RUN #3) — what is withdrawn is
+  that the possession level is a DEAD END. Both levels are live. Still never
+  tested and now possible for the first time: DEFENCE-CONDITIONED possession
+  fitting (everything above is undifferentiated possession points;
+  def_team/def_lineup are real post-rebuild).
+  SELF-CORRECTIONS RECORDED — this verdict moved twice before settling.
+  (a) The first pass entered the v1 stint offset as `+off +def` instead of
+  `+off -def`, making the regressor the near-constant sum of all ten ratings;
+  v1 scored as "adds nothing" and the write-up claimed the conclusion was
+  UNRESOLVED. (b) The second pass fixed the sign but used a hand-picked ridge of
+  200 and concluded the sufficiency claim SURVIVED (NS). Only after a
+  sensitivity display showed the verdict flipping with the ridge was proper
+  validation-based selection added. GENERAL LESSON FOR THE REGISTER: an NS
+  obtained at an un-tuned hyperparameter is not evidence of equivalence.
+  [scripts/cg_v2_sufficiency.py, data/cg_v2_sufficiency.json]
+- D109 F6 OCTOBER PACKAGE RE-CONFIRMED, and a D105 IMPLEMENTATION GAP CLOSED.
+  The bridge construction is CORRECT and the stored fixture was a
+  corpus-vintage artifact — but the natural diagnosis is wrong in an important
+  way: the roster UNION leg is season-PINNED to prev_season, so D101's corpus
+  extension added NO prior-season union members. What moved is the
+  TRAILING-MINUTES leg (unqualified join on nba_games), and because contrib
+  membership is gated on `p in trail`, widening it ADDS players. Those players
+  are not legitimate: 6 of 6 added have their most recent >=12-minute
+  regular-season game BEFORE 2023 (Tim Frazier 2022-01-09, 3.8 years before
+  the opener; Sharife Cooper 2021-12-22) — preseason camp bodies projected as
+  rotation players off four-year-old minutes. Measured cap sweep vs the
+  pre-registered gate table (53 week-1 games): 1 season 30 moved/1.158 max;
+  2 seasons (D105's declared primary) 5 moved/0.418; **3 seasons 0 moved,
+  max 3.55e-15 = BIT-EXACT** (nba_games held exactly 2022-23..2025-26 when the
+  gate table was built); 4/5/uncapped 5 moved/0.604.
+  GAP: D105 registers the trailing leg as "CAPPED AT 2 PRIOR SEASONS", and NO
+  CAP EXISTED IN CODE. Closed by `OctoberBridge(..., trail_seasons=N)` with
+  DEFAULT None = current shipped behaviour (nothing moves silently), plus
+  test_trail_season_cap_reproduces_registered_construction pinning the sweep.
+  THE F6 ONE-SHOT WILL RUN THE UNCAPPED CONSTRUCTION UNLESS THE OWNER SETS IT
+  — decide and re-register before October. D91 re-verified on the CURRENT
+  corpus: bridge-isolated (ON-OFF)==0.5*cm_ps to 2.71e-14 (registered 3e-13);
+  mid-season ON-vs-OFF -5.68e-14 = zero-outside-window HOLDS (registered
+  4e-14); week-1 parity 53/53 <1e-9 at the registered vintage. NOTE the
+  OCT_BRIDGE switch toggles the WHOLE D84-A package (bridge AND ps-continuity
+  carry), so a raw toggle reads 1.33e-01 — that residual is the carry leg
+  (consistent with D91's own "refit-1 fm shift sd 0.28"), and the bridge leg
+  must be isolated to test the bridge claim. Test status at hand-off: all 38
+  tests in the files this thread owns are green (test_october_bridge 6/6,
+  test_basics, test_starout, test_v3_filter); the full suite was 52 green at
+  01:05 and then went 3 red at 01:28 when a CONCURRENT thread's in-flight edits
+  landed (scripts/f4_shrinkage.py + bet_engine.py -> test_bet_engine, and a
+  "derived corpus floor" feature -> test_latestate/test_tanking, both files
+  rewritten by that thread). Those failures are that thread's to resolve;
+  nothing this thread changed touches them.
+  [scripts/cg_bridge_reconfirm.py, data/cg_bridge_reconfirm.json,
+  nbapred/model/october_bridge.py, tests/test_october_bridge.py]
+- D110 OVERFITTING AUDIT — THE D106 COROLLARY, SETTLED (Sean's directive after
+  D106: "our two best NORMALIZED seasons are exactly the seasons this feature
+  set was developed on"). Read-only, nbapred/ untouched, scripts/of_*.py.
+  HELD-OUT = 2021-22 + 2022-23: neither was scorable during the campaign (D101
+  unlocked them), so no gate from D46 through D102 could select on them. The
+  BASE arm of every test is the LITERAL fit_production predictor, rebuilt at
+  every weekly refit — anchored at max|dp| 7.3e-15..1.4e-14 on all 6,148 games.
+  Normalized season table (gap / market skill above coin-flip, D106 measure),
+  now 5 seasons: 2021-22 21.8% | 2022-23 12.1% | 2023-24 13.1% | 2024-25 4.1%
+  | 2025-26 7.8% — D106's four numbers reproduce exactly.
+  (1) PER-SHIP TRANSFER TEST (same-run ablation of every shipped term, paired
+  bootstrap 2000x seed 20260801; effect = ll(term OFF) - ll(term ON)):
+      term            DEV 24-26        HELD 22-23      HELD 21-23     23-24
+      D46 sched      +0.00431 PASS   +0.00256 NS    +0.00608 PASS  +0.00930 PASS
+      D62 carry      +0.00044 NS     +0.00016 NS    +0.00027 NS    -0.00086 NS
+      D73 tank       +0.00351 PASS   +0.00082 NS    +0.00041 NS    +0.00156 NS
+      D90 late-state +0.00278 PASS   +0.00006 NS    +0.00003 NS    -0.00005 NS
+      D91 bridge     +0.00001 NS     +0.00031 NS    -0.00034 NS    +0.00127 NS
+      D16 cold-start  0.00000         0.00000        0.00000        0.00000
+  Difference-in-differences (dev minus 2022-23, independent resamples):
+  D73 +0.00269 CI(+0.00013,+0.00519) SIG and D90 +0.00272 CI(+0.00072,+0.00463)
+  SIG — both helped MEASURABLY MORE on the seasons they were developed on.
+  D46 +0.00175 NS.
+  (1a) CONFOUND FOUND AND CONTROLLED (this is the finding that changes the
+  reading): tanking.py and latestate.py fit on `season >= '2022-23'`, a
+  corpus-floor LITERAL (hall-of-shame #8). Measured consequence — 2021-22 term
+  identically 0.0 (UNTESTABLE, not "does not transfer"); 2022-23 runs the tank
+  k at -0.58 vs -1.89..-2.16 in 2023-26 (mean |term| 0.41 pts vs 1.51) and the
+  late-state at 0.151 pts vs 1.377. So the raw holdout nulls partly measure a
+  COLD ESTIMATOR. scripts/of_term_efficacy.py normalizes it out by backing the
+  applied term out of the arms (t = SCALE*(logit p_base - logit p_ablated)) and
+  reporting nats gained per POINT of margin applied, on active games only:
+      D46   dev +0.00360  held(21-23) +0.00360 -> 100% transfer
+      D73   dev +0.00691  held(22-23) +0.00684 ->  99% transfer (CI wide)
+      D90   dev +0.00617  held(22-23) +0.00209 ->  34%; and -0.00043 on
+            2023-24 where it WAS active at 0.50 pts on 311 games
+  D73 is therefore NOT convicted — its per-point efficacy is identical
+  out-of-sample and only its coefficient was cold. D90 IS dev-concentrated:
+  its efficacy is ~0 on 2023-24 (a gate season, no burn-in excuse of the same
+  size) and +0.0062 only on 24-25/25-26. D90's own "monotone growth = the
+  collapse cluster" story is observationally equivalent to development overfit.
+  (1b) D16 COLD-START PRIOR IS STRUCTURALLY DEAD — 0 of 6,148 games moved, all
+  five seasons. It lives only in the pre-ff-ready ratings fallback, and D62
+  carry makes ff.ready from opening night. D67-R3 predicted exactly this
+  ("carry makes ff.ready -> ENTIRE fallback branch dead again; D55 attribution
+  stale"); the D54/D55 fix (+0.00099, T0-shipped) was measured BEFORE carry
+  shipped and contributes EXACTLY ZERO to the current model. Open item closed
+  with a number, and the ledger's ACCEPTED row for the cold-start prior is
+  currently false for the shipped stack.
+  (2) WHOLE-MODEL TRANSFER (pre-campaign D23 stack via _legacy_baseline_run's
+  fit_production_legacy imported verbatim — 0.5*FF(home-in) + 0.5*comp(HOME_EDGE
+  3.0), no sched/carry/tank/late/bridge, PIT DARKO because a snapshot arm would
+  leak; per-game paired vs current on an identical universe, n=6,148):
+      season    legacy   current   mkt      norm gap        campaign gain
+      2021-22  0.63316  0.62371  0.60429  32.5% -> 21.9%  +0.00945 PASS
+      2022-23  0.63813  0.63270  0.62437  20.0% -> 12.1%  +0.00543 NS
+      2023-24  0.60798  0.59555  0.58086  24.2% -> 13.1%  +0.01243 PASS
+      2024-25  0.60278  0.58617  0.58155  19.0% ->  4.1%  +0.01661 PASS
+      2025-26  0.59309  0.58067  0.57114  18.0% ->  7.8%  +0.01242 PASS
+  DEV pooled +0.01452 CI(+0.00784,+0.02115); HELD-OUT(21-23) +0.00744
+  CI(+0.00171,+0.01325) PASS; HELD-OUT(22-23 only) +0.00543 CI(-0.00294,
+  +0.01385) NS. Transfer ratio held/dev = 0.51 CI(0.11,1.18) on 21-23 and
+  0.37 CI(-0.22,1.13) on 22-23; the DiD is NS in both (+0.00708 CI(-0.00180,
+  +0.01571)). HONEST READ: the campaign DOES transfer — the holdout gain is
+  positive and CI-solid — but the point estimate is HALF the dev-season gain,
+  and the data cannot distinguish "half" from "all" or "a tenth". On held-out
+  seasons D46 alone accounts for +0.00608 of the +0.00744 (82%).
+  (3) SELECTION BURDEN (scripts/of_selection_census.py). Mechanical counts:
+  96 distinct model configurations still scored per-game on disk (a HARD lower
+  bound — overwritten CSVs and D84-C's 49-feature battery leave no columns);
+  511 reported bootstrap CIs across 31 result files; 108 D-lines; 201 scripts.
+  The repo's own family register said K=57 on 2026-07-30 and called itself an
+  undercount; the true CI-gated family is 100-500. Arithmetic the register
+  never did: E[z | z > 1.96] = 2.338, so a NULL term that passes a 95% bar
+  looks like 2.34 x its own SE. Shipped terms' z (SE backed out of published
+  CIs): D46 3.46, D73-gate 2.81, D90 2.68, D55 2.26, D62 2.20 — versus
+  E[max z] = 2.34 at N=96, 2.75 at N=300, 2.91 at N=511, and 2.4 / 7.5 / 12.8
+  expected false passes respectively. THE BRUTAL NUMBER: if all five shipped
+  terms were null and passed by selection, their expected apparent sum is
+  2.338 * SUM(SE_i) = +0.0094 against the claimed +0.0134 — chance at this
+  search depth manufactures ~70% of the headline. Pre-registration (D62/D73/
+  D90 were one-config gates) protected the PARAMETER choice, not the
+  HYPOTHESIS choice: each target was selected by exploratory work on the same
+  three seasons (D65 -> D73, D84-D -> D90, D56 -> D62), and D90's own honesty
+  flag records "~6 exploratory families".
+  VERDICT ON THE CAMPAIGN'S +0.010-0.015. Two independent lines agree on
+  roughly half: the holdout says +0.0074 of +0.0145 transfers (51%), the
+  selection arithmetic says ~+0.0094 of the +0.0134 term-sum is chance-sized
+  (~70% inflation). Best estimate of the DURABLE improvement: +0.006 to +0.008,
+  of which D46's schedule layer is the only component that individually passes
+  out-of-sample. D73 is probably real (efficacy transfers at 99%) but cannot be
+  proven with the current corpus floor. D90 is the most likely overfit. D62,
+  D91 and D16 contribute ~0, ~0 and EXACTLY 0 to the shipped model.
+  ACTIONS (none taken here — read-only thread): (a) relax the
+  `season >= '2022-23'` literals in tanking.py/latestate.py to 2021-22 now that
+  the corpus exists — it is the single highest-value follow-up because it
+  converts D73/D90 from untestable to testable on a genuine holdout;
+  (b) correct FEATURE_LEDGER's cold-start ACCEPTED row (0/6148 games) and
+  either wire D16 into the main path behind its own gate or retire the claim;
+  (c) re-label D62 carry and D91 bridge as "shipped, incremental value not
+  reproducible in the current stack" pending re-gate; (d) 2026-27 remains the
+  only clean verdict — D106's corollary stands, quantified.
+  [scripts/of_transfer_ablation.py, of_transfer_table.py, of_term_efficacy.py,
+  of_legacy_holdout.py, of_selection_census.py; data/of_transfer_pergame.csv,
+  of_transfer_results.json, of_transfer_table.json, of_term_efficacy.json,
+  of_legacy_pergame.csv, of_legacy_results.json, of_selection_census.json]
+- D111 OVERFIT RECKONING (D110 audit, accepted in full — the honest number):
+  best estimate of DURABLE improvement is +0.006 to +0.008, roughly HALF the
+  claimed +0.0138. Two independent lines agree: whole-model holdout transfer
+  ratio 0.51 CI(0.11,1.18); selection arithmetic says ~70% of the term-sum is
+  chance-sized at our search depth (96 configs on disk, 511 reported CIs;
+  E[max z] 2.34-2.91 vs our shipped z's 2.20-3.46).
+  PER-TERM VERDICTS: D46 schedule layer = the ONLY individually out-of-sample
+  PASS (+0.00608 held-out; 82% of the entire held-out gain). D73 tank =
+  probably real (efficacy transfers 99% once normalized for its COLD
+  coefficient on 22-23) but UNPROVABLE under the corpus floor. D90 late-state
+  = MOST LIKELY OVERFIT (34% transfer; ~0 on 2023-24 where it WAS active on
+  311 games — a gate season, so burn-in is no excuse).
+  **[D112 SETTLES BOTH, and PARTLY CORRECTS THIS ENTRY. The floor was relaxed
+  and both terms re-tested WARM on the same holdout. D90's suspicion is
+  CONFIRMED — reverted from production. D73's exoneration is WITHDRAWN: the
+  "99% efficacy transfer" was itself an artifact of the cold coefficient
+  (warm it is 44% on 22-23) and the warm per-game effect is +0.00147
+  CI(-0.00036,+0.00329) NS — D73 is UNCONFIRMED, not "probably real". Every
+  other number in this entry reproduces to 1.4e-14 in D112's ARM_OLD.]** D62 carry, D91 October
+  bridge = null everywhere. D16 cold-start = STRUCTURALLY DEAD: moves 0 of
+  6,148 games in all five seasons (carry makes ff.ready from opening night, so
+  the fallback never runs) — the D55 fix contributes exactly zero today and
+  FEATURE_LEDGER's ACCEPTED row for it is FALSE for the shipped stack.
+  PROCESS LESSON: pre-registration protected our PARAMETER choices, never our
+  HYPOTHESIS choices — every target came from exploratory work on the same
+  three seasons. Future gates must draw hypotheses from one corpus and confirm
+  on another (or wait for 2026-27).
+- D112 W49 CATASTROPHIC-TAIL FORENSIC (Sean's "biggest single lever left"):
+  **THE LEVER IS NOT THERE. The worst 1% is the CORRECT tail of a CALIBRATED
+  distribution, and the entire ex-ante separation lives in a variable the
+  model is forbidden to see.** Frame: data/ds_rt1_pergame.csv 4 seasons,
+  n=4920, p_full, net excess +45.705 nats (+0.00929/gm); worst 49 = 30.909
+  nats = 67.6%.
+  FIRST FACT THE FRAMING HID: the BEST 49 games return **-35.647 nats** — the
+  good tail is BIGGER than the bad one, and the two extreme percentiles net
+  -4.74 nats IN OUR FAVOUR. "67.6% of the loss" is arithmetic about a small
+  net (13% of gross flow) sitting on a huge symmetric gross.
+  WORST-49 PROFILE (vs the other 4871): same_side 0.429 vs 0.893 (SMD -1.12) —
+  57% of catastrophes are games where we took the OPPOSITE side from the
+  market against an 11% base rate; conf_gap +0.076 vs -0.030 (+1.11); conf_us
+  0.234 vs 0.176 (+0.50); conf_mkt 0.158 vs 0.206 (-0.47); out_talent_home
+  1.25 vs 0.17 (+0.52); n_star_out_home 1.39 vs 0.75 (+0.52); leg_spread
+  |fm-cm| 2.41 vs 1.76 (+0.43); share_ff 0.409 vs 0.332 (+0.43). Regime
+  clustering: April+October 46.9% vs 14.0% base (3.4x), gp_min<5 20.4% vs
+  6.4% (3.2x), 4 of the 49 on ONE date (2023-04-09, last day of 22-23). CHA
+  in 11 of 49 (3.4x lift; DAL 7, NOP 7). They are NOT blowouts and NOT OT:
+  blowout 8.2% vs 19.6%, |margin| 10.1 vs 12.4, OT 2.0% vs 5.1% — close games
+  we called wrong, decided by the coin.
+  MATCHED CONTROLS KILL EVERY PIT STORY. Balanced caliper matching (weight 1
+  per catastrophe spread over its matches; |dconf_us|<=0.03 AND |ddiv|<=0.03,
+  control = our favourite won): **every PIT feature collapses to |wSMD| <=
+  0.22** — leg_spread -0.15, n_star_out +0.09, out_talent_home +0.01, tsd_abs
+  -0.11, b2b +0.02, days_rest ~0.02. The only surviving ex-ante separator is
+  **conf_mkt (-0.42 worst-49 / -0.55 worst-250)**: catastrophes are the games
+  where the MARKET was unsure and we were sure. Market-blind matching (conf_us
+  only) DOES show PIT lifts (out_min_home +0.30, n_star_out_home +0.30,
+  out_talent_home +0.28, leg_spread +0.26, early +0.19) but same_side is
+  -0.95 there — those features proxy the CONDITIONS UNDER WHICH WE DIVERGE,
+  and they vanish once divergence is held fixed.
+  EX-ANTE IDENTIFIABILITY: walk-forward market-blind logistic on 20 PIT
+  features for top-1% membership, OOS AUC 0.654 vs **0.640 for conf_us ALONE**
+  (delta +0.014, signs -0.028/+0.088/-0.019). Nothing beyond our own
+  confidence identifies them.
+  CALIBRATION: market-blind, by our own confidence bin, realised-minus-stated
+  is -1.85pp..+2.25pp across 7 bins — WE ARE CALIBRATED. Conditional on the
+  market we are not: conf_us>0.30 AND conf_gap>0.10 gives stated 0.846 vs
+  realised 0.575 (n=40, -27pp), and the mirror cells (conf_gap<-0.10) BEAT
+  stated by +5..+12pp. That miscalibration is real, is worth 62.1% of the
+  45.7 nats (top |div| decile alone), and is by construction invisible to a
+  market-blind model.
+  GATE (Task 2) — **NO-SHIP, and pre-empted by a CEILING BOUND.** New method
+  worth keeping: before spending a gate, compute the HINDSIGHT-OPTIMAL scale
+  multiplier k on each candidate subset. All 17 PIT signals came back k in
+  [0.91, 1.31] with ceiling <= +0.00043/gm and a CI spanning zero (best:
+  out_talent_load>=p75 +0.00043 CI(-0.00034,+0.00133); week1 k=1.309
+  +0.00029 NS; leg_spread>=p75 k=1.093 +0.00015 NS). GLOBAL hindsight k =
+  1.0193 -> +0.00003/gm, reconfirming D74 on a cleaner metric. The
+  pre-registered gate was run anyway: 3-axis gated variance inflation
+  scale = 7.2*(1 + sum lambda_k z_k), z_k = max(0,(x_k-q75_d)/IQR_d) on
+  {|fm-cm|, |out_talent_h|+|out_talent_a|, 1[gp_min<5]}, lambda >= 0 by
+  walk-forward MLE, n/(n+600) shrink, 200-game burn-in, weekly refits, exact
+  same-run control. Fires on 2170/4920 (44.1%); zero-outside-window 8.4e-15.
+  **POOLED +0.00017 CI(-0.00062,+0.00100) NS**; fired-only +0.00039 NS;
+  0/4 seasons significant; late (gp>=55) NEGATIVE -0.00079; unshrunk arm
+  +0.00002 NS. On the worst 49 it recovers 3.05 of 30.91 nats and returns it
+  elsewhere. FOURTH calibration null (D48, D61, D74-T1, now D112) — the vein
+  is now closed for the LOCAL/GATED shape as well as the global one.
+  TRADING (Task 3) — **THE ONE REAL DELIVERABLE.** Structural identity: on a
+  same-side bet edge == conf_us - conf_mkt, so "skip when we are more
+  confident than the market by more than X" IS an upper edge cap (allowed:
+  bet selection, not model input). KELLY-SLOPE TEST, 4 seasons n=4367
+  same-side: realised_excess = **-0.0140 + 0.184 x claimed_excess** (se
+  0.097); D75/D78 frame n=3311: -0.0161 + 0.106x (se 0.110). **82-89% of our
+  claimed edge is illusory**, so Kelly stakes on claimed edge are 5-9x
+  oversized — this EXPLAINS D75's unexplained "quarter-Kelly NEGATIVE on the
+  same bets" signature. Realised excess by claimed-edge band is non-monotone,
+  best at .04-.06 (+0.035) and NEGATIVE above .06.
+  CAP SWEEP (flat stakes, 4-season primary): R4_LOWT(t=.04) — the D75/D82
+  primary paper-trade rule, the ONLY registered rule with no cap — goes
+  POOL -4.51% -> **+2.47% at X=0.08** (fair -0.21% -> +7.08%, n 225->156,
+  dPnL/bet +0.0622 CI(+0.0077,+0.1180) SIG); OOS 25-26 +1.51% -> +11.66%.
+  R4_LOWT(t=.02) -4.81% -> -0.82% (+0.0417 CI(+0.0059,+0.0809) SIG, OOS
+  +2.33% -> +9.09%); R1(t=.04) -4.54% -> +0.92% at X=0.06 (+0.0495
+  CI(+0.0062,+0.0928) SIG); R1(t=.02) -6.72% -> -5.49% SIG; T20.D03+
+  -4.65% -> -2.12%; T20.D03+W -3.08% -> +1.33% (both NS). The 3-season
+  replication agrees in sign on 6/6 rules, all NS on lower power.
+  HONESTY: 8 caps x 6 rules x 2 frames were swept — NO selection protection,
+  CIs are per-comparison. Independent support is the reliability curve and
+  the Kelly slope, both computed with no reference to any rule.
+  ACTION: add an upper conf-excess cap of 0.08 to R4_LOWT in the 2026-27
+  paper-trade registry (F4) — the rule currently has none, and 30 of the
+  worst 49 games carry conf_gap > 0.06. Strategic restatement of D13/D77: our
+  divergence from the market is a LIABILITY that grows with its own size;
+  more model work cannot fix it, only refusing to trade it can.
+  DATA GOTCHA: `schedule_features` covers 2025-26 ONLY (1230 games); rest/b2b
+  for the other three seasons had to be re-derived from `nba_games`. Anything
+  that joins schedule_features across seasons is silently 3/4 empty.
+  [scripts/w49_enrich.py, w49_profile.py, w49_sep.py, w49_gate.py,
+  w49_betsim.py; data/w49_frame.csv, w49_profile.json, w49_sep.json,
+  w49_gate.json, w49_betsim.json]
+- D113 TRADING STRATEGY BUILT AND REJECTED FOR CAPITAL (Sean's directive: a
+  strategy that does NOT treat the close as an oracle, designed around
+  WHERE/WHEN/HOW BIG our losses are). Full strategy object shipped
+  (scripts/ts_strategy.py): ELIGIBILITY (|p_us-.5|>=0.20, shared side, tail
+  veto = EARLY gp<20 / CHAOS max trailing-5 |margin|>=18.0 / FRESH >=2
+  rotation players who played the PREVIOUS game now inactive) -> vig-aware
+  EDGE TEST (p_us_side > p_mkt_side*V, V=1.045, gross divergence capped at
+  0.10) -> SIZING (quarter-Kelly, HARD 2%/bet cap, 6%/day exposure cap) ->
+  compounding BANKROLL sim with drawdown. 8 pre-registered configs
+  {FAV,DOG}x{base,veto}x{all,late}. IS/OOS DELIBERATELY REVERSED vs D75/D78
+  (IS 22-23+23-24, OOS 24-25+25-26) and reported BOTH directions.
+  **VERDICT: 0 of 8 configs is ROI-positive at vig in BOTH halves.** Full-
+  sample family-wise noise: best fair ROI +6.70%, P(max >= that | de-vigged
+  close is the truth) = **0.592**. Mechanical selection (best IS ROI, IS
+  n>=30) loses OOS in BOTH directions: dir-1 picks DOG.base.late +23.60% ->
+  **-35.22%** (swing -58.8 pts, P=0.937); dir-2 picks DOG.veto +3.90% ->
+  **-10.00%**. It picks the DOG arm both times because dec~5-7 wins the
+  in-sample max lottery — selection-on-variance, which the reversed split
+  was built to expose.
+  STRUCTURAL DIAGNOSTIC (n=4920, real power, unlike n=94 of betting): the
+  design inputs REPRODUCE EXACTLY — worst 1% = 67.6% of net deficit,
+  conf_us>conf_mkt +0.01504, conf_us<conf_mkt +0.00639. The tail veto is
+  REAL (eligible stratum +9.75 -> +7.76 nats/gm; removed games are worse at
+  +11.92) but **no stratum reaches net/gm <= 0** — we beat the de-vigged
+  close NOWHERE definable in advance, so no sizing rule can rescue it.
+  PROOF THE P&L IS NOISE: corr(per-season structural deficit, per-season
+  ROI) mean **+0.178** (a real edge is strongly NEGATIVE), FAV.veto +0.749.
+  2024-25 is our structurally BEST season (+0.00073 = near market parity)
+  and LOSES for all 4 FAV configs; 2023-24 is our WORST (+0.01471) and is
+  FAV.veto's second-BEST (+11.02%).
+  **POWER CEILING (reframes the program)**: under the breakeven null a flat
+  1u bet has Var = dec-1 exactly, so se(ROI)=sqrt(mean(dec-1)/n).
+  FAV.veto.late = 24 bets/season, se 5.36%, needs **+8.81%** for p<0.05,
+  observed +3.19%; bets for a true +2% edge @80% power = 4,172 = **178 NBA
+  seasons** (FAV.veto 111; DOG arm 400-1,760). This experiment STRUCTURALLY
+  CANNOT answer the ROI question — we can rule out a large edge, cannot
+  detect a small one, and have no positive evidence for one.
+  **INPUT (3) SETTLED**: the forensics predicted DOG > FAV (conf_us<conf_mkt
+  is the less-bad log-loss regime). MEASURED FALSE — DOG negative in 3/4
+  configs, DOG.veto.late -24.10% at 48.8% maxDD, 3-5x drawdown for worse
+  returns. "Less bad in log-loss" != "profitable at the price": the price
+  already contains what makes the regime less bad. D77/D82 "fade favourites
+  contraindicated" UPHELD against the forensic prediction.
+  **OPENERS (asked, answered, and the one real finding)**: openers exist
+  ONLY in odds_hist_sbr, dead mid-2022-23 (664/1230); every other source
+  (odds_market, kaggle cvia/ehallmar/christophertreasure/erichqiu) is
+  CLOSE-only; ml_home NULL for ALL of 23-24/24-25/25-26. The data/raw/sbr
+  "HTML-not-xlsx failures" PARSE FINE (1315/1312/664 games) and are ALREADY
+  ingested at exactly those counts — nothing to recover. Bet-at-open is
+  UNTESTABLE OOS. But on the covered window (n=1,892): open->close
+  sharpening +0.00913 nats/gm; our mean edge **-0.0079 vs OPEN** against
+  **-0.0192 vs CLOSE**; **CLV of our side at the open +0.01124 prob,
+  t=+6.71**, while the favourite-drift CONTROL is **NEGATIVE (-0.00362,
+  t=-2.14)** — the CLV is OURS, not free steam. A market-blind model that
+  BEATS THE OPENER and LOSES TO THE CLOSER.
+  SIZING: caps are risk controls, not alpha — removing them ~doubles maxDD
+  (15.2%->25.8%) for no ROI gain; result stable across flat/eighth/quarter/
+  half-Kelly, so the D75 "Kelly-consistency failure" signature is ABSENT.
+  **D112 CROSS-THREAD (landed same day, reconciled)**: D112's identity
+  `edge == conf_us - conf_mkt` on a same-side bet means our DIV_CAP IS their
+  upper conf-excess cap. Sweeping ours to their X: the threads CONVERGE in
+  direction (tightening 0.10->0.08->0.06 improves pooled ROI monotonically in
+  3/4 FAV configs) and ONE config finally holds both halves — FAV.veto@0.06,
+  pooled +5.77% vig / +10.53% fair, P=0.141. **But the null check kills it**:
+  4000 game-level replicates (y~Bernoulli(p_mkt), fair pricing so every config
+  is exactly breakeven) expect **3.13 of 12** configs to hold both halves BY
+  CHANCE (median 2, p90 9); we observed **1**; P(chance >= 1) = **0.651**. We
+  found LESS than a market-efficient world hands out free — no survivor to
+  promote. D112's KELLY-SLOPE (realised = -0.0140 + 0.184 x claimed; 82-89%
+  of claimed edge illusory) is a direct critique of our Layer C and it stands,
+  but is NOT the binding problem: eighth-Kelly (roughly the D112-corrected
+  size) gives -1.12% on FAV.veto vs +0.44% at quarter-Kelly. D112 also
+  independently VALIDATES two eligibility legs (57% of catastrophes are
+  opposite-side, which our A2 excludes by construction; conf_gap is the
+  dominant separator, which our DIV_CAP bounds) and CHALLENGES the third (its
+  market-blind top-1% classifier scores OOS AUC 0.654 vs 0.640 for conf_us
+  ALONE — nothing beyond our own confidence identifies the tail ex ante),
+  which predicts our EARLY/CHAOS/FRESH veto should help only marginally —
+  exactly what we measured. Two threads, different methods, same conclusion.
+  **ACTION**: do NOT deploy capital against the close. Replace the ROI
+  target with a **CLV target** — bet_engine.py (D91) logs every candidate at
+  the earliest available price, settled vs the close. CLV is measurable at
+  ~40x the rate of ROI: it answers in ONE season what ROI cannot answer in
+  178. Consistent with D95 ranking prices-not-model first.
+  [scripts/ts_strategy.py, scripts/ts_openers.py, docs/TRADING_STRATEGY.md,
+  data/ts_strategy.json, data/ts_strategy_bets.csv, data/ts_openers.json;
+  journal 20260801_nba-trading-strategy_edc5e6]
+- D113 SUFFICIENCY PROOF REVERSED (D29 reversed, D31 refuted — the biggest
+  correction in the register): possession-level fitting was retired in D29/D31
+  on a table where def_team was identically 0 and lineups were coin-flip
+  correct. On the REBUILT table (886,836 poss / 5,010 games; off- AND
+  def-lineup agreement now 1.0000): net-vs-DARKO -0.014 (buggy arm, reproduces
+  the register) -> +0.541; D31 arm reaches +0.606 vs the v1 stint fit's 0.625.
+  The register NEVER had a held-out arm; one was added (game-level 70/30,
+  per-possession Poisson LL, game-clustered bootstrap, 254,756 test poss),
+  and possession BEATS stint refit on the same games: +0.000346
+  CI(+0.000199,+0.000508), and beats v1 stint +0.000619 CI(+0.000434,+0.000805)
+  — with both stint arms beating null, so this is not a weak-baseline artifact.
+  RIDGE WAS LOAD-BEARING (worse at 50, NS at 200, better at 800) — both sides
+  now validation-selected at interior optima. Scope: possession LIKELIHOOD
+  only; nothing shipped. NOW POSSIBLE AND UNTESTED: defence-conditioned
+  possession fitting — the v2 direction retired 4 days ago on void evidence.
+  Agent self-corrected twice mid-analysis (sign error, hand-picked ridge),
+  both superseded-not-deleted in the journal.
+- D114 OCTOBER CAP GAP CLOSED: D105 registered a "2 prior seasons" trailing cap
+  that DID NOT EXIST IN CODE (the roster leg is season-pinned; the trailing-
+  MINUTES leg was uncapped and admitted 6 players whose last >=12-min game
+  predates 2023 — Tim Frazier 3.8 years stale). Now a parameter
+  (OctoberBridge(trail_seasons=N), default None). Sweep: 1 season 30 games
+  move, 2 seasons 5 move, 3 seasons bit-exact. SETTING THE DECLARED PRIMARY
+  (trail_seasons=2) so code matches the pre-registration.
+- D115 TRADING STRATEGY: NO CONFIGURATION HOLDS — 0 of 8 pre-registered configs
+  is ROI-positive at vig in both corpus halves; mechanical selection loses OOS
+  in BOTH split directions (+23.6% -> -35.2%; +3.9% -> -10.0%), always picking
+  the highest-variance DOG arm that won the in-sample lottery. Family-wise best
+  fair ROI +6.7% has P=0.592. THREE STRUCTURAL FINDINGS:
+  (1) P&L DOES NOT TRACK EDGE: corr(per-season structural deficit, ROI) = +0.178
+      (a real edge is strongly NEGATIVE) — 2024-25, our best season, LOSES for
+      all FAV configs while 2023-24, our worst, is second-best.
+  (2) POWER CEILING: best config = 24 bets/season, needs +8.81% ROI for p<0.05,
+      would take 178 NBA SEASONS to detect a true +2% edge. We can rule out a
+      LARGE edge; we can never detect a small one via ROI.
+  (3) THE ONE REAL, CONTROLLED, SIGNIFICANT EFFECT: our side's CLV at the OPEN
+      is +0.0112 t=+6.7, while the favourite-drift control is NEGATIVE
+      (-0.0036, t=-2.1). WE BEAT THE OPENER AND LOSE TO THE CLOSER, and the
+      CLV is ours — not free steam.
+  Also settled: the forensic prediction that DOG bets should beat FAV bets is
+  FALSE as a betting direction (DOG negative 3/4 configs, -24% pooled, 49% max
+  drawdown) — "less bad in log loss" != "profitable at the price"; the price
+  already contains what makes that regime less bad. D77/D82 upheld.
+  DECISION: DO NOT deploy capital against the close. TARGET SWITCHES FROM ROI
+  TO CLV (measurable ~40x faster; answers in one season what ROI cannot answer
+  in 178). Openers confirmed unobtainable for 23-24+ (odds_hist_sbr dies
+  mid-2022-23; every other source close-only) — so the open-price edge can only
+  be captured LIVE, which is exactly what bet_engine.py already logs.
+
+- D112 CORPUS-FLOOR RELAXATION + THE DECIDING RE-TEST (D110 action (a),
+  the highest-value follow-up: it converts D73/D90 from UNTESTABLE to TESTABLE
+  on the only genuine holdout the project has). nbapred/ EDITED.
+  (0) THE FIX. `season >= '2022-23'` was a hardcoded corpus-floor LITERAL in
+  four tanking.py queries (+ a `darko_history date >= '2022-06-01'` twin) and
+  in latestate.py's `BURN_IN_SEASON`. Replaced by `tanking.season_floor()`,
+  DERIVED from the data: walk back from the newest season and keep the
+  contiguous run whose 002 games are >=99% covered by player_game_stats.
+  On the current corpus that is 2021-22 (2021-22..2025-26 all 1230/1230;
+  2020-21 780/1080 = 72%; 2019-20 zero). latestate.py takes its burn-in from
+  the TankModel it is built on, so the two can never drift apart again.
+  TANK_SEASON_FLOOR=<season> overrides (same-run controls, pinned fixtures).
+  REFACTOR IS A PROVEN NO-OP AT THE OLD FLOOR: pinned to 2022-23 it
+  reproduces the gate table to max|d tank_score| 1.55e-15 over 9,840
+  team-games, fit_k(2026-04-09) = -2.269854 vs the registered ship value
+  -2.2699, and the whole 5-season ARM_OLD run reproduces D110's registered
+  per-game predictions to 1.38e-14 on all 6,148 games (so nothing else in the
+  corpus moved under us, and D110's numbers are exactly reproduced).
+  (1) THE CONFOUND IS GONE. Activation was 0.0% / 0.0% (2021-22) and 33.7% /
+  18.5% (2022-23) for tank / late-state; it is now 33.4% / 29.9% and 33.7% /
+  33.3% — i.e. UNIFORM ~33% across all five seasons, like 2023-26. k active
+  rows 1,656 -> 2,068. k trajectory (old -> new): 2022-02-15 0.0 -> +0.31,
+  2022-04-09 0.0 -> -1.92, 2023-02-15 -0.23 -> -2.12, 2023-04-08 -1.32 ->
+  -2.59, 2024-04-13 -1.97 -> -2.84, 2026-04-09 -2.27 -> -2.82. Mean |applied
+  tank term| on active games: 2021-22 0.00 -> 0.63 pts, 2022-23 0.42 -> 1.23,
+  2023-24 1.30 -> 1.85. The late-state outs coefficient c_o first goes
+  non-zero on 2023-04-08 (-0.377) instead of 2024-04-13 (-0.290).
+  (2) THE CAPSTONE DID MOVE, AND THE "only adds earlier training data"
+  INTUITION IS WRONG. Both estimators are walk-forward over a POOLED
+  EXPANDING window that starts at the floor, so adding a season re-fits every
+  later season too (bigger n -> less n/(n+600) shrink, AND beta itself moves).
+  412-417 games move per season, max |dp| 0.115/0.130/0.081/0.078/0.032.
+  Paired (ARM_OLD - ARM_NEW, positive = the floor fix helps):
+      2021-22 +0.00221 CI(+0.00023,+0.00406) PASS
+      2022-23 +0.00104 CI(-0.00221,+0.00419) NS
+      2023-24 -0.00080 CI(-0.00364,+0.00191) NS   <- the one season it HURTS
+      2024-25 +0.00021 CI(-0.00169,+0.00199) NS
+      2025-26 +0.00103 CI(+0.00007,+0.00187) PASS
+      POOLED  +0.00074 CI(-0.00025,+0.00170) NS
+  Net: neutral-to-slightly-positive, 4 of 5 seasons improve, and the fix is
+  justified on CORRECTNESS (a data-derived floor) not on this delta.
+  (3) PRE-REGISTERED DECISION RULE (written into
+  scripts/cf_holdout_retest.py BEFORE either arm ran). Effect = per-game
+  ll(term OFF) - ll(term ON), paired bootstrap 2000x seed 20260801. PRIMARY =
+  pooled HELDOUT_21_23 on the warm arm. CONFIRMED iff positive AND the 95% CI
+  excludes 0; DEMOTED otherwise. Secondaries (22-23 alone, per-season,
+  active-only, efficacy) reported but NOT allowed to overturn the primary.
+  (4) VERDICTS ON THE GENUINE HOLDOUT, WARM COEFFICIENTS (ARM_NEW; the D110
+  cold numbers in brackets):
+      term            DEV 24-26        HELD 21-23        HELD 22-23     23-24
+      D46 sched      +0.00431 PASS   +0.00598 PASS    +0.00233 NS   +0.00929 PASS
+      D73 tank       +0.00334 PASS   +0.00147 NS      +0.00090 NS   +0.00032 NS
+                                     [was +0.00041]   [was +0.00082]
+      D90 late-state +0.00267 PASS   +0.00014 NS      +0.00028 NS   -0.00085 NS
+                                     [was +0.00003]   [was +0.00006]
+      D62 carry      +0.00044 NS     +0.00027 NS      +0.00016 NS   -0.00086 NS
+      D91 bridge     +0.00001 NS     -0.00034 NS      +0.00031 NS   +0.00127 NS
+      D16 cold-start  0.00000         0.00000          0.00000       0.00000
+  Games the term actually moves on the holdout more than DOUBLED (D73
+  359 -> 782, D90 228 -> 777), so this is a real power increase, not a
+  re-labelling. **D73 = DEMOTED** (+0.00147 CI(-0.00036,+0.00329) NS; the
+  registered "PASSES DECISIVELY" does not reproduce out-of-sample). **D90 =
+  DEMOTED AND REVERTED** (+0.00014 CI(-0.00085,+0.00108) — a PRECISE null,
+  5% of its dev effect, NEGATIVE on the 2023-24 gate season where it is now
+  active on 33.6% of games so the burn-in excuse is gone; DiD dev-minus-held
+  +0.00253 CI(+0.00005,+0.00492) **SIG**, the only term in the battery whose
+  development-season advantage survives at CI strength). D46 stays the only
+  individually confirmed term.
+  (4a) D110'S OWN NORMALIZATION CLAIM IS RETRACTED. "D73's efficacy transfers
+  at 99%" was measured on the COLD 2022-23 coefficient. Re-measured warm, the
+  per-point efficacy transfer is 44% on 22-23 (+0.00221 vs dev +0.00502) and
+  98% on 21-23 — the estimator is simply too noisy to carry a verdict (CIs
+  -0.0061..+0.0102 and -0.0012..+0.0111). Efficacy normalization is hereby
+  demoted to a diagnostic; the per-game effect is the endpoint. D90's warm
+  efficacy transfer is 25%, and -0.00258 on the gate season.
+  (5) WHAT WAS ACTUALLY CHANGED IN PRODUCTION.
+    * D90 late-state layer: **LATE_STATE default flipped to "0"** — the layer
+      is OFF in the shipped model. Code, tests and the gate script are intact;
+      LATE_STATE=1 restores it. This is the action the decision rule
+      pre-specified for a demoted term.
+    * D73 tank term: a `TANK_TERM=0` kill switch was ADDED (it did not exist —
+      the D110 ablation could only reach it by reconstructing the predictor),
+      but the default is left ON. JUDGMENT CALL, FLAGGED: the pre-registration
+      said a demoted term gets its switch defaulted off; I did not apply that
+      to D73 because its held-out point estimate is POSITIVE and removing it
+      is worse in ALL FIVE seasons including both holdout seasons (21-22 gap
+      +0.0172 -> +0.0192, 22-23 +0.0073 -> +0.0082) — turning it off would
+      act against the only unbiased estimate we have. D73 is UNCONFIRMED
+      (underpowered), not REFUTED (which is what D90 is). `TANK_TERM=0`
+      applies the strict reading in one env var if the owner disagrees.
+  (6) CORRECTED HEADLINE — the shipped stack after the D90 reversion
+  (D46 + D62 + D73 + D91, oracle tier, 5 seasons, n=6,148; "norm" = gap as a
+  share of market skill above coin-flip, the D106 measure):
+      season    ll_us    ll_mkt    gap        norm      (was, D110 stack)
+      2021-22  0.62149  0.60429  +0.01720   19.36%     0.62371 +0.01941 21.85%
+      2022-23  0.63194  0.62437  +0.00756   11.00%     0.63270 +0.00833 12.11%
+      2023-24  0.59549  0.58086  +0.01463   13.03%     0.59555 +0.01468 13.08%
+      2024-25  0.58718  0.58155  +0.00563    5.04%     0.58617 +0.00462  4.14%
+      2025-26  0.58376  0.57114  +0.01262   10.34%     0.58067 +0.00952  7.81%
+      POOLED   0.60397  0.59244  +0.01153   11.45%
+  READ THIS HONESTLY: removing D90 makes 2024-25 and 2025-26 WORSE (4.14% ->
+  5.04%, 7.81% -> 10.34%) and 2023-24 slightly better. That is exactly the
+  signature of deleting a development-overfit term — the seasons it was tuned
+  on give the gain back. The two best normalized seasons are no longer 4.1%
+  and 7.8%; they are 5.0% and 10.3%, and 2021-22 (19.4%) remains far and away
+  our worst. D106's corollary is not softened by any of this work.
+  (7) LEDGER FIXED. FEATURE_LEDGER's ACCEPTED row for the D16/D55 cold-start
+  prior was FALSE for the shipped stack (0 of 6,148 games moved, effect
+  EXACTLY 0.00000 in all four groups, both arms). Moved to a new DEAD CODE
+  section with the D110/D112 evidence and the mechanism (D62 carry makes
+  ff.ready true from opening night, so the fallback branch it lives in never
+  executes; D67-R3 predicted this). Hall-of-shame #8 now carries the measured
+  cost of a corpus-floor literal and the derive-the-floor fix pattern.
+  TESTS: 62 collected, 62 green (one run showed a single failure in
+  test_basics::test_pit_asof_blocks_future — a DuckDB write-lock conflict from
+  an unrelated concurrent scrape process, passes standalone). FOUR NEW: a
+  fixture-free live-parity test at the DERIVED floor (the D68 property, not a
+  pinned vintage), a season_floor derivation test (asserts every season at or
+  above the floor clears the 99% bar and the one below it does not), a
+  derived-floor fit_k test (pins -2.8156 and that the burn-in zero moved back
+  a season), and a latestate test that the burn-in tracks the tank floor with
+  warm coefficients inside 2022-23. FOUR REWRITTEN to pin the OLD floor,
+  which is what makes them a refactor no-op proof: the gate-table parity test
+  and the old-floor fit_k test (still -2.2699).
+  [nbapred/model/tanking.py, latestate.py, production.py;
+  scripts/cf_floor_probe.py, cf_holdout_retest.py, cf_floor_effect.py;
+  data/cf_floor_probe.json, cf_holdout_new_results.json,
+  cf_holdout_old_results.json, cf_holdout_new_pergame.csv,
+  cf_holdout_old_pergame.csv, cf_floor_effect.json]
+- D116 D112 TRADING FINDINGS SHIPPED INTO THE PAPER-TRADE ENGINE (F4 registry,
+  pre-registered 2026-08-01 before any 2026-27 data). Two changes, one
+  conclusion neither of them predicted.
+  (b) UPPER CONFIDENCE-EXCESS CAP is now a REGISTRY-LEVEL VETO in
+  bet_engine.rules_fired: skip when conf_us - conf_mkt > CONF_EXCESS_CAP
+  (0.08), evaluated BEFORE any rule, so it finally caps R4_LOWT and
+  STAR_FAV_SHARPER (which had none) and subsumes the old D13/D78 0.10 band
+  cap. `cap=inf` reproduces the pre-D112 registry exactly (tests + re-sim
+  UNCAPPED arm). DECLARED TENTATIVE: the VALUE came from an unprotected sweep
+  (8 caps x 6 rules x 2 frames); the DIRECTION is carried by the rule-free
+  Kelly slope + reliability curve. The R4 threshold was NOT re-tuned — the
+  shipped rule stays at its registered t=0.02; D112's t=0.04 headline is
+  carried as a labelled diagnostic only (D111 process lesson).
+  (a) EDGE SHRINKAGE IN SIZING (scripts/f4_shrinkage.py): Kelly is computed
+  from p_mkt_side + max(0, a + b*edge), never from the raw claimed edge.
+  (a,b) = OLS of realised excess on claimed excess, refit ANNUALLY (Oct 1,
+  cron'd) on COMPLETED seasons only, scored as a CALIBRATION (|realised -
+  shrunk| 0.3874 vs |realised - claimed| 0.3997 = better) and never by PnL.
+  Registered fit reproduces D112 exactly: a=-0.01396 b=+0.18418 se 0.0972
+  n=4367 (data/f4_shrinkage.json). Cold start = stake 0, never raw Kelly.
+  (c) THREE SIZING ARMS run in parallel and are all logged per candidate —
+  flat 1u (honest control), raw quarter-Kelly (what D75 ran), shrunk
+  quarter-Kelly (the ship) — plus 9 new bet_paper columns and an in-place
+  ALTER migration; settle() scores all three off ONE price; --report prints a
+  block per arm. No arm may be selected before season end (declared stop rule).
+  **THE LOAD-BEARING RESULT — THE CALIBRATED BETTOR BETS NOTHING AT VIG.**
+  Break-even claimed edge is -a/b = 0.0758 against a registered cap of 0.0800:
+  the ONLY bets with a positive calibrated edge are a 28bp sliver the cap
+  almost entirely removes (2.2-5.8% of capped bets), and the largest overround
+  at which quarter-Kelly on the calibrated edge still stakes is V_max = 1.0011
+  against the sims' 1.045. So **shrunk-Kelly stakes EXACTLY 0 on every
+  registered rule, every window, both frames**. Slope-noise sensitivity: b
+  would have to exceed ~0.5-0.6 — 3.5-4.5 se above 0.184 — before ONE capped
+  bet clears the vig, so the conclusion needs only b << 1, not the exact
+  slope. LIVE, the shrunk arm therefore fires only when the best shopped
+  decimal beats 1/(p_mkt_side + shrunk_edge), i.e. only when line shopping
+  beats consensus fair — it doubles as a LINE-SHOPPING DETECTOR and converts
+  D75's unmeasured "shopping covers the gap" into a nightly measurement.
+  DANGER FOUND: shrinkage WITHOUT the cap is worse than neither — uncapped,
+  the only way to clear the intercept is a huge claimed edge (D112's
+  catastrophe signature), so the arm bets 1-5 games in 4 seasons at -24.6% to
+  -100%. (a) and (b) must ship together.
+  RE-SIM (scripts/f4_resim.py, 4 seasons + 3-season replication, both IS/OOS
+  DIRECTIONS — DEV={23-24,24-25} = where every rule was developed, NONDEV=
+  {22-23,25-26}; DEV-IN reads DEV as in-sample, DEV-OUT holds it out, same
+  partition, labels swap). Reproduces D112 to the decimal (diag R4(.04) POOL
+  -4.51 -> +2.47, REG:OOS +1.51 -> +11.66, dPnL +0.0622 CI(+0.0077,+0.1180)
+  SIG; registered R4_LOWT(t=.02) -4.81 -> -0.82, dPnL +0.0417
+  CI(+0.0059,+0.0809) SIG). FLAT POOL uncapped->capped: R4_LOWT -4.81->-0.82,
+  T20_D03_10_W -0.27->+1.33, T20_D03_10 -3.23->-2.46, STAR_FAV_SHARPER
+  -4.91->-4.51. dPnL/bet POSITIVE in 10/10 pooled cells across both frames,
+  but ROI improves on only 4/5 primary and 2/5 replication rules — dPnL
+  measures absolute PnL, ROI divides by a stake base the cap also shrinks, and
+  the ROI benefit is concentrated in the R4/late family.
+  **THE CAP'S MOST ROBUST EFFECT IS DRAWDOWN, NOT ROI** (new, not in D112):
+  maxDD falls in essentially every cell and by far more than ROI moves —
+  R4_LOWT raw-Kelly POOL 99.26 -> 16.11 (6.2x), STAR_FAV_SHARPER raw-Kelly
+  143.65 -> 33.54 (4.3x), R4_LOWT raw-Kelly NONDEV 62.79 -> 11.11 (5.7x),
+  flat POOL 25.70 -> 13.84. A 4-6x drawdown cut follows mechanically from
+  deleting the fattest-tailed bets; it is not a noise-limited quantity the way
+  a 3-point ROI move is. If one thing survives 2026-27, it should be this.
+  NOISE-COMPATIBILITY — **NOTHING IN THE ROI TABLES BEATS CHANCE.** Null =
+  no edge, y ~ Bernoulli(p_mkt_side) at the same prices/stakes, 20k reps. 200
+  cells per frame: expected count with null p<0.05 under a global null = 10.0,
+  OBSERVED 11 (primary) and 8 (replication). We are AT the free-lunch rate,
+  not above it. Power ceiling to detect a TRUE +2.5% ROI at 80%/5%: 65 seasons
+  (R4_LOWT), 84 (T20+W), 41 (T20), 26 (STAR), 117 (diag R4(.04)). Union of the
+  4 rules fires 287 games/season uncapped, 241 capped (cap removes 16.2%);
+  union flat ROI -5.35% -> -4.54%. CONSEQUENCE, now the operating instruction:
+  **the 2026-27 target is CLV, not ROI** — ROI cannot answer in a career what
+  CLV can answer in one season. Converges with D115 s6.6 from the other
+  direction, and with its independent finding that eighth-Kelly (~the
+  D112-corrected size) gives -1.12% vs +0.44% at quarter-Kelly: correcting the
+  sizing does not rescue a strategy whose edge is absent.
+  STOP RULES DECLARED: no mid-season refits; the cap VALUE is on trial and a
+  null does NOT license re-sweeping it; no arm selection before season end
+  (default flat); shrunk_kelly staking > 0 on many nights is itself a finding
+  and must be logged, not suppressed; capital deployment gates on sustained
+  positive CLV, never on backtested ROI.
+  [scripts/bet_engine.py (edited), scripts/f4_shrinkage.py, scripts/f4_resim.py,
+  tests/test_bet_engine.py (11 green), ops/crontab.example,
+  docs/TRADING_STRATEGY.md PART II ss8-14; data/f4_shrinkage.json,
+  data/f4_resim.json]
+- D117 EDGE-CALIBRATION SHIPPED, AND ITS CONSEQUENCE IS DEFINITIVE: with the
+  Kelly-slope calibration applied (shrunk_edge = max(0, -0.0140 + 0.184*claimed)),
+  the break-even claimed edge is -a/b = 0.0758 — which sits 28bp BELOW the
+  0.08 confidence-excess cap. The ONLY bets with positive CALIBRATED edge are
+  exactly the sliver the cap removes. Consequence: SHRUNK-KELLY STAKES ZERO on
+  every rule, every window, both split frames (max V 1.0011 vs the 1.045 vig).
+  Robustness: needs only b << 1 — b would have to be 3.5-4.5 se higher before
+  a single capped bet clears the vig. HONEST READING: after calibrating our own
+  edge estimates, WE HAVE NO POSITIVE-EV BETS AGAINST THE CLOSE. The shrunk arm
+  therefore functions LIVE as a line-shopping detector (fires only when a
+  shopped price beats consensus fair) — D75's "shopping covers the gap"
+  hypothesis turned into a nightly measurement.
+  DANGER REGISTERED: shrinkage WITHOUT the cap is worse than neither (only huge
+  claimed edges clear the intercept = the catastrophe signature; 1-5 bets at
+  -24.6% to -100%). They ship together or not at all.
+  The cap's most robust benefit is DRAWDOWN, not ROI: raw-Kelly max drawdown
+  99.26 -> 16.11 (6.2x) on R4, 143.65 -> 33.54 on STAR_FAV. Noise check: 200
+  cells/frame, expected 10 significant under a global null, observed 11 and 8 —
+  we are AT the free-lunch rate, nothing beats chance family-wise. Power to
+  detect +2.5% ROI: 26-117 seasons. CLV IS THE ONLY VIABLE TARGET.
+- D118 OPENING LINES OBTAINED AT $0 — the "we only have the close" blocker is
+  CLOSED at 89.9% of the model corpus, and the prize it was guarding is now
+  MEASURED AND SMALL. Three free sources stitch to cover everything:
+  sportsbookreviewsonline 2007-08..2022-23 (open+close spread/total; the
+  archive genuinely STOPS mid-2022-23 on 2023-01-16 and /nba-odds-2023-24/
+  soft-404s with HTTP 200); ESPN core API + Action Network scoreboard for
+  2023-24..2025-26 (BOTH KEYLESS; open+close spread, total AND moneyline;
+  AN book_id 30 = "Open"); teamrankings /spread-movement (spread only, but the
+  ONLY source of a timestamped intraday path — ESPN/AN serve no movement
+  history retroactively, count:0). New table `odds_open` (+ data/derived/
+  odds_open.csv, readable under write-lock contention) holds 23,783 games with
+  BOTH prices on our team keys, both sign conventions stored, preseason/
+  All-Star/exhibition dropped by an unordered-pair join to odds_market.
+  THE MEASUREMENT (n=23,758): mean |close-open| = 1.218 pts CI(1.202,1.235),
+  median 1.0, 17.9% never move, 34.0% move >1pt, 6.3% >3pt. The move is
+  INFORMATIVE, not noise: MAE(close) 9.744 < MAE(open) 9.848, paired delta
+  -0.1036 CI(-0.1255,-0.0822) SIG, and the line moves TOWARD the eventual
+  result 54.63% CI(53.92,55.32). Both effects are STRONGER in the seasons we
+  model: move-toward% 56.0 (2021-22), 55.4 (2023-24), 60.1 (2024-25), 57.1
+  (2025-26) vs a 2008-13 baseline near 51-53; mean |move| has roughly doubled
+  (0.87 in 2008-09 -> 1.86 in 2024-25). The premise strengthens with time.
+  CEILING BOUND — the number to plan against: betting the side the market later
+  moved toward returns 54.63% ATS at the OPEN price vs 49.91% at the CLOSE.
+  The ENTIRE prize for perfect open-to-close timing is 4.72pp of ATS win rate
+  and it clears the -110 vig by only 2.25pp — and that is WITH perfect ex-ante
+  foresight of the direction of movement, which nothing in the model supports.
+  Realistic capture is a fraction of 2.25pp. This does not refute D117 ("CLV is
+  the only viable target"); it SIZES that target. It is positive, real, small.
+  VALIDATION: close_margin vs the independently-sourced odds_market.
+  home_exp_margin — sbr 100.0% exact (n=19,806, mean|diff| 0.0000);
+  espn+an 70.6% exact (n=3,960, mean|diff| 0.2363, p95 1.00 — different books,
+  far too small to be a sign flip). ESPN vs AN cross-validate at corr
+  0.973/0.956/0.970. Sanity: mean open_margin +2.734, close_margin +2.702,
+  actual home margin +2.613.
+  BUGS FIXED EN ROUTE (all pre-existing, all silent): (1) SBR year inference
+  misdated the ENTIRE 2019-20 bubble — 109 games played Aug-Oct 2020 were
+  stored a year early and collided with the Oct 2019 tip-off; year now advances
+  only on the calendar wrap, regression test added. (2) The magnitude-based
+  spread/total resolver FABRICATED values on corrupt source rows (a 216-pt
+  spread, a 1105-pt total) which alone set the sample max |move| to 221.5;
+  now returns NULL outside plausible ranges. (3) `load_all` did 17,712
+  single-row INSERTs and held the DuckDB write lock >12 min, blocking every
+  reader; now one bulk INSERT. (4) teamrankings/ESPN BK/GS/NO/NY/PHO/SA/UTAH/
+  WSH unmapped silently dropped 37% of games; now 100% join.
+  TRAPS ON RECORD: ESPN's open.pointSpread.value holds the DECIMAL PRICE, not
+  the handicap, in some vintages (ALL of 2024-25) — parsing it gives corr 0.056
+  and a fake 7.34-pt mean move; the handicap is only in the display string.
+  ESPN dates are UTC, Action Network's are ET — joining raw matched 182 of
+  ~1300. teamrankings' /point-spread-movement is a decoy that 200s with no
+  data (correct slug is /spread-movement).
+  HONEST LIMITS: one composite book and NO intraday path before 2023-24; SBR's
+  ML column is the CLOSE, so open_ml is NULL there; 2022-23 has an open for
+  only 659 of 1320 games (the sole corpus hole); no season has BOTH SBR and
+  ESPN/AN open columns, so there is no three-way check. The Odds API historical
+  route is CLOSED at $0 (struck-through in the pricing HTML, paid-only on all
+  three endpoints). odds_open is NOT a full-corpus join — check `source` and
+  expect NULLs.
+  [nbapred/ingest/sbr_hist.py (edited), scripts/build_odds_open.py,
+  scripts/measure_line_movement.py, scripts/scrape_teamrankings.py,
+  scripts/fetch_espn_odds_open_close.py, scripts/fetch_actionnetwork_odds.py,
+  scripts/build_nba_open_close.py,
+  tests/test_basics.py::test_sbr_year_inference_survives_the_bubble,
+  docs/OPENING_LINES.md; data/derived/odds_open.csv, data/raw/sbr_ext/,
+  data/raw/teamrankings/spread_movement.jsonl, data/raw/sbr_html/]
+- D119 OPENING LINES ACQUIRED (premise was wrong twice, both good): a prior
+  session had already ingested odds_hist_sbr (2007-08..2022-23) UNUSED and
+  unsurfaced; the missing seasons were closed FREE via keyless ESPN core API +
+  Action Network (spread, total AND moneyline, 100% for 2023-24..2025-26).
+  odds_open = 23,783 games with BOTH open and close; 5,938/6,603 = 89.9% of
+  the model corpus (only hole: 2nd half of 2022-23).
+  MEASUREMENT: mean |close-open| = 1.218 pts CI(1.202,1.235); 17.9% never
+  move; the close is genuinely better than the open (MAE 9.744 vs 9.848,
+  paired -0.1036 SIG); the line moves toward the eventual result 54.63%.
+  THE CEILING, AND IT SIZES D117: betting the side the market LATER MOVES
+  TOWARD wins 54.63% CI(53.92,55.32) at the OPEN price but only 49.91% at the
+  CLOSE. Breakeven at -110 is 52.38%. So PERFECT open-to-close timing
+  foresight clears vig by just 2.25pp — the entire prize for timing is small,
+  positive, and real. Trend is favorable: mean |move| 0.87 (2008-09) -> 1.86
+  (2024-25); move-toward% ~51-53% (2008-13) -> 55-60% (2021-26).
+  FOUR SILENT BUGS FIXED en route: SBR year inference misdated the ENTIRE
+  2019-20 bubble (109 games a full year early); the spread/total resolver
+  FABRICATED values on corrupt rows (a 216-pt spread); load_all issued 17,712
+  single-row INSERTs holding the write lock >12min; unmapped abbreviations
+  silently dropped 37% of gap-season games.
+- D120 THE BET-AT-OPEN BACKTEST (the test D119 unlocked; every prior betting
+  result was bet-AT-CLOSE). PLAIN ANSWER: NO — the edge does NOT clear the vig
+  at opening prices. But it stops SIGNIFICANTLY LOSING, and the timing effect
+  itself is real, replicated and now sized.
+  COVERAGE. odds_open joins 1:1 on (season, game_date, home, away):
+  4,349/4,920 = 88.4% (rt1 p_full 4-season, PRIMARY) and 5,573/6,148 = 90.6%
+  (cf_holdout p_base 5-season). 100% for 2023-24/24-25/25-26 — ALL THREE WITH
+  REAL OPENING MONEYLINES — 99.7% for 2021-22, and 53.6% for 2022-23
+  (2022-10-18..2023-01-16, first half ONLY; SBR stops 2023-01-16). STRUCTURAL
+  CONSEQUENCE NOT PREVIOUSLY FLAGGED: the late window is gp>=55, which starts
+  ~February, so the 2022-23 hole removes 100% of that season's late-window
+  games — R4_LOWT and T20_D03_10_W lose an entire non-dev season and their
+  NONDEV reading is 2025-26 ALONE.
+  THE CORE TEST, on the REAL opening moneylines (no vig assumption anywhere;
+  n=3,682): betting our side hits 68.14% against a 69.61% breakeven = SHORT BY
+  1.47pp, ROI -1.64% CI(-4.1,+0.7). The same bets at the CLOSE are 2.28pp
+  short (ROI -3.38%). On the program's assumed-vig convention the open is
+  3.36pp short (ROI -3.49%) vs 4.37pp at the close. ATS against the OPENING
+  SPREAD: 52.72% CI(51.2,54.2) vs 52.38% breakeven, ROI +0.64% CI(-2.2,+3.3),
+  null p=0.325; at the close 51.10%. Against D119's 54.63% perfect-foresight
+  ceiling we capture 15.0% of the entire timing prize.
+  THE ROBUST NEW NUMBER — PURE TIMING, PAIRED ON IDENTICAL BETS. Fire a rule
+  at the open, score the SAME bet set at the open price vs the close price:
+  dROI = +1.4 to +3.7pp, SIG in 16 of 16 cells (4 rules x 2 frames x 2 price
+  sources). Price is isolated from selection. But +3.4pp on a close-arm ROI of
+  -0.6% to -4.8% lands on breakeven, not profit.
+  FAMILY-WISE: THE FAMILY IS NULL. 288 pre-specified cells, expected 14.4
+  significant at p<0.05 under a global null, OBSERVED 9, P(chance>=9)=0.953 —
+  BELOW the free-lunch rate. All 9 are in the moneyline arm (144 cells,
+  expected 7.2, observed 9, P=0.29). The headline cell R4_LOWT@open +5.95%
+  (n=485, p=0.021) is NOT a timing result: in the same 2025-26 window the
+  CLOSE arm is also significant (+9.10% p=0.037 primary, +10.03% p=0.011
+  wide). Winning at BOTH prices in one season is the D115 season-lottery
+  signature. 3 of 4 rules are positive in both split directions at the open
+  (D115 had 0 of 8) but none is significant in both.
+  D117'S SUCCESSOR — THE STAKING VERDICT DOES FLIP. At the CLOSE the
+  calibrated bettor stakes 0 of 3,063 eligible (assumed-vig) / 6 of 1,962
+  (real MLs): D117 REPRODUCED EXACTLY. At the OPEN he stakes 226 of 1,883
+  (12.0%) on real MLs, claimed-edge band [0.038,0.080], returning +6.14%
+  CI(-3.57,+15.50) p=0.110 (primary) / +8.54% CI(-1.48,+18.65) p=0.053 (wide)
+  — positive in both split directions, significant in neither. The Kelly slope
+  roughly TREBLES at the open: b=0.5685 (t=5.52) vs 0.2085 (t=1.97) on
+  spreads, 0.5214 vs 0.1927 on MLs; break-even claimed edge +0.0682 ->
+  +0.0066. "We have no positive-EV bets" is a statement about the CLOSE.
+  CLV — D115 REPLICATED AND EXTENDED, AND ITS CONTROL REPAIRED. Our side at
+  the open +0.00971 t=+9.16 (n=4,349) vs favourite-drift control -0.00351,
+  paired excess +0.01321 SIG (D115: +0.01124/-0.00362 on n=1,892, SBR only).
+  BUT D115'S FAVOURITE-DRIFT CONTROL IS VACUOUS ON SAME-SIDE BETS — our side
+  IS the open favourite by construction, so the excess is identically zero,
+  and all four registered rules require same-side. Replaced by a SELECTION
+  PLACEBO (permute p_us within season x p_open decile, re-fire the rules,
+  destroying model information while preserving the selection mechanism):
+  placebo CLV +0.0003..+0.0036, none significant on the ML frame, against real
+  rule CLV +0.012..+0.020. The rules' CLV is INFORMATION, not mean-reversion
+  of open-price noise. CLV also predicts outcome: top-half-CLV bets hit 74.5%
+  vs 66.3% (corr +0.102).
+  CLV MONTH CALIBRATION (the live program's yardstick): union of the 4 rules,
+  median 44 bets/month, per-bet CLV sd 0.0545 -> monthly se 0.0082. Mean
+  monthly CLV +0.0180 (4-season) / +0.0212 (5-season); 96-97% of months
+  positive; p10 +0.0068, p50 +0.0178, p90 +0.0283. BELOW -0.0131 = 2-SIGMA RED
+  FLAG; ABOVE +0.0200 = 2-sigma good month. Caveat: all-same-side CLV decays by
+  season (+0.0050, +0.0082, -0.0007, +0.0022).
+  METHODOLOGICAL FINDING TOUCHING EVERY PRIOR BETTING D-LINE. The convention
+  dec = 1/(sigmoid(margin/6.96) * 1.045) OVERSTATES the breakeven on our bets
+  by 1.98pp vs the real moneyline (0.7158 vs 0.6960). Decomposition on our
+  side: sigmoid 0.6850 (actual win rate 0.6811, +0.4pp), ML proportional
+  de-vig 0.6669 (-1.4pp); realised overround paid 1.0433 on favourites vs
+  1.0440 on dogs, so it is NOT asymmetric vig — it is the spread->probability
+  map. D75/D78/D82/D113/D115/D117 all priced this way and are ~2pp pessimistic
+  on the price axis. Separately, the MEASURED opening-ML overround is 1.0431,
+  which validates the 1.045 assumption itself.
+  BUG FOUND AND FIXED IN THIS WORK: am2dec computed 1 + 100/-|a| instead of
+  1 + 100/|a|, producing decimals < 1 and 107% "breakeven" rates, and silently
+  cutting the moneyline arm from 3,682 games to 260 via the overround sanity
+  filter. Caught by the impossible breakeven, not by a test. Also corrected en
+  route: a first pass measured "line moves toward the result" at 43-47% by
+  failing to exclude the ~18% of games that never move; done correctly it
+  reproduces D119 exactly (55.9/60.8/57.2 vs their 55.4/60.1/57.1), so D119's
+  ceiling stands and the opening price is sign-verified in BOTH vendor regimes.
+  LIMITS: the three moneyline seasons rest on ONE vendor pair (ESPN core +
+  Action Network) with no third source for the open; no line shopping; no
+  limit modelling, and opening lines carry the LOWEST limits of the day.
+  DECISION: DO NOT deploy capital at the open either. CLV remains the target,
+  now with a calibrated monthly red-flag band. The open-vs-close price
+  difference is worth +1.4..+3.7pp and should be captured by transacting as
+  early as possible, which is what bet_engine.py already does.
+  [scripts/bo_openbacktest.py, scripts/bo_clearvig.py; data/bo_openbacktest.json,
+  data/bo_clearvig.json; journal 20260801_nba-betting_94495b]
+- D121 BET-AT-OPEN VERDICT: NO, the edge does not clear the vig at opening
+  prices either — but it stops SIGNIFICANTLY losing, and the timing effect is
+  real, replicated and now sized. On REAL opening moneylines (no vig
+  assumption, n=3,682): 68.14% vs a 69.61% breakeven = short by 1.47pp, ROI
+  -1.64% CI(-4.1,+0.7); the same bets at the close are 2.28pp short. ATS vs
+  the opening spread 52.72% CI(51.2,54.2) vs 52.38% breakeven, p=0.325. We
+  capture 15.0% of D119's perfect-foresight timing prize.
+  MOST ROBUST NUMBER: pure timing, paired on identical bets, dROI +1.4 to
+  +3.7pp SIGNIFICANT IN 16 OF 16 CELLS — but applied to a close-arm ROI of
+  -0.6% to -4.8% it lands on breakeven, not profit.
+  FAMILY-WISE: 288 cells, expected 14.4 significant under the null, OBSERVED 9
+  (P(chance>=9)=0.953) — BELOW the free-lunch rate. The one eye-catching cell
+  (R4_LOWT@open +5.95%) is the D115 season-lottery signature: the CLOSE arm is
+  significant in the same window too.
+  THREE FINDINGS BIGGER THAN THE HEADLINE:
+  (1) D117's staking verdict FLIPS at the open: the calibrated bettor stakes 0
+      of 3,063 at the close but 226 of 1,883 (12%) at the open, +6.14%
+      CI(-3.6,+15.5); the Kelly slope TREBLES (b 0.209 -> 0.569, t=5.5).
+      "No positive-EV bets" is a statement about the CLOSE specifically.
+  (2) D115's favourite-drift control was VACUOUS (our side IS the open
+      favourite by construction on same-side rules). Replaced with a selection
+      placebo (permuted p_us within season x price decile): placebo CLV
+      +0.0003..+0.0036 ns vs real rule CLV +0.012..+0.020 — the CLV is
+      INFORMATION, not open-price mean reversion. CLV also predicts outcome
+      (74.5% vs 66.3% hit, top vs bottom half).
+  (3) OUR PRICING CONVENTION HAS BEEN ~2pp PESSIMISTIC all along: the
+      spread->probability map (not vig) overstates breakeven by 1.98pp on our
+      bets; D75/D78/D82/D113/D115/D117 all priced this way. The 1.045 overround
+      assumption itself is validated (measured 1.0431).
+  CLV LIVE CALIBRATION: median 44 bets/month, monthly se 0.0082, mean +0.0180,
+  96% of months positive; RED FLAG below -0.0131, GOOD above +0.0200.
+  Two bugs caught: am2dec sign error (decimals <1, 107% breakevens) and a
+  first-pass line-movement error that vanished once no-move games were
+  excluded (then reproduced D119 exactly).
+  RECOMMENDATION STANDS: do not deploy capital at open OR close; CLV remains
+  the target, now with a calibrated red-flag band; transact as early as
+  possible to bank the +1.4..+3.7pp timing edge.
+- D122 CERTIFICATION CAPSTONE OF CORRECTED STACK (post-D118): the corrected
+  headline REPRODUCES EXACTLY — every per-season and pooled number matches the
+  registered table (the "(6) CORRECTED HEADLINE" block of the D112 corpus-floor
+  entry, carried in the working notes under the D118 label) to the 5th decimal,
+  0.00pp deviation against a +/-0.5pp tolerance. COMMAND (current defaults, no
+  oracle tiers, LATE_STATE unset->0, TANK_TERM unset->1):
+  `env -u LATE_STATE -u TANK_TERM -u ORACLE_MINUTES -u INACTIVE_OUTS
+   -u REPORT_OUTS -u TANK_SEASON_FLOOR -u OCT_BRIDGE
+   python3 scripts/prod_by_season.py`
+  CERTIFIED TABLE (norm = (ll_us-ll_mkt)/(ln2-ll_mkt), the D106 measure):
+      season    ll_us    ll_mkt    gap        norm       n
+      2021-22  0.62149  0.60429  +0.01720   19.36%   1228
+      2022-23  0.63194  0.62437  +0.00756   11.00%   1230
+      2023-24  0.59549  0.58086  +0.01463   13.03%   1230
+      2024-25  0.58718  0.58155  +0.00563    5.04%   1230
+      2025-26  0.58376  0.57114  +0.01262   10.34%   1230
+      POOLED   0.60397  0.59244  +0.01153   11.45%   6148
+  ONE SCRIPT FIX EN ROUTE (coverage, not numbers): prod_by_season.py __main__
+  still carried the stale 3-season literal ("2023-24","2024-25","2025-26");
+  extended to the five certified seasons — the D112 derived corpus floor
+  (2021-22) — so the capstone script now scores the same corpus the register
+  headline is defined on. No model code touched; env verified clean.
+  ARTIFACTS: prior capstone preserved at data/capstone_pergame_pre_cert.csv +
+  data/prod_by_season_pre_cert.json (the late-state-ON 0.5960/0.5861/0.5806
+  stack); certified per-game dump now in data/capstone_pergame.csv (n=6,148).
+  CHARTS REFRESHED from the certified CSV (new scripts/make_charts_cert.py):
+  charts/logloss_4season_normalized.png (now 5 panels, rolling-100, norm gap
+  annotated per season), charts/progress_by_ship.png (original stage structure
+  kept — D41 literals + archived stage CSVs legacy/sched/csfix/carry/tank/late
+  — extended with "late-state (D90, shipped)" and "cert: D90 reverted + floor
+  fix" stages; holdout-season footnote), charts/logloss_continuous_current.png
+  (all 5 seasons, one axis, boundaries marked). The by-ship chart now shows
+  honestly that the final certified step gives back a little on 2024-25 and
+  2025-26 (the reverted term's dev seasons) while 2023-24 improves — the D112
+  signature, visible per game.
+  [scripts/prod_by_season.py (season tuple), scripts/make_charts_cert.py;
+  data/capstone_pergame.csv, data/prod_by_season.json,
+  data/capstone_pergame_pre_cert.csv, data/prod_by_season_pre_cert.json;
+  charts/logloss_4season_normalized.png, charts/progress_by_ship.png,
+  charts/logloss_continuous_current.png]
+- D123 BIAS-AUDIT RE-TEST — COLD-START FALLBACK BRANCH (the D16+D54+D67
+  reverse-and-re-test; settles D110 action (b)): DEAD EVERYWHERE, DELETE
+  RECOMMENDED, EXACT DIFF WRITTEN (NOT applied).
+  (a) BACKTEST, full certified corpus. The branch condition (ff.ready False
+  <=> current-season factor rows < 200 AND no carry rows) was instrumented
+  at every weekly refit of the prod_by_season cadence — replicated
+  line-for-line from production.py/four_factors.py and cross-checked by
+  calling the REAL fit_production at each season's opening-night cutoff
+  (ff read out of the Predictor closure; replication assert 5/5). RESULT:
+  0 of 125 refits not-ready, 0 of 6,150 schedule games (0 of 6,148 scored)
+  take the fallback, all five seasons 2021-22..2025-26 — including
+  2021-22, whose carry rests on INCOMPLETE 2020-21 (780/1080 games ->
+  1,560 factor rows; carry does not care about completeness). Current rows
+  alone reach 200 on Nov 2/1/8/6/4; in the no-carry counterfactual the
+  branch would serve 102/102/103/108/103 = 518 games (cf_holdout
+  act_carry_ff_ready_delta), so D62 carry is the single point of deadness
+  — exactly as D67-R3 predicted and D110/D112 measured (ablation 0.00000
+  in both arms).
+  (b) LIVE PATH (predict_today -> engine/slate.py -> fit_production(season,
+  before=today)). Carry needs ONLY prior-season player_game_stats +
+  nba_games rows (continuity_map pm non-empty AND prev factor_game_rows
+  non-empty); for opening night 2026-27 those are the 2025-26 rows ALREADY
+  in the DB (32,179 agg player-game rows, 2,460 factor rows). Probe run
+  TODAY: fit_production(con, '2026-27', before=2026-10-20) -> ff.ready
+  TRUE (continuity falls back to ps-cont/0.5556 defaults; no 001 data
+  needed; darko presence is irrelevant to the condition). The ONLY live
+  state that fires the branch is a DB missing the ENTIRE prior season
+  (fresh rebuild mid-October) — and in that state the fallback is silently
+  near-garbage: TeamRatings.fit returns UNFIT below 30 rows (margin ~ home
+  edge only) and last_season_prior returns {} below 200 prior odds rows.
+  A loud failure beats a silent coin-flip (D54 fail-loud precedent).
+  VERDICT: DELETE. Exact diff at data/t1_coldstart_delete.diff (docstring;
+  drop TeamRatings/game_rows import; fit-time RuntimeError guard replaces
+  the margin() else-branch; ratings_margin/tr/prior/id2ab/games_played
+  removed; w_comp kept as a vestigial API param so callers don't break;
+  last_season_prior/PRIOR_REGRESS retained — scripts import them).
+  Verified: the modified module ties shipped production at max|dmargin|
+  5e-13 (BLAS noise) over 3 refit dates x 28 pairs. NOT APPLIED here —
+  note the diff intentionally breaks closure-readers in HISTORICAL audit
+  scripts (component_dump, es_runtimeverify, ba_portfolio, es_fadeshape,
+  validate_production_comp reach tr/prior/ratings_margin); zero tests
+  reference the branch. [scratch t1_coldstart_deadness.py;
+  data/t1_coldstart_deadness.json, data/t1_coldstart_delete.diff]
+- D124 BIAS-AUDIT RE-TEST — F2 EVENT-RECENCY SETTLED: **RETIRED** (audit
+  item 9; the "standing maybe" is closed). SPEC: precisely reproducible —
+  exp_eventrecency.py construction re-run verbatim by pg_eventrecency.py
+  (trade arrival >=25 min/g, star return >=30 min/g after >=15d,
+  MIN_PRIOR_G=5, 15-game window, theory-set w=k/(k+12), per-factor
+  override math, isolation m_exp = m_ctl + 0.5*(fm_event - fm_ctl));
+  the cited "D52" was never a register entry (numbering jumps D48->D54)
+  but the frozen CODE makes the spec exact, so no irreproducibility
+  retirement was needed. RUN: the frozen blend on top of CURRENT certified
+  production (post-D112 derived floor, D90 off), full 5-season corpus,
+  weekly-refit same-run control; control fidelity vs the certified stack
+  (cf_holdout_new p_no_late) max|dp| = 2.5e-14 on all 6,148 games. F2 has
+  NO fitted coefficients (K0 theory-set), so the dev/holdout rule is
+  honored by split reporting. PRIMARY (paired bootstrap 2000x seed 7,
+  pooled isolation ll_ctl - ll_exp): +0.00002 CI(-0.00152,+0.00166) NS
+  n=6,148 -> per the pre-stated audit rule (CI must exclude 0) F2 is
+  RETIRED. Split: dev 23-26 +0.00061 CI(-0.00158,+0.00266) NS (no dev
+  pass, so holdout confirmation is moot); holdout 21-23 -0.00087
+  CI(-0.00334,+0.00146) NS with a NEGATIVE point. Per season:
+  -0.00061/-0.00113/-0.00201/+0.00292/+0.00092 (2 of 5 positive);
+  affected subset (n=2,521 games, 313 events) +0.00005
+  CI(-0.00390,+0.00387) NS. The evidence walk is complete: +0.00138
+  (3-season, D64 era) -> +0.00037 (4-season) -> -0.00013 (RT3 5-season)
+  -> +0.00002 (current stack) — a zero measured four ways; the one
+  positive season remains dev-season 2024-25 (+0.0029 NS), the D115
+  season-lottery signature. F2 struck from the freeze list; ledger row
+  updated. [scratch f2_settle.py wrapping pg_eventrecency verbatim;
+  data/f2_settle_pergame.csv, data/f2_settle_summary.json]
+- D125 BET-ENGINE 3-VIEW RESTRUCTURE SHIPPED (the codex product pass
+  ~/nba_review_bundle/product_pass_out.md items A1-A3 + ops 6, on the D121
+  posture: October 2026 is a CLV-FARMING PAPER BOOK, no real capital at any
+  view). scripts/bet_engine.py rewritten; all paper-mode; nbapred/ untouched.
+  (1) THREE TIMESTAMPED VIEWS replace the single 22:40 UTC emission. The
+  SAME rule-selected bets (D75/D78/D82 registry + D112 cap, operators
+  unchanged) book at each view's own price into bet_paper with a
+  snapshot_kind column: OPEN (--scan-open, cron */30 14:00-02:00 UTC, books
+  a game the FIRST time a two-sided h2h line appears; "first" is bounded by
+  the odds-logger/ESPN-poll capture cadence, and quote_ts stores the actual
+  quote timestamp, not the scan time; bet_quotes_panel doubles as the
+  seen-marker so a game is never re-booked; the scan exits before any model
+  fit when nothing new is two-sided), POST_REPORT (22:10 UTC ~= 5:10PM ET,
+  hooked to the injury poller: max injury_reports report_ts for today is
+  logged in detail), PRETIP (23:55 UTC, last pre-tip quote). Decision rule
+  carried from the pass: if OPEN does not beat POST_REPORT and PRETIP on
+  CLV by 2026-11-30, stop talking about opener edge in the live product.
+  (2) FULL BOOK-PANEL TELEMETRY: new table bet_quotes_panel (game_date,
+  game_id, snapshot_kind, ts, emitted_ts, book, side, price; PK on
+  game/kind/book/side so reruns are first-write-wins) logs EVERY book's
+  two-sided quote for every slate game at every emission; every bet row now
+  carries book (best-price identity), best_price, consensus_price (median
+  decimal across books) — so best-vs-consensus gap is a column difference.
+  Decision rule: by 2026-12-31, if one book family supplies >=75% of
+  positive CLV, line shopping is the product; flat across books => model
+  timing is.
+  (3) MIGRATION (in place, _ensure_schema): bet_paper gains snapshot_kind
+  (DEFAULT 'POST_REPORT' — the honest label for legacy 22:40 rows),
+  quote_ts, best_price, consensus_price, open_shrunk_edge,
+  stake_open_shrunk, pnl_open_shrunk via ALTER TABLE ADD COLUMN with
+  defaults; because DuckDB cannot alter a PK, an existing table whose PK
+  lacks snapshot_kind is rebuilt once (CREATE->INSERT SELECT->DROP->RENAME)
+  inside the same short write window. Applied to data/nba.duckdb (table was
+  empty; PK now game_date, game_id, side, rule, snapshot_kind). Unit-tested
+  against a synthetic pre-D112 24-column table (row survives labelled
+  POST_REPORT, PK gains snapshot_kind, idempotent).
+  (4) FOURTH SIZING ARM open_shrunk — DIAGNOSTIC ONLY, paper stakes never
+  real ones. f4_shrinkage's (a,b) are CLOSE-fit (a=-0.01396, b=+0.18418);
+  D121 registers only b=0.569 for the open, so the OPEN-arm (a,b) were
+  RE-DERIVED exactly the way f4_shrinkage fits the close — OLS of realised
+  excess on claimed excess, same-side only — on ds_rt1_pergame.csv p_full
+  x odds_open with p_open = sigmoid(open_margin/6.96) (the D120
+  PRIMARY|SP|OPEN frame), and FROZEN as constants in bet_engine.OPEN_SHRUNK:
+      a = -0.0037733442091709493   b = +0.5684830302091815
+      se_b = 0.1029  n = 3848  t = +5.52  breakeven claimed edge +0.0066
+  The recompute reproduces data/bo_openbacktest.json
+  kelly_slope["PRIMARY rt1 p_full 4-season|SP"]["OPEN"] to the last
+  decimal. FROZEN: a refit is a new D-line, never a silent update. At a
+  4.5% overround the arm stakes only above ~5.1% claimed edge (the close
+  arm stakes never) — so live it measures how often the open calibration
+  would deploy, which is exactly what the trigger below consumes.
+  (5) REAL-STAKES TRIGGER CODIFIED (--monthly-report; cron 1st 11:00 UTC;
+  PRINT-ONLY, the engine never acts): real stakes are CONSIDERED only after
+  2 consecutive completed calendar months with OPEN-view mean CLV > +0.0200,
+  no completed OPEN-view month < -0.0131 (the D120/D121 2-sigma bands at
+  ~44 bets/month), AND stake_open_shrunk > 0 on >= 10% of priced OPEN
+  candidates in that window; earliest 2027-01-01; if ever met, start FLAT
+  0.25u (never Kelly) — and even then only via a human decision + a new
+  D-line. Monthly CLV is computed on UNIQUE games (union-of-rules, the D120
+  calibration convention).
+  (6) OPS: every read connection read_only=True; writes are short batched
+  executemany windows; writer-lock failure waits 60s and retries
+  (_write_retry). settle() split into read-phase -> batched UPDATE keyed by
+  (game, side, rule, snapshot_kind); all four arms settle off ONE price.
+  CRON (live crontab + ops/crontab.example): raw pollers untouched
+  (verified line-identical); bet-engine block now = OPEN scan */30
+  0-1,14-23 UTC, POST_REPORT 22:10, PRETIP 23:55, settle 10:40, monthly
+  report 1st 11:00, f4_shrinkage --refit Oct 1 only (S13 stop rule).
+  DRY RUN (--dry-run DATE, TEMP DB only — bet_paper verified untouched,
+  0 rows): 2026-02-11 (14 games, real open+close MLs from odds_open):
+  OPEN 1 bet row / 28 panel rows (T20_D03_10 OKC@PHX away at 1.435 open,
+  quote_ts 14:00 UTC, staked flat 1.0 / rawK 3.82 / shrunkK 0 /
+  open_shrunk 0.86 — the diagnostic arm DEPLOYS at the open price and
+  stakes 0 at both close views, as designed), POST_REPORT 2/28 and PRETIP
+  2/28 (R4_LOWT ATL@CHA + T20_D03_10 at close prices, rawK 0.74, both
+  shrunk arms 0); settle 5/5, OPEN-view CLV +0.0360 vs 0.0000 at the close
+  views (identically zero by construction — the close IS their price);
+  per-view x per-arm scorecard and monthly-report/trigger printed. Note the
+  view-dependent rule sets (OPEN fired only T20_D03_10, the close views
+  fired R4_LOWT too) are correct behavior: each view evaluates edge against
+  its own price. Offseason smoke: --settle / --scan-open /
+  --monthly-report / --report all no-op cleanly on the live DB.
+  LIMITS: the dry run is a PLUMBING rehearsal, not a backtest (one
+  composite book per view, close prices standing in for POST_REPORT, no
+  historical injury feed so STAR_FAV_SHARPER cannot fire there); --emit
+  kept as a legacy alias for --emit-post-report; props/starout lanes not
+  touched (owned elsewhere).
+  [scripts/bet_engine.py (rewritten), tests/test_bet_engine.py (14 green),
+  ops/crontab.example, live crontab (verified), data/nba.duckdb bet_paper +
+  bet_quotes_panel migration; frozen constants: bet_engine.OPEN_SHRUNK]
+- D126 D121 OUT-OF-SAMPLE EXTENSION — 2022-23 POST-JANUARY AT RECOVERED
+  OPENS: the TeamRankings scrape closed D120's structural hole (SBR dies
+  2023-01-16; the gp>=55 late window starts ~February, so 2022-23 had ZERO
+  late-window games at any open price). odds_open.csv now carries 1,287
+  2022-23 games (623 recovered post-2023-01-17, source=teamrankings,
+  SPREAD-ONLY). 2022-23 never entered rule selection at any stage (rules
+  frozen from dev 23-24+24-25, OOS 25-26), so this is the first genuinely
+  untouched season for the PRIMARY late-season rule at open prices. The
+  frozen registry was scored VERBATIM (machinery imported from
+  bo_openbacktest.py; nothing re-chosen): frame ds_rt1_pergame p_full;
+  533 post-cut regular-season games with both a TR open and an odds_market
+  close (TR close vs odds_market close: MAD 0.43 pts, corr 0.9945, 10
+  favourite flips — the recovered data cross-validates); 382/533 late.
+  PRICING CONVENTION (stated per task): p_open = sigmoid(open_margin/6.96)
+  — the exact frame frozen in bet_engine.OPEN_SHRUNK (D120 PRIMARY|SP|OPEN)
+  — decimal = max(1/(p_side*1.045), 1.01), the D75/D78 proportional
+  overround that D120 validated against real MLs (measured 1.0431/1.0433).
+  No MLs exist for TR rows so SP is the ONLY computable frame, and D120
+  established it is ~2pp PESSIMISTIC on breakeven vs real MLs — every
+  number below carries that known haircut against us. Spread-derived prices
+  are also NOISIER than real MLs; single vendor for the open.
+  PER RULE (A=fired-on-open, priced at open; B=same bets at odds_market
+  close; dROI=paired A-B bootstrap; CLV=p_close_side - p_open_side):
+    R4_LOWT (PRIMARY)  n=59: hit 71.2 binomCI[57.9,82.2] vs be 69.78;
+      ROI@open +1.57 [-15.1,+18.9], @close -4.20; dROI +5.77pp
+      [+1.78,+9.26] SIG; CLV +0.0344 [+0.0164,+0.0515] t=+3.7 SIG
+      (reg D121: dROI +3.31 [+2.26,+4.39]; CLV +0.0208; NONDEV was
+      2025-26-ONLY n=102 — this adds a second nondev season, +58% volume).
+    T20_D03_10_W n=15: hit 93.3, ROI@open +23.24 [+3.7,+36.9] MC p=.030
+      BUT exact binomial p=.109 NS at n=15, and the CLOSE-fired arm is 13/13
+      +32.0% — both-prices-positive is the D115 season-lottery signature,
+      NOT a timing result. dROI +7.77 [+5.16,+10.36] SIG; CLV +0.0467 SIG.
+    T20_D03_10  n=26: hit 88.5, ROI@open +18.19 [-0.5,+32.7], binom p=.085
+      NS; dROI +7.97 [+5.89,+10.11] SIG; CLV +0.0501 SIG. Same lottery
+      caveat (close-fired arm +18.0%).
+    STAR_FAV_SHARPER n=87: hit 72.4 vs be 69.98; ROI@open +2.89
+      [-11.7,+16.4], @close +1.13; dROI +1.76 [-2.23,+5.35] NS (reg +1.89
+      [+1.03,+2.70] — dead on); CLV +0.0193 [+0.0019,+0.0358] SIG.
+  UNION OF 4 RULES (unique games, the D120 live-calibration convention),
+  n=109: flat ROI@open +1.64% [-10.8,+13.9] (hit 71.6 vs be 70.03), same
+  bets @close -1.83%, dROI +3.47pp — INSIDE the registered +1.4..+3.7pp
+  band. Union CLV +0.0258 [+0.0112,+0.0404] t=+3.5, 68%>0; monthly means
+  +0.0173/+0.0481/+0.0223/+0.0074 — zero months below the -0.0131 red flag,
+  2 of 4 above the +0.0200 good line. Robustness: every dROI/CLV number is
+  ~unchanged using TR's own close instead of odds_market (e.g. R4_LOWT dROI
+  +5.62, CLV +0.0313) — not a cross-vendor artifact. SELECTION PLACEBO
+  (p_us permuted within p_open decile): rule CLV +0.001..-0.036, none
+  positive-significant, against real +0.019..+0.050 — information again.
+  Caveat: ALL-same-side universe CLV is -0.0024 NS this window (D121:
+  +0.0035 SIG) — the CLV concentrates in the rules, not the universe.
+  VERDICT: CONFIRMS D121 on an untouched season, with stated power limits.
+  (1) TIMING REAL: dROI positive 4/4 rules, SIG 3/4, union +3.47pp inside
+  the registered band. (2) LANDS AT BREAKEVEN: every open-arm ROI point
+  estimate is positive (+1.6..+23) but every CI spans ±12-18pp — on the
+  PRIMARY rule and the union this is "consistent with breakeven-to-
+  slightly-positive, underpowered"; NO profit claim (the two tails cells
+  with MC p<.05 fail exact binomial and light up at BOTH prices). (3) CLV
+  IS THE ASSET: positive and significant in 4/4 rules and the union,
+  placebo-null, and above D121's monthly red-flag band throughout.
+  Recommendation unchanged: no capital at open or close; transact early;
+  CLV is the yardstick.
+  [scripts/bo_open2223_oos.py (new; imports bo_openbacktest verbatim),
+  data/bo_open2223_oos.json; inputs data/derived/odds_open.csv (TR rows),
+  data/ds_rt1_pergame.csv, odds_market (read-only)]
+- D127 DEFENCE-CONDITIONED POSSESSION MARGIN — LANE KILLED at the
+  pre-registered dev gate (the #1-ranked open lane from the codex product
+  review; the game-level question D113 left open). PRE-REGISTRATION written
+  BEFORE the run: data/poss_v2_prereg.md, sha256
+  39a66c97bc8454a46c9b7d643961d8abd997bd4bcf5be7871d28c96431d7f962 — 3 specs,
+  one config each, NO sweeps, ridge FIXED ex ante at 3200 (D113's
+  validation-selected value), 730-day trailing possession window, weekly
+  walk-forward refits at the exact prod_by_season cadence (strictly-earlier
+  data only), comp-rotation aggregation (same CompositionModel instance,
+  roster rule and oracle OUT sets as the comp leg), entry = within-comp-slot
+  50/50 swap m_exp = m_ctl + 0.25*(pm - cm_used), bridge-aware cm_used read
+  from the fit_production closure (pg_eventrecency pattern; nbapred/
+  untouched). COVERAGE (found first, training-mass only — scoring needs no
+  possessions from the scored game): 002 games with possessions/total:
+  2019-20 46.8%, 2020-21 20.2%, 2021-22 26.5%, 2022-23 46.0%, 2023-24 96.8%,
+  2024-25 62.1%, 2025-26 99.6% (886,836 rows; patchy across months, not
+  truncated). CONTROL replication vs the certified D122 stack: max|dp|
+  1.03e-14 over all 3,690 dev games (env: D122 command + OCT_BRIDGE_TRAIL=""
+  — the cert ran the uncapped bridge; the current default "2" diverges up to
+  2.5e-2 in October).
+  DEV RESULTS (paired bootstrap 2000x seed 7, ll_ctl - ll_exp, + = better):
+    S1 player-off + player-def (PRIMARY, D113's winning design):
+       pooled -0.001082 CI(-0.002779,+0.000622) NS, p_wrongside 0.8835;
+       per-season -0.001994 / -0.000970 / -0.000282 (0/3 positive)
+    S2 offence-only (ablation control): -0.002245 CI(-0.004232,-0.000174)
+       SIG HARMFUL; per-season -0.003419/-0.001832/-0.001485
+    S3 player-off + team-def: -0.002367 CI(-0.003970,-0.000618) SIG HARMFUL;
+       per-season -0.003491(-SIG)/-0.001636/-0.001973
+    EC-window (|pm-cm_used|>=2.0, pre-registered): S1 -0.002008 NS n=1,828;
+       S2 -0.003303 SIG-harm; S3 -0.004186 SIG-harm — the harm CONCENTRATES
+       exactly where the possession fit disagrees with DARKO-comp: in
+       disagreement games, DARKO-comp is right.
+    MECHANISM (secondary, registered): S1 vs S2 +0.001163
+       CI(-0.000462,+0.002756) NS positive, p_wrongside 0.085 — the
+       defence-conditioned fit beats the offence-only fit at the game level
+       (the echo of D113's possession-level result), but BOTH sit below
+       production: corr(pm_S1, cm) = 0.868 with near-equal spreads (sd 6.54
+       vs 6.66) — the possession fit reproduces DARKO-comp's team ordering
+       plus estimation noise, so swapping any of the slot injects noise.
+  POWER: realized paired sd 0.0518 -> realized MDE80 0.00239 pooled (vs the
+  conservative pre-registered 0.00443); S1's CI_hi +0.00062 EXCLUDES the
+  entire claimed band (+0.001..+0.003 pooled) — an informative null, not a
+  starved one. VERDICT per the pre-registered rule (S1 CI straddles 0, point
+  negative): KILL THE LANE at this construction; NO variant shopping; the
+  HOLDOUT (2021-22..2022-23) was NEVER SCORED and stays clean. T3 ledger row
+  added (false-rejection risk: effects <= +0.0006 not excluded; any retry
+  needs a documented construction artifact per GATE_POLICY_V2 5.3 — the
+  obvious candidate critique is that a fixed quarter-swap cannot beat a
+  component it correlates 0.87 with, but that construction was chosen ex
+  ante on the fixed-weights precedent and the EC-window result argues the
+  possession fit is noise-adding, not information-adding, at current
+  coverage). FAMILY: +4 members (S1vC, S2vC, S3vC, S1vS2) at m=1 each.
+  D113's possession-likelihood superiority does NOT transfer to team-margin
+  inputs: what possession fitting adds over stint/v1 was never the binding
+  constraint — production's comp leg already carries DARKO, a stronger
+  talent estimate than either. [scripts/pg_possdef.py;
+  data/poss_v2_prereg.md, data/pg_possdef_pergame.csv,
+  data/pg_possdef_summary.json, data/logs/pg_possdef_dev.log]
+- D128 D79 REVERSAL REVIEW SETTLED — one KEEP, one REVERT, on the endpoint the
+  register itself pre-registered. D103 flagged two of our own D79 "fixes" as
+  measured-harmful and queued them for reversal review, explicitly stating the
+  gate: "gate on CRPS/PIT only, since D79 attributed the pre-fix PIT centring
+  to bias cancellation against the minutes over-projection" — i.e. the rate/MAE
+  metric was ruled out IN ADVANCE as the thing bias-cancellation would move.
+  RUN: scripts/d79_reversal_review.py, n=6,000 player-games / 484 players over
+  2023-24..2025-26 (2,000 per season), 4,000 sims per player-game, paired
+  bootstrap; 99.7% of rows affected by the 002 filter.
+  (A) 002-FILTER ON THE PROPS EWMA -> **KEEP THE FIX** (do not revert).
+    Pre-registered primary CRPS: revert-minus-keep +0.00598 CI(-0.00631,
+    +0.01811) **ns** pooled; per-season ns/ns/ns (+0.0065/+0.0115/-0.0001);
+    Oct-Nov ns and NEGATIVE (-0.00187). Secondary MAE does favour reverting
+    (+0.03875 = +0.78%, SIG, and +0.0674 = +1.38% SIG in Oct-Nov) and PIT is
+    better reverted (0.4982 vs 0.4839 — nearer 0.50) — but that is EXACTLY the
+    bias-cancellation D86 already diagnosed: the ewma_002 PIT sits "exactly at
+    D79's clean-universe state (0.484-0.485)" because clean rates expose an
+    October MINUTES OVER-PROJECTION, whose correct fix D86 already named as the
+    early-minutes ramp. Reverting would restore calibration by re-admitting
+    preseason/playoff contamination to cancel a different bias — two wrongs.
+    Verdict: keep the principled filter; the Oct-Nov MAE gap is the SIZE of the
+    early-minutes-ramp prize (codex product pass item B2), now quantified.
+  (B) KALMAN FORWARD STEP -> **REVERTED** (nbapred/engine/props.py). Primary
+    CRPS: +0.00378 CI(+0.00112,+0.00643) **SIG** harm from the fix; MAE
+    +0.00461 CI(+0.00033,+0.00861) SIG; PIT unchanged (kal_f 0.5023 vs kal_nof
+    0.5022) so no calibration trade-off — the D118 precedent applies cleanly (a
+    principled implementation that measures OOS harm loses to the measurement).
+    fwd_days now 0.0 unless PROPS_KALMAN_FWD=1. NOTE the practical stakes are
+    nil: player_rates_kalman is NOT on any live path (only audit_kalman_720.py
+    and cg_kalman_clean.py import it) and Kalman is a decisive REJECT vs EWMA
+    (-0.00137 SIG 3/3, D103); the function is now docstring-marked REJECTED /
+    NOT LIVE / no named future gate, per the codex product-pass rule that
+    rejected terms leave the live entrypoints.
+  [scripts/d79_reversal_review.py, data/d79_reversal_review.json,
+   data/logs/d79_reversal_review.log; code nbapred/engine/props.py]
+- D129 v2_usage ARTIFACTS REFIT ON BOTH HALVES (the D107 open hazard closed).
+  fit_v2_usage.py's copy of the D81 home/away guard had been dropping EVERY
+  home shot, so every n in the D32-D38 family was a 2x overstatement and the
+  fits saw away-context possessions only. REFIT on the corrected collector:
+  885,185 shots (was ~half), data/v2_usage.npz 682 -> 1,122 players,
+  data/v2_usage_pit.npz 678 -> 997 players; the pre-fix artifacts are kept as
+  *_pre_d107_awayonly.npz. Held-out shooter log loss reproduces the D32 result
+  (uniform 1.6094 / unconditional usage share 1.5726 / conditional logit
+  1.5705). AGREEMENT with the poisoned fit: corr(u_clean, u_buggy) = 0.920,
+  mean|diff| 0.097 over 994 shared players — the away-only bias moved the usage
+  vector materially less than the n-halving suggested.
+  D33 SOFTMAX LIFT STANDS on the clean both-halves PIT fit: +0.06072 cluster CI
+  (+0.04725,+0.07388), sign- and size-consistent 3/3 seasons (lift 1.197/1.199/
+  1.191; per-season d +0.0346/+0.0491/+0.0370). Production constants in
+  nbapred/engine/starout.py therefore need NO re-gating, and load_usage_weights
+  picks the refit npz up automatically (same path/keys).
+  ONE NEW AND UNCOMFORTABLE DIAGNOSTIC, registered rather than buried: on
+  post-cut rows with the PIT u (n=9,315, 479 players) the softmax lift beats
+  every naive baseline (vs flat-1.020 +0.04457 SIG; vs c_mean +0.02594 SIG; vs
+  shuffled-lift +0.05017) but does NOT beat the in-sample-optimal CONSTANT lift
+  (+0.00194 CI(-0.00844,+0.01264) ns) and LOSES to the pool-arithmetic-only
+  null (null_u lift 1.147): -0.00747 CI(-0.01469,-0.00038). Reading: what is
+  load-bearing in star-out redistribution is the LIFT MAGNITUDE (pool
+  arithmetic), not the player-specific usage weighting. This is an in-sample
+  attribution on one stratum, NOT a gate, so nothing is changed in production
+  on it — it is registered as the pre-registered hypothesis for a proper
+  null_u-vs-softmax gate (starout applies only 16% residual magnitude, so the
+  live stakes are small either way).
+  [data/logs/v2_usage_refit_d107.log, data/logs/audit_usage_pit_rebuild_d107.log,
+   data/logs/audit_usage_pit.json; artifacts data/v2_usage.npz,
+   data/v2_usage_pit.npz]
+- D130 LATE-SEASON URGENCY — ALL THREE PRE-REGISTERED ARMS FAIL THE DEV GATE.
+  The last surviving sides re-test from the codex product pass (its B3) and the
+  bias audit's item 2 ("re-test now: explicitly underpowered, frozen pending
+  2021-22, never settled with the tank interaction"). PRE-REGISTRATION written
+  before scoring: data/urgency_prereg.md, sha256 f135a515c2f5e4fb3ff776d7a1d8
+  f8ecbcf43dfa471ee6c092279ecdf053921b — 3 arms, ONE config each, no sweeps;
+  point-in-time standings only (before-cutoff discipline, D55 bug class);
+  primary window = late-season ACTIVE games (both gp>=55, scored team alive);
+  secondary = D65 collapse subset; full-season pooled as harm veto.
+  CONTROL REPLICATION vs data/capstone_pergame.csv: n=3,690 matched, max|dp|
+  0.0221 with 2.52% of games drifting — ALL of it October, from the
+  OCT_BRIDGE_TRAIL="2" freeze landing after the D122 cert (which ran uncapped);
+  max|dp| INSIDE the primary late window is 0.000696, so the gate itself is
+  unaffected. (Confirms the bridge freeze is October-local, as documented.)
+  ARM A alive-team urgency differential (k_u walk-forward, tank-mirror):
+    primary +0.00115 CI(-0.00155,+0.00391) NS n=1,006; per-season +0.00163/
+    +0.00143/+0.00036 (3/3 POSITIVE); D65 subset +0.00070 NS; late
+    unrestricted +0.00147 CI(-0.00095,+0.00386) NS n=1,171; pooled veto
+    +0.00048 NS (no harm anywhere); bin monotonicity TRUE.
+    -> UNCONFIRMED, NOT REFUTED: sign-consistent 3/3 and monotone by urgency
+    bin, but MDE80 0.00391 exceeds the point estimate 3x — this window cannot
+    resolve an effect of this size. Do NOT ship; do NOT re-test on the same
+    corpus (that is the second-look trap). Eligible ONLY as a 2026-27 live
+    one-shot with the config frozen exactly as pre-registered.
+  ARM B clinched/locked-seed letdown (fixed effect, Krieger 2015 FSR precedent
+    — a peer-reviewed effect that persists at CLOSE in subsets):
+    primary -0.00388 CI(-0.00708,-0.00060) **SIG HARMFUL** n=672; per-season
+    -0.00059 / -0.00735; D65 -0.00300 NS; monotone FALSE.
+    -> REFUTED IN OUR DATA, and registered as such: the published effect does
+    not transfer to our universe/estimand. Add to the closed list; do not
+    revive without a documented construction difference from Krieger's design.
+  ARM C quit x urgent interaction (tank_diff scaled by (1+c*urg_opp), the
+    audit's "coarse-bin surface" reduced to ONE parameter):
+    primary -0.00026 CI(-0.00183,+0.00121) NS n=1,006; pooled veto +0.00002;
+    monotone FALSE -> DEAD, effectively exactly zero. Closes the audit's
+    demand for a tank x urgency interaction test.
+  VERDICT: no ship. Urgency joins the "measured, not shippable" list; only Arm
+  A survives as a frozen live one-shot. FEATURE_LEDGER F5 row updated.
+  [scripts/pg_urgency2.py, data/urgency_prereg.md, data/pg_urgency2_pergame.csv,
+   data/pg_urgency2_summary.json, data/logs/pg_urgency2_dev_analyze.log]
+- D131 COVID-REGIME CORPUS AUDIT — **D122 IS STALE (re-certified below)**, the
+  crowd-regime guard is a MEASURED NULL and ships OFF, and two stale tests are
+  re-anchored to the derived floor. The corpus silently grew 5 -> 7 seasons.
+  (1) PROVENANCE, from the `ingest_ts` columns (not the logs — both
+  `nba_games` and `player_game_stats` carry one). The two tables landed on
+  OPPOSITE sides of the D122 cert (data/capstone_pergame.csv mtime 03:14,
+  entry ~03:20 on 2026-08-01):
+    * `nba_games` 2019-20 (1,258 g) and 2020-21 (1,221 g) landed 2026-07-31
+      23:41:17 / 23:39:24 — **BEFORE** the cert. So the certification ALREADY
+      ran with all 7 seasons of game rows visible.
+    * `player_game_stats` 2019-20 (all 971 g / 24,281 rows) and the final 300
+      games / 8,074 rows of 2020-21 landed 2026-08-01 **09:40:07 — ~6h AFTER**
+      the cert. (Corroborates D123's "2020-21 INCOMPLETE, 780/1080": the
+      pre-cert batches are 32 + 748 = 780 exactly.)
+  (2) IS D122 STALE? **YES.** Re-ran the exact D122 command with
+  OCT_BRIDGE_TRAIL="" (the cert ran uncapped) over the SAME 5 seasons, without
+  clobbering the certified CSV (copy preserved at
+  data/capstone_pergame_d122cert.csv, md5 c4769d81ea7e2917fec3757ddcc7f672,
+  byte-identical to the cert artifact):
+      season   ll_us D122  ll_us now   delta      norm D122  norm now  d_pp
+      2021-22  0.62149     0.62001     -0.00148   19.36%     17.69%    -1.671
+      2022-23  0.63194     0.63211     +0.00017   11.00%     11.25%    +0.253
+      2023-24  0.59549     0.59560     +0.00011   13.03%     13.12%    +0.094
+      2024-25  0.58718     0.58722     +0.00004    5.04%      5.08%    +0.039
+      2025-26  0.58376     0.58321     -0.00055   10.34%      9.89%    -0.449
+      POOLED   0.60397     0.60362     -0.00034   11.45%     11.11%    -0.339
+  ll_mkt reproduces to 5dp in every season. Per-game: 6,148 matched, max|dp|
+  0.0994, mean|dp| 0.00377, **46.99% of games moved**. 2021-22 moves -1.67pp of
+  normalized gap against D122's declared +/-0.5pp tolerance -> **the
+  certification no longer reproduces**; the drift is in our FAVOUR (smaller gap
+  to market) in 2021-22, 2025-26 and pooled. The table above is the RE-CERTIFIED
+  headline on the 7-season corpus; D122's numbers are superseded as the current
+  state of the stack (D122 remains valid as the record of the 5-season corpus).
+  ISOLATION (same-run control, TANK_SEASON_FLOOR=2021-22 = the cert-time floor):
+  pinning the floor drives max|dk| to **exactly 0.0** in all five seasons and
+  collapses the drift to pooled -0.000053 / 2021-22 -0.000191. So **~85% of the
+  pooled drift and ~87% of 2021-22's is the `tanking.season_floor` move
+  2021-22 -> 2020-21**, caused by the POST-cert completion of 2020-21 box
+  scores (coverage 780/1080 = 0.722 -> 1080/1080 = 1.000, clearing
+  FLOOR_MIN_BOX_COVERAGE=0.99; 2019-20 stays out at 971/1059 = 0.9169).
+  **It was NOT the schedule layer** — the prime suspect named in the brief is
+  exonerated on provenance: its inputs predate the cert.
+  Residual after pinning (14.8% of games): two channels, both traced —
+  (a) 2021-22's D62 carry now reads a COMPLETE 2020-21 (2,160 factor rows vs
+  1,560); (b) 0.9-4.6% of games in 2022-23..2025-26 move because
+  `CompositionModel.__init__` (composition.py:26-37) takes each player's last
+  10 games with seconds>=720 **with no season filter**, so returners with <10
+  such games in the recent corpus now fill that window's tail from
+  2019-20/2020-21 and their `trail_min` changes. 2025-26 `nba_games` verified
+  byte-identical to the pre-cert snapshot (2,460 rows, sum(pts) 284,395), so
+  no other channel exists. Registered as an observation, NOT changed.
+  (3) DISTORTION MEASURED. Realized home margin / home WR, 002 games:
+      2019-20 pre-shutdown (971 g)  +2.174  .5510   <- NORMAL, not contaminated
+      2019-20 BUBBLE 07-30..08-14   +1.648  .5568   (88 g, se 1.352 -> nothing)
+      2020-21 (1080 g)              +0.944  .5435   <- THE contaminated stratum
+      2021-22 +1.723 / 2022-23 +2.500 / 2023-24 +2.146 / 2024-25 +1.692 /
+      2025-26 +1.727 ; BASELINE 2021-22..2025-26 (6,140 g) +1.958 .5533
+  **Contamination = -1.014 pts of home edge for 2020-21** (combined se ~0.50,
+  ~2.0 sigma); the bubble is -0.310 pts on n=88 (statistically nothing) and
+  2019-20 pre-shutdown is +0.216 pts, i.e. a normal-crowd season. The COVID
+  regime is effectively ONE season, not two.
+  INDUCED BIAS in `fit_schedule_layer`'s APPLIED home_edge (trailing 730d):
+  depressed ~0.5 pts across ALL of 2021-22 and most of 2022-23 (1.46-1.79 vs
+  1.95-2.26 clean), dying to exactly 0 by 2023-10-24. Raw OLS bias is ~1.0 pt
+  (2022-10-18 cutoff: raw beta 1.395 vs 2.385); SCHED_SHRINK=600 halves it.
+  b2b SLOPES move too (b_hb2b -1.95 contaminated vs -3.25 clean).
+  (4) GUARD — IMPLEMENTED, MEASURED, **SHIPS OFF**. PRE-REGISTRATION written
+  BEFORE scoring: data/covid_guard_prereg.md, sha256 9b8831d697fc0673f2c36def
+  4edea6bd9e490e16df510aabab86373f6307c78a — ONE construction, no sweeps:
+  exclude game_date in [2020-07-30, 2021-06-30] from the MARGIN FIT FRAME only
+  (b2b + standings lookups untouched, so every retained game keeps its exact
+  b2b flag and as-of wpct). Rejected EX ANTE and not run as rescues: the blunt
+  pre-2021-10-01 date floor (leaves n=0 at the 2021-22 opener -> pure prior,
+  and discards 971 clean 2019-20 games), the fitted-then-zeroed crowd dummy
+  (absorbs an intercept shift only, but the b2b slopes move too), bubble-only
+  (88 g, se 1.35). RESULT, paired bootstrap 2000x seed 7, ll_OFF - ll_ON
+  (+ = guard better), certified 5-season corpus:
+      POOLED  +0.000079 CI(-0.000417,+0.000569) **NS** p_wrongside 0.367 n=6,148
+      2021-22 +0.000501 CI(-0.001519,+0.002420) NS
+      2022-23 -0.000103 CI(-0.001636,+0.001479) NS
+      2023-24 / 2024-25 / 2025-26 BITWISE UNCHANGED (max|dp| 9.8e-15, 0.0% of
+      games above 1e-12) — the pre-registered validity check, PASSED.
+  VERDICT **DEFAULT OFF; the production path is BITWISE UNCHANGED**, so no
+  registered gate is disturbed. Three reasons: (i) the standing rule
+  (D124/D127/D130) is that a CI straddling 0 does not ship — my prereg's ship
+  rule was written looser than repo practice and I am applying the STRICTER
+  standard, not the one that would have let it through; (ii) 2021-22 + 2022-23
+  are the D112 HOLDOUT, and moving holdout numbers on an NS result after
+  looking at them is exactly what the gate policy forbids; (iii) the guard is
+  **INERT ON EVERY FUTURE LIVE SLATE** — from 2023-10-24 onward no
+  trailing-730d window touches the excluded range — so enabling it buys zero
+  live benefit and only rewrites two historical backtest seasons.
+  My pre-registered ADVERSE PRIOR was WRONG in direction (I predicted harm to
+  2021-22 and help to 2022-23; the mild opposite happened) — recorded as a miss.
+  HONEST CAVEAT: this null is somewhat STARVED, not decisive. MDE80 pooled is
+  ~0.0007 while the input distortion predicts an effect of order 0.0002-0.0006
+  pooled, so the CI cannot exclude the size theory predicts. Second-look trap
+  applies: do NOT re-test on this corpus; eligible only on a fresh corpus.
+  ALSO FOUND (pre-existing, not introduced, NOT fixed): in `fit_schedule_layer`
+  the dead-team `gp` counter is WINDOW-relative, not season-relative (`stand`
+  is built from a 760-day query and `gp` counts from the window start), so a
+  team 60 games into its season can read gp<60 when the window opened
+  mid-season. Inert today — prod_by_season never passes dead flags (D47 ns).
+  (5) TWO STALE TESTS RE-ANCHORED (they failed on a DATA change, not a code
+  bug). Both now derive the floor from `tanking.season_floor(con)` / `tm.floor`
+  and the burn-in anchor from the fit frame (`_act_dates[0]` and
+  `_act_dates[K_MIN_ACTIVE-1]` / `[C_MIN_ACTIVE-1]`), and additionally assert
+  the burn-in lies INSIDE the derived floor season's date span — the content
+  the old literals silently carried. Assertions are STRENGTHENED, not weakened:
+  3 cold-points each (floor-season opening night, the instant the gp>=55 window
+  opens, the last row before the min-active threshold) in place of 1 hardcoded
+  date. A SECOND stale literal not named in the brief was found and removed:
+  test_fit_k_walkforward_derived_floor pinned `abs(k_26 - (-2.8156)) < 0.01`
+  and the corpus now gives **-3.0679**; it is replaced by the test's actual
+  D112 claim computed in-run against the pinned old floor
+  (`abs(k_24) > abs(k_24_old) and abs(k_26) > abs(k_26_old)`). The
+  absolute-value regression pin survives in
+  test_fit_k_walkforward_old_floor_is_unchanged (-2.2699), which pins
+  TANK_SEASON_FLOOR and so cannot drift with the corpus.
+  (6) SHOULD THE EVAL CORPUS EXPAND TO 7 SEASONS? **NO — and the premise is
+  false.** Probed directly: `fit_production(con,'2019-20',before=2019-10-23)`
+  raises `RuntimeError: FourFactors not ready ... no carry rows from 2018-19`
+  (the D123 fail-loud guard) — **2019-20 is not scorable at all** without a
+  2018-19 player_game_stats backfill. 2020-21 fits OK at its opening night, so
+  the real expansion is **+1,080 games, not +2,139**: n 6,148 -> 7,228 = +17.6%,
+  MDE x0.922 = only **7.8% tighter** (not the claimed +34.8% / 13.9%).
+  odds_market is NOT the blocker (season_end 2020: 1,142 rows; 2021: 1,171;
+  zero null p_home_spread). Buying 7.8% of MDE with the one season measured to
+  be a -1.014-pt regime break, on a 72-game compressed schedule, is a bad
+  trade, and every registered gate is denominated in the 5-season corpus.
+  If 2020-21 is ever added it must be a SEPARATE reported stratum, never
+  pooled. EVAL CORPUS UNCHANGED by this entry.
+  [code nbapred/model/production.py (COVID_NO_CROWD + COVID_GUARD, default 0);
+   tests/test_latestate.py, tests/test_tanking.py;
+   data/covid_audit_notes.md, data/covid_guard_prereg.md,
+   data/capstone_pergame_d122cert.csv;
+   data/logs/covid_audit_rerun7.log, covid_audit_pinfloor.log,
+   covid_audit_guard.log, covid_audit_pytest_full.log]
+  FULL SUITE after the test fixes: **65 passed, 0 failed** (280s).
+- D132 RE-CERTIFICATION AT CURRENT PRODUCTION DEFAULTS — SUPERSEDES D122 as the
+  authoritative baseline; data/capstone_pergame.csv REGENERATED so the artifact
+  and the register agree again. D131 established that D122 went stale ~6h after
+  it was certified (the 09:30 cron completed the last 300 box scores of 2020-21,
+  which moved tanking.season_floor 2021-22 -> 2020-21). D131's re-run answered
+  "is D122 reproducible" by pinning D122's CONSTRUCTION (OCT_BRIDGE_TRAIL="");
+  this entry answers the different and now more useful question: what does the
+  stack score at TODAY'S PRODUCTION DEFAULTS?
+  COMMAND: env -u LATE_STATE -u TANK_TERM -u ORACLE_MINUTES -u INACTIVE_OUTS
+  -u REPORT_OUTS -u TANK_SEASON_FLOOR -u OCT_BRIDGE -u OCT_BRIDGE_TRAIL
+  -u COVID_GUARD -u FF_LUCK python3 scripts/prod_by_season.py
+  (i.e. LATE_STATE off per D118, TANK_TERM on, COVID_GUARD off per D131,
+  OCT_BRIDGE on with the D105/D114 freeze trail_seasons=2 as the code default —
+  this is the FIRST certification that includes the bridge freeze.)
+  CERTIFIED TABLE (norm = (ll_us - ll_mkt)/(ln2 - ll_mkt)):
+    season    n     ll_us    ll_mkt      raw    norm
+    2021-22  1228  0.62001  0.60429  +0.01571  17.69%
+    2022-23  1230  0.63211  0.62437  +0.00774  11.25%
+    2023-24  1230  0.59548  0.58086  +0.01462  13.02%
+    2024-25  1230  0.58722  0.58155  +0.00567   5.08%
+    2025-26  1230  0.58343  0.57114  +0.01228  10.07%
+    POOLED   6148  0.60364  0.59244  +0.01120  11.13%
+  MOVEMENT vs D122 (11.45% pooled): -0.32pp, i.e. the model got BETTER, and the
+  gain is concentrated exactly where D131 predicted — 2021-22 19.36% -> 17.69%
+  (-1.67pp) as the completed 2020-21 box scores let the tank estimator warm a
+  full season earlier. 47.93% of games moved, max|dp| 0.0994. This is a DATA
+  effect, not a model change: no coefficient was retuned.
+  BRIDGE-FREEZE COST, isolated: vs D131's uncapped re-run (scratchpad
+  cap_now7.csv) only 2.11% of games move, max|dp| 0.0482, and pooled norm goes
+  11.11% -> 11.13% (+0.02pp) — the freeze is October-local and costs ~nothing,
+  which is the price of having a DEFINED October construction instead of one
+  that drifts with corpus growth. Independently corroborated by D130's control
+  replication (2.52% of games drifted, all October, max|dp| inside the late
+  window 0.000696).
+  BASELINE HYGIENE: data/capstone_pergame_d122cert.csv preserves the superseded
+  D122 artifact. Any gate whose control was taken against the OLD CSV before
+  2026-08-01 18:00 is comparing to a superseded state — D127/D130 both ran
+  their own same-run controls and are unaffected; they explicitly measured and
+  reported their drift vs the CSV rather than trusting it.
+  CHARTS regenerated from the certified artifact (scripts/make_charts_cert.py):
+  charts/logloss_4season_normalized.png, charts/logloss_continuous_current.png,
+  charts/progress_by_ship.png.
+  [data/capstone_pergame.csv (certified), data/capstone_pergame_d122cert.csv
+   (superseded), data/logs/cert_d132.log]
+- D133 PROPS EARLY-MINUTES RAMP — **SHIPPED**, the fix D79 queued, D86 named
+  "the right gated fix" twice, and D128 quantified. It is the largest props
+  endpoint gain since D57, and the DIAGNOSIS THE REGISTER CARRIED FOR FOUR
+  ENTRIES WAS WRONG ABOUT THE MECHANISM (below).
+  PRE-REGISTRATION written before any endpoint scoring: data/props_ramp_prereg.md
+  sha256 010947be0ed97a09a8e6035bb72514197b0e94b2383129175b7489e766a12444 —
+  3 gated arms, ONE config each, m=1, no sweeps; harness reuses the D128 scoring
+  and stratification (scripts/d79_reversal_review.py) so numbers are directly
+  comparable; MDE80 stated BEFORE scoring (0.00322 surgical / 0.01668 global
+  analogue, from D128's own Oct-Nov SEs scaled to the planned n).
+  **MECHANISM CORRECTION (the real finding).** D79/D86/D128 all described an
+  "early-season / October minutes over-projection". The minutes-level design
+  diagnostic (scripts/pr_ramp_design.py, pr_ramp_design2.py, run and DISCLOSED
+  before the pre-registration; endpoint never touched) shows the calendar
+  framing is a COMPOSITION ARTEFACT:
+    (a) the bias decays in the PLAYER's games-played gp: +3.01 / +1.97 / +1.04 /
+        +0.48 / +0.09 / -0.11 min at gp 0 / 1-2 / 3-5 / 6-9 / 10-14 / 15-19;
+    (b) the IDENTICAL decay appears at TEAM-gp>=30 — February and March —
+        +4.40 / +3.17 / +2.04 / +1.01 / -0.02, where no October
+        rotation-expansion story can apply (n=1,104 in the gp<10 cells);
+    (c) for players who have missed NOTHING (gp==tgp) the bias is +1.16 only in
+        the first 3 team games and then REVERSES to -0.20/-0.37/-0.38.
+  Root cause: `player_rates_from_stats` conditions its history on `seconds>=720`
+  and is therefore STRUCTURALLY BLIND TO ABSENCE — a returning player is
+  projected at his pre-absence role. October merely has a universe where
+  everyone has low gp. Independent corroboration inside our own register: D76/H2
+  measured this exact effect (-4.9 min, ~3-game ramp) but only at the
+  WIN-PROBABILITY endpoint, where it was harmless and therefore shelved.
+  ALSO REFUTED BEFORE SPENDING AN ARM: shrinking toward prior-season minutes
+  (the obvious "role prior") cannot work — at gp=0 the prior-season FULL-season
+  mean sits only 0.48 min below proj_min while the realized shortfall is 3.01,
+  i.e. the prior-season mean is ITSELF +2.48 too high (max recoverable ~16%).
+  ARM A (SHIPPED) proj_min -= b(gp), b = walk-forward mean(proj_min - realized)
+    per pre-registered bucket {0},{1,2},{3,5},{6,9},{10,14},{15,19}, forced 0 at
+    gp>=20 (K=20 from D48's "cold-start ramp /20 games" precedent + the
+    estimator's own 20-long minutes_hist + EWMA current-season weight share 0.75
+    at gp=20; NOT tuned on the eval). Coefficients for a scored season use ONLY
+    strictly-prior seasons; the table is stationary across all five fit cutoffs
+    (gp0 leg 2.749/2.871/3.076/3.104/3.170).
+    DEV 2023-24..2025-26, n=12,618 Oct-Nov rows / 481 players (4.97x D128's
+    2,539 in the same window), 4,000 sims/row, paired cluster bootstrap by
+    player 2000x seed 20260801:
+      Oct-Nov points dCRPS **+0.03909 (+0.744%) CI(+0.03161,+0.04697) SIG**,
+        realized MDE80 0.01119 -> 3.5x the power floor;
+      October alone +0.09773 (+1.82%) SIG; MAE +0.05362 (+1.06%) SIG;
+      minutes CRPS +0.04757 SIG, minutes MAE +0.07373 SIG;
+      VETO V1 PIT Oct-Nov 0.4820 -> **0.4979** (|dev| 0.0180 -> 0.0021);
+        October 0.4579 -> **0.5013** (D86 measured 0.461 there);
+      VETO V2 Dec-Jun +0.00423 CI(+0.00215,+0.00632) SIG **better**, PIT
+        0.4945 -> 0.4952 — no collateral damage anywhere;
+      VETO V3 3/3 seasons SIG positive (+0.05639/+0.03321/+0.02851);
+      all-season pooled +0.02899 CI(+0.02342,+0.03448) SIG, PIT 0.4856->0.4971;
+      monotone in gp exactly as the mechanism predicts: +0.20381 / +0.12562 /
+        +0.03423 / +0.00972 / -0.00036 ns / -0.00252 ns / **+0.00000 at gp>=20**
+        (n=4,337 rows bitwise unchanged — zero-outside-window verified).
+    HOLDOUT 2021-22..2022-23, run ONCE, config frozen, coefficients fit only on
+      seasons before each: n=9,463 Oct-Nov / 412 players.
+      **+0.04227 (+0.813%) CI(+0.03449,+0.04979) SIG = 108.1% of the dev
+      estimate** (confirm rule required sign + >=50%); October +0.12063 SIG
+      (PIT 0.4384 -> 0.4743); 2/2 seasons SIG (+0.04213/+0.04241); Dec-Jun
+      +0.00224 SIG better; pooled +0.03082 SIG.
+  ARM B uncertainty-only ablation (spread widened by exactly the magnitude that
+    would absorb A's location correction, mean untouched — magnitude-matched by
+    construction) is **SIG HARMFUL: -0.00657 CI(-0.00731,-0.00582)** dev and
+    -0.00488 holdout, i.e. **-16.8% of A**, 5/5 seasons. A - B = +0.04566 SIG.
+    **The props minutes defect is LOCATION, not spread — settled.** (The literal
+    "widen sd_min" spec would have been a NO-OP: simulate_player takes the
+    empirical minutes branch whenever minutes_hist has >=5 entries, which is
+    100% of the scored universe, and that branch never reads sd_min. B was
+    respecified onto the branch the live code executes.)
+  ARM C two-axis b(gp, availability) — better on MINUTES (Oct-Nov minutes CRPS
+    +0.07331 vs A's +0.04757, minutes MAE +0.13106 vs +0.07373) yet NOT on
+    points (A - C = +0.00007 ns dev; A wins October +0.01360 SIG, C wins Dec-Jun
+    -0.00348 SIG; holdout A +0.04227 vs C +0.03678). Reading: the availability
+    split gets minutes more right but points also need a per-minute EFFICIENCY
+    correction that neither arm makes. NOT shipped (parsimony + it needs a team
+    schedule query); registered as the next candidate.
+  ARM A0 THE ADVERSARIAL CONTROL, pre-registered as a diagnostic and not a ship
+    candidate: a single constant level knob (one number, no gp shape) — exactly
+    what FEATURE_LEDGER warns about ("a level knob would cancel the known D86
+    minutes over-projection, so it is a diagnostic, not a feature").
+    **A - A0 = +0.02245 CI(+0.01653,+0.02844) SIG** (Oct-Nov) and +0.07119 SIG
+    (October); A0 captures only **42.6% dev / 29.3% holdout** of A.
+    So NO: the ramp is not "shrinking everything toward the mean" — the
+    games-played SHAPE carries the majority, and the term is identically zero on
+    the 76% of the season with gp>=20.
+  SHIP-CONFIRM (scripts/pr_ramp_shipconfirm.py): identical rows/seeds,
+    **0/17,769 row-identity mismatches**, shipped-OFF reproduces the gate's
+    control **BITWISE (max|d| 0.000e+00)**, and shipped ARM A reproduces
+    **102.7%** of the gated Oct-Nov estimate (100.0% in October).
+    DISCLOSED NON-GATED CHANNELS: production proj_min also feeds rebounds and
+    assists. Both IMPROVE — reb +0.01153 CI(+0.00867,+0.01467) SIG (PIT 0.4864
+    -> 0.5013), ast +0.01306 CI(+0.01112,+0.01519) SIG (PIT 0.4851 -> 0.4974).
+  OPEN ITEMS registered, not buried: (1) gp[15,20) is harm-side -0.00252
+    CI(-0.00533,+0.00030) **ns** (its b is a small negative); zeroing buckets
+    4-5 would be tuning on the eval and was NOT done. (2) 2025-26 Oct-Nov points
+    PIT overshoots (0.4932 -> 0.5094). (3) October REBOUND PIT overshoots
+    0.4833 -> 0.5229 — rebounds scale linearly in minutes, points do not, so the
+    points-optimal shift over-corrects rebounds; a per-channel ramp is the
+    natural follow-up. (4) ARM C's minutes superiority is unexploited.
+  CODE: nbapred/engine/props.py:37-81 (MINUTES_RAMP table + minutes_ramp(), env
+    switch PROPS_MIN_RAMP default ON, =0 restores pre-D133) and :319-324 inside
+    player_rates_from_stats (gp derived from the already-fetched game dates via
+    config.current_season — no extra query, no new argument). Only proj_min
+    changes in the returned dict; gp derivation verified against a direct
+    season-scoped SQL count 54/54; 65/65 tests green. The win-probability
+    capstone is UNAFFECTED (prod_by_season.py does not import props), so D132's
+    certified table stands.
+  [scripts/pr_ramp_gate.py, scripts/pr_ramp_shipconfirm.py,
+   scripts/pr_ramp_design.py, scripts/pr_ramp_design2.py;
+   data/props_ramp_prereg.md, data/props_ramp_notes.md, data/pr_ramp_dev.json,
+   data/pr_ramp_holdout.json, data/pr_ramp_shipconfirm.json,
+   data/pr_ramp_dev_rows.npz, data/pr_ramp_design.json, data/pr_ramp_design2.json,
+   data/logs/pr_ramp_dev.log, data/logs/pr_ramp_holdout.log,
+   data/logs/pr_ramp_shipconfirm.log; code nbapred/engine/props.py]
+- D134 REGISTER + ARTIFACT HYGIENE (no renumbering — aliases only, per the
+  codex product-pass rule "if cleanup breaks old citations, do not do it").
+  This entry is the lookup table for every ambiguous identifier in the register.
+  (1) FORKED / DUPLICATED IDS — two agents appended the same number on the same
+  day in three places. Nothing below is renumbered; cite by the disambiguated
+  name and this block resolves it:
+    * D85 appears TWICE. D85-ROSTER = the roster-delta props term (trade
+      arrival/departure windows, starout.roster_delta_context). D85-REGIME =
+      the regime-war/week-1 dead-comp-leg entry that led to the October bridge.
+      Later citations of "D85" in the F6/October context mean D85-REGIME.
+    * D86 is FORKED. D86-ENSEMBLE = the talent-ensemble null (EPM+DARKO, rho
+      0.909 redundancy). D86-PROPSPIT = the props PIT revalidation that names
+      the early-minutes ramp as the right fix. D133 cites D86-PROPSPIT.
+    * D113 appears TWICE (concurrent agents). D113-SUFFICIENCY = the
+      possession-vs-stint sufficiency REVERSAL (the def_team=0 proof void).
+      D113-OTHER = the same-day second append. D127 cites D113-SUFFICIENCY.
+  (2) MISSING BODIES D49-D53 — the numbers were consumed by a session whose
+  bodies were never written back. They are NOT reusable and NOT recoverable
+  from the register; treat any "D49".."D53" citation as unresolved and prefer
+  the successor entry. Known successor mapping from surrounding text: D51 is
+  cited as the oracle-minutes/availability REFRAME (~+0.003 oracle minutes,
+  availability ~+0.007 of the gap, ">half the gap is MARGIN-side") — that claim
+  survives in the memory queue and PAID_ORACLES.md; D53 is cited as the v3
+  ARCHITECTURE PROGRAM kickoff (state-space, multi-task, matchup-conditioned
+  distribution, regime-switching head), superseded in outcome by D92 (v3 M1
+  team-DLM FAIL) and D127. D49/D50/D52 have no recoverable body: D52 in
+  particular is cited as "the 49-feature battery"/eventrecency origin, but
+  D124 settled eventrecency by re-running the FROZEN CODE rather than the
+  register text, which is why its absence did not block the retirement.
+  (3) CONTROL-HASH FIELD — from this entry forward every gate entry SHOULD name
+  its control artifact and the env that produced it, because D131 proved a
+  registered table can go stale in HOURS without any code change (a cron
+  completed 300 box scores and moved tanking.season_floor). Minimum: control
+  CSV path + the env vars unset/set + max|dp| of the same-run control against
+  that CSV. D127, D130 and D133 already did this and were unaffected by the
+  D122 staleness; D122 did not and was superseded by D132.
+  (4) CERTIFICATION LINEAGE (read this before trusting any capstone number):
+  D122 (SUPERSEDED, stale 6h after certification) -> D131 (diagnosis: stale,
+  cause isolated to the season_floor move, fit_schedule_layer exonerated) ->
+  D132 (CURRENT certified baseline, pooled norm gap 11.13%, first cert to
+  include the OCT_BRIDGE_TRAIL=2 freeze). data/capstone_pergame.csv = D132;
+  data/capstone_pergame_d122cert.csv = the superseded D122 artifact.
+  (5) CHART RENAME — charts/logloss_4season_normalized.png (cited in D122 and
+  D132) is now charts/logloss_by_season_normalized.png; the old name was
+  factually wrong once the corpus reached 5 scored seasons. The superseded file
+  is retained as charts/_superseded_logloss_4season_normalized.png. The
+  progress chart's x-axis is now numbered 1..8 with D-number and date, so ship
+  order / register order / calendar order are visibly the same ordering.
+  (6) SWITCH INVENTORY (every env kill-switch and its DEFAULT, so October has
+  no undefined behaviour): LATE_STATE=0 (D118 revert), TANK_TERM=1 (D73,
+  judgment-flagged), OCT_BRIDGE=1 with OCT_BRIDGE_TRAIL=2 (D105/D114 freeze;
+  set "" for the uncapped legacy construction), COVID_GUARD=0 (D131, measured
+  null, inert on all future slates), PROPS_MIN_RAMP=1 (D133, shipped),
+  PROPS_KALMAN_FWD unset=0 (D128 revert), plus the oracle-tier switches
+  ORACLE_MINUTES / REPORT_OUTS / INACTIVE_OUTS / FF_LUCK / TANK_SEASON_FLOOR
+  (all unset in production; they exist for oracle ceilings and controls only).
+- D135 LEAGUE STAT SURFACE SWEPT + THE BROADCAST-CONDITIONAL FAMILY KILLED
+  (Sean's question: "where does the league keep the stat that says a SPECIFIC
+  team's chance of winning if they enter a quarter ahead, and can we gate on
+  it?"). Research only; no production file touched; DB read_only=True.
+  Deliverable: **docs/LEAGUE_STAT_GUIDE.md**; STAT_INVENTORY.md updated with the
+  families it was missing; working notes data/stat_sweep_notes.md.
+  (1) SURFACE: nba_api 1.11.4 exposes **137 endpoint classes / 373 result sets /
+  9,315 columns**, enumerated from each class's own `expected_data` + `__init__`
+  signature (no API hammering), classified into 12 families. 21 live calls for
+  column spot-checks, all rate-limit-clean, no backoff needed. **Two endpoints
+  are DEAD live** (return non-JSON on every param combination):
+  `winprobabilitypbp` and `gravityleaders` — library metadata is NOT a
+  live-availability guarantee. nba_api also wraps only 2 of the 7 team
+  dashboards (no TeamDashboardByGameSplits / ByClutch; raw URL only).
+  (2) THE ANSWER: the league publishes Sean's stat as a **standings column**.
+  `leaguestandingsv3` (115 cols) carries per-team per-season W-L record strings
+  `AheadAtHalf`/`BehindAtHalf`/`TiedAtHalf`/`AheadAtThird`/`BehindAtThird`/
+  `TiedAtThird`, plus HOME/ROAD/L10/OT/ThreePTSOrLess/TenPTSOrMore/
+  LeadInFGPCT/LeadInReb/FewerTurnovers/monthly/streaks/GB/clinch. Live-verified
+  (2024-25: CLE AheadAtThird 55-3, OKC 61-2, LAL 46-4). Margin BUCKETS are not
+  published. **And we do not need the API at all**: `playbyplayv3` cache (8,964
+  games) carries `scoreHome`/`scoreAway`/`period` as LABELLED fields — so the
+  conditional-win-rate family is a GROUP BY, and **this path is immune to the
+  D81/D99 `homeTeamId is None` bug**. Built it: 8,874 games parsed -> 8,839
+  reconcile with `nba_games` finals at **99.77%** -> 8,181 regular-season games /
+  16,362 team-games, 2019-20..2025-26. League base rates ahead-Q1 .6636,
+  ahead-half .7413, ahead-Q3 .8252.
+  (3) **VERDICT — THE TEAM-SPECIFIC VERSION IS NOISE.** n/team-season ~38.
+  Noise share of observed variance: ahead-Q1 29.4%, ahead-half 36.1%, ahead-Q3
+  42.8%, behind-Q3 50.9%; **margin-bucketed 71.7% / 81.4% / 84.4%** with
+  **NEGATIVE** split-half reliability (-0.388 / -0.186). corr with season win%
+  is +0.90 / +0.81 / +0.73 — it is team quality in a costume. Residualise on
+  season win% and the "closing ability" left over has **residual SD BELOW the
+  binomial floor in all three cases (implied true variance <= 0)**, residual
+  r_yy -0.088 / -0.079 / +0.026, residual split-half -0.465 / -0.299 / -0.132.
+  INDEPENDENT CROSS-CHECK on the league's own published records
+  (`leaguestandingsv3` 2013-14..2024-25, 360 team-seasons, 12 calls): residual
+  r_yy AheadAtHalf +0.047, **AheadAtThird -0.019**, BehindAtThird +0.012,
+  BehindAtHalf +0.003, **HOME +0.000 (re-derives D70 from league data)**,
+  ThreePTSOrLess 97.2% noise. The ONLY splits with residual persistence are
+  `LeadInFGPCT` (+0.188) and `FewerTurnovers` (+0.112) = eFG% and TOV%, already
+  carried at 50% weight via four factors.
+  GATE ARITHMETIC (walk-forward, 6 test seasons, n=7,005, task = win GIVEN ahead
+  after Q3, i.e. the FRIENDLIEST framing since the conditional is observed):
+  A margin-only 0.38157 / B +team strength 0.37158 / C +prior-season closing
+  residual 0.37148. B-A **+0.00999** (the test HAS power); **C-B +0.00011,
+  bootstrap 95% CI (-0.00015,+0.00036)** — a precise null an order of magnitude
+  below the D127 realized MDE80 of +0.0024.
+  PREGAME-USABLE ARM ALSO NULL: trailing per-quarter net margin added to
+  trailing full-game net margin, walk-forward 6 seasons n=14,178 —
+  full-only RMSE 14.2785, +Q1 14.2676, +Q4 14.2737, +all4Q 14.2717, i.e.
+  **+0.011 margin points on a 14.28 baseline = 0.08%**. Consistent with D84-C.
+  Taxonomy for the family: (a) pregame trait = measured worthless (above);
+  (b) genuinely conditional = a LIVE/in-game product we do not run (and the
+  league's own live win-prob endpoint is dead, so we would build the model too);
+  (c) margin-bucketed team-specific records = broadcast garnish.
+  (4) SHORTLIST (15 ranked items, LEAGUE_STAT_GUIDE.md (d)), weighted to props +
+  availability/effort per the standing lesson that the team-margin surface is
+  near-exhausted. Top 5: **(i) national-TV flag** (`NATL_TV_BROADCASTER_
+  ABBREVIATION`, ALREADY in the boxscoresummaryv2 cache, present on 23.1% of
+  4,914 games) — the Player Participation Policy BANS resting healthy stars in
+  nationally televised games, so the DNP-rest hazard is mechanically suppressed
+  on ~23% of the slate; availability family; expect +0.003..+0.010 props CRPS on
+  the affected subset; **zero cost**. (ii) **per-game hustle** `BoxScoreHustleV2`
+  (we hold 2 season-level files; HUSTLE_STATUS=1 on 74.8% of cached games) — the
+  closest published proxy to EFFORT, which D73's tank term currently INFERS from
+  roster composition instead of measuring; expect +0.002..+0.005 on the
+  tank-active window. (iii) **per-game physical load** `BoxScorePlayerTrackV3`
+  distance/speed -> next-game minutes and rest-DNP risk; expect +0.005..+0.015
+  points CRPS; **pre-register POINTS as primary or this repeats D133 ARM C**
+  (won on minutes, lost on points). (iv) **published per-game usage share**
+  `BoxScoreUsageV3` to replace the FITTED `v2_usage.npz` latent in star-out
+  redistribution — small direct gain, large robustness gain (a measured share
+  cannot have the D99 fit_v2_usage failure mode that silently discarded 49.9% of
+  shots). (v) **`GameRotation.USG_PCT` / `PT_DIFF`** — 5,028 files ALREADY
+  cached and unused, **zero cost**; do it first for that reason alone.
+  Tier 2 (free from cache): blowout-intensity REWEIGHTING OF THE ESTIMATOR
+  (distinct from the rejected simulator-side blowout throttle — say so in the
+  pre-registration); a margin-VARIANCE model from possession mix (the one axis
+  D84-C's mean-battery never touched, +0.001..+0.003, borderline vs MDE80);
+  `ScheduleLeagueV2` isNeutral/arena/tip-time (correctness item); head-coach
+  changes via `CommonTeamRoster.Coaches` (absent from the DB entirely, but n~5-8
+  per season = not gateable). Tier 3 long shots named as such: contested/
+  uncontested FG% (adjacent to D58/D99 NS), touch-time/dribble shot splits
+  (adjacent to D37), {Player,Team}EstimatedMetrics (bounded dead by D97's +0.004
+  talent oracle), LeagueDashLineups as a VALIDATOR not a feature, ISTStandings.
+  (5) STANDING METHOD NOTE: every broadcast split in `leaguestandingsv3` is a RAW
+  record, n~12-40, with no shrinkage and no standard error. **Publication by the
+  league is not evidence of signal.** Before any published split enters a gate,
+  run the three-line check used here — observed SD, binomial-noise SD, residual
+  after team strength. If residual variance sits below the binomial floor, stop.
+  (6) DOC CORRECTIONS FOUND: STAT_INVENTORY said `lineup_stints` "40k stints";
+  actual **151,914** (fixed). `schedule_features` holds 2,460 rows = ONE season
+  (2025-26) against a 9,467-game corpus — thinner than the ledger's "absent for
+  24-25" note implies, and D46's schedule layer is our only OOS-passing term.
+  [docs/LEAGUE_STAT_GUIDE.md, docs/STAT_INVENTORY.md, data/stat_sweep_notes.md]
+- D136 MECHANISM-BASED TRAVEL / CIRCADIAN / SCHEDULE-DENSITY — **NO-SHIP, and a
+  WELL-MEASURED NULL that quantifies exactly why.** Four pre-registered arms and
+  a portfolio, all NS at the endpoint; the physiology is VISIBLE AND SIGN-STABLE
+  in the margin and worth ZERO in log loss, and this entry computes how much
+  data it would take to change that (72 NBA seasons for the primary arm).
+  PRE-REGISTRATION written before any endpoint scoring: data/travel_prereg.md
+  sha256 d3d334b92665af13dae7914133af626c9d8c1993982a67023a40810c2fbb5a3e —
+  4 arms + 1 portfolio, ONE config each, m=1, no sweeps, signs predicted in
+  advance, MDE80 stated in advance.
+  WHY THIS IS NOT D20/D70/D96 AGAIN. Those tested team/city IDENTITY (a
+  franchise's persistent "home aura"; altitude as a city dummy) and died of
+  NONSTATIONARITY. Everything here is a GAME-LEVEL PHYSICAL FACT — BOS->LAX is
+  4,169 km in every season — and no parameter is fit per team or per city, so
+  there is no trait to drift. First test of travel/timezone/road-trip anywhere
+  in this repo.
+  DATA BUILT (free, $0): **data/arenas.csv** — 30 franchises, arena, city, lat,
+  lon, elev_m, IANA tz (sha256 53bc4bd6c321ce47aef4e590177f85797756fdd74e840ab
+  883c0fd1905a42191). VALIDATION: 29/30 lat-lon agree with the independent
+  pre-existing ARENAS dict in nbapred/features/schedule.py to <2 km, the one
+  exception being LAC at 12.9 km because this table uses the CURRENT arena
+  (Intuit Dome) per the stated rule; elevations DEN 1609 m, UTA 1288 m,
+  PHX 331 m, OKC 366 m, ATL 320 m, MIA 2 m, NOP 2 m, BOS 6 m, GSW 3 m; timezone
+  checked by TRUE UTC offset at a 19:30 tip — mid-January 5 Pacific / 3 Mountain
+  / 9 Central / 13 Eastern, late October 6 at UTC-7 (PHX correctly collapsing
+  into Pacific because Arizona never observes DST) / 2 at UTC-6 / 9 / 13. The
+  existing fixed-offset table gets PHX wrong in October and late March-April.
+  Max inter-arena distance MIA-POR 4,352 km reproduces schedule_features'
+  stored max travel_km (4,352.25) exactly.
+  **nbapred/model/travel.py** — per (team_id, game_date) schedule state for all
+  16,578 corpus team-games from `nba_games` alone: travel_km, signed tz_east,
+  road_len, home_return, is_3in4, is_5in7, b2b, elev_gain. Sequence resets each
+  season with the team's own arena as origin.
+  CROSS-CHECK vs the EXISTING `schedule_features` table (which covers **2025-26
+  ONLY**, 2,460 team-game rows — the gotcha at DECISIONS.md:1540, re-flagged by
+  D135): travel_km max |diff| 12.92 km with only 4.72% of rows differing at all
+  (exactly the LAC arena move), timezone differs on 3.25% of rows (exactly the
+  DST/PHX corrections this construction adds), **is_3in4 mismatches ZERO** —
+  its convention was matched deliberately. DEVIATION DISCLOSED: the old table
+  carries is_4in5; the brief's 538 construction calls for **is_5in7**, which is
+  new here. That table was NOT fitted or gated on (one season cannot support a
+  dev+holdout design) and production does not consume it, so its coverage is
+  not a production bug and was not "fixed".
+  THE ARMS (all on HOME MARGIN; gated form is antisymmetric home-minus-away,
+  1 dof each, with a free-sign separate-entry fit reported as the asymmetry
+  diagnostic). Predicted signs were committed in the hashed prereg:
+    A TRAVEL FATIGUE dtrav_kkm, pts per 1,000 great-circle km. PREDICT NEG.
+    B CIRCADIAN dtz_east, pts per zone crossed EASTWARD. PREDICT **POS** — the
+      prereg explicitly ranked acute phase-at-tip (a 3-zone eastward trip puts a
+      19:30 ET tip at 16:30 body time, inside the circadian peak) ABOVE
+      re-entrainment cost, because NBA teams play within 24-48 h of arrival.
+    C ROAD-TRIP hret_h (home team back from a >=3-game trip) PREDICT NEG;
+      rlen_extra_a (away team's extra consecutive road games) PREDICT POS.
+    D DENSITY d3in4, d5in7. PREDICT BOTH NEG.
+  CONTROL DISCIPLINE (the part that makes the null trustworthy): every arm was
+  fit with the FULL CURRENT D46 LAYER in the design matrix — [1, hb2b, ab2b,
+  hdead, adead] — so each travel coefficient is BY CONSTRUCTION the increment
+  over the shipped b2b terms; plus the D46 wpct-diff CONTROL qd, **fit-only and
+  never applied**, so travel cannot absorb "good teams travel to bad teams";
+  shrinkage w=n/(n+600) toward SCHED_PRIOR for the five shipped terms and
+  toward **0.0** for every new term; walk-forward trailing 730 d, weekly refit.
+  Double-counting is prevented at APPLY time by applying the JOINTLY REFIT
+  layer rather than bolting a travel term onto unchanged b2b coefficients.
+  CONTROL-HASH FIELD (D134 rule): same-run control vs data/capstone_pergame.csv
+  (D132 certified), **3,690/3,690 games matched, max|dp| 1.688e-14, 0.0000 of
+  games moved**; control ll 0.58871 / market ll 0.57785 reproduce the certified
+  per-season table exactly. Env for both arms: LATE_STATE, TANK_TERM,
+  ORACLE_MINUTES, INACTIVE_OUTS, REPORT_OUTS, TANK_SEASON_FLOOR, OCT_BRIDGE,
+  OCT_BRIDGE_TRAIL, COVID_GUARD, FF_LUCK **all unset** (D132 defaults).
+  MDE80 STATED BEFORE SCORING, with the honest verdict attached: the first-order
+  algebra d(logloss)=(p-y)*dm/SCALE gives MDE80 = 2.802*sqrt(E[p(1-p)])*s/
+  (SCALE*sqrt(n)) against a true-effect gain of 0.5*E[p(1-p)]*s^2/SCALE^2, so
+  **break-even is rms(dm) = 1.485 pts on dev and 1.133 pts pooled**, versus a
+  physiological prior of 0.2-0.6 pts. The prereg therefore declared the endpoint
+  gate UNDERPOWERED BY DESIGN and any NS from it "underpowered-NS, not a
+  rejection" (GATE_POLICY_V2 5.5).
+  **DEV RESULT** (2023-24..2025-26, n=3,690, paired 2000x seed 20260801,
+  + = better):
+    ARM A travel     **+0.00011 CI(-0.00028,+0.00050) ns**  MDE80 0.00055  rms(dm) 0.195
+    ARM B circadian  -0.00009 CI(-0.00068,+0.00054) ns      MDE80 0.00087  rms(dm) 0.311
+    ARM C road-trip  -0.00038 CI(-0.00116,+0.00034) ns      MDE80 0.00111  rms(dm) 0.393
+    ARM D density    -0.00020 CI(-0.00088,+0.00043) ns      MDE80 0.00095  rms(dm) 0.331
+    PORTFOLIO ABCD   **-0.00066 CI(-0.00179,+0.00047) ns**  MDE80 0.00170  rms(dm) 0.609
+  T1 FAIL (no CI excludes 0). T2 FAIL (the portfolio point estimate is
+  NEGATIVE; T2 needs CI_lo>0 and point >=0.002). Only ARM A is positive at all.
+  ARM D is SIGNIFICANTLY HARMFUL on 2024-25 alone (-0.00133 CI(-0.00241,
+  -0.00026)) and positive on the other two seasons — the season-lottery
+  signature D101/D102 warn about, not a finding.
+  **HOLDOUT ENDPOINT DELIBERATELY NOT SCORED.** The pre-registered rule was
+  "run ONCE and only if dev passes". It did not. 2021-22/2022-23 stay clean.
+  (The holdout MARGIN-frame coefficients WERE computed, as part of the single
+  pre-registered margin readout, and they corroborate the null by shrinking
+  toward zero: dtrav -0.142 vs dev -0.397, dtz -0.023 vs dev -0.521.)
+  **MARGIN-SCALE COEFFICIENTS IN POINTS** (the well-powered readout; full frame
+  n=8,279, resid sd 15.2; shipped layer + wpct control in every fit):
+    dtrav_kkm    **-0.3088 CI(-0.5826,-0.0350) SIG**  MATCH  (dev -0.3971 ns, holdout -0.1422 ns)
+    dtz_east     -0.2150 CI(-0.4956,+0.0657) ns   **MISS**   (dev -0.5212 SIG, holdout -0.0233 ns)
+    hret_h       -0.4356 CI(-1.3004,+0.4292) ns    MATCH
+    rlen_extra_a +0.0513 CI(-0.1887,+0.2913) ns    MATCH
+    d3in4        **-0.6144 CI(-1.2150,-0.0138) SIG** MATCH   (dev -0.6471 ns)
+    d5in7        -0.5779 CI(-2.1390,+0.9831) ns    MATCH
+  ASYMMETRY DIAGNOSTIC (separate home/away entry, D46 style): **trav_h -0.4568
+  CI(-0.8120,-0.1016) SIG vs trav_a +0.1264 ns** — the measurable travel cost
+  sits on the HOME team that just flew home, not on the visitor, because away
+  travel is the routine state and carries no increment once b2b is controlled.
+  This is the sharpest physiological result in the entry and it is exactly
+  Sean's "home buff / away debuff" question answered in reverse: the buff is
+  eroded by the home team's OWN travel. ARM C's mirrored columns (aret_a,
+  rlen_extra_h) come back IDENTICALLY ZERO, confirming those regressors are
+  structurally one-sided as pre-registered.
+  ABSURDITY CHECK PASSED: largest applied contribution is dtrav_kkm at the
+  corpus-max 4.35-kkm differential ~ 1.35 pts, and d5in7 at 1.54 pts. Nothing
+  approaches the 3-point bug threshold.
+  **ARM B IS A PRE-REGISTERED MISS AND WAS KILLED ON SIGN, NOT ON p.** Fitted
+  NEGATIVE in all four universes, and SIGNIFICANTLY so on dev (-0.5212, t=-2.33)
+  — the opposite of the registered prediction, and it does NOT replicate on the
+  holdout margin frame (-0.0233, t=-0.09) or across refits (sign-correct in only
+  38.7% of the 75 dev refits). The kill rule ("a significant wrong-signed term
+  is overfitting, not physiology") removed it from the portfolio regardless of
+  its dev p-value. What the data leans toward is the RE-ENTRAINMENT direction
+  (mechanism 1, eastward phase advance costs), i.e. the prereg's mechanism
+  ranking was wrong — but not stably enough to claim mechanism 1 either.
+  **ARM D IS MOSTLY B2B RE-LABELLED — MEASURED, NOT ASSERTED.** Averaged over
+  the 75 refits the joint fit moves the SHIPPED coefficients by home-b2b
+  **+0.3346** and away-b2b **-0.3363** (ABCD: +0.2595/-0.2835), while arms A/B/C
+  move them by <=0.06. corr(d3in4,hb2b)=+0.30, corr(d3in4,ab2b)=-0.34. So
+  density shuffles ~1/3 pt between existing schedule terms and returns nothing.
+  This is precisely why "the control arm is the FULL current D46 layer, not a
+  stripped one" was the right pre-registration.
+  **THE REAL FINDING — SIGNS ARE STABLE, VALUE IS ZERO, AND HERE IS THE PRICE.**
+  Fraction of the 75 dev walk-forward refits carrying the PRE-REGISTERED sign:
+  d3in4 **100.0%**, dtrav_kkm **98.7%**, rlen_extra_a **96.0%**, hret_h 90.7%,
+  d5in7 72.0%, dtz_east 38.7%. Five of six terms are sign-correct on the mean and
+  four of six in >90% of refits — the mechanism is really there. It just moves
+  margin by rms 0.195-0.609 pts against a 1.485-pt break-even. ARM A's observed
+  +0.00011 sits essentially ON the theoretical value for a TRUE term of its size
+  (0.5*E[p(1-p)]*rms^2/SCALE^2 = +0.00007), which is the cleanest possible
+  demonstration that this is a POWER limit and not an absent effect. Games
+  needed for an 80%-powered pass: **ARM A 88,526 (72 NBA seasons)**, ARM B
+  80,575, ARM C 51,134, ARM D 74,736, portfolio 20,857 (17 seasons). At the
+  margin level, resolving a 0.25-pt travel coefficient needs 22,594 games.
+  CONCLUSION FOR THE STACK: **the D46 layer already absorbs what travel is worth
+  at this endpoint, through its b2b terms.** Travel is not a missing feature; it
+  is a real 0.2-0.6-point physical effect below this corpus's resolution.
+  CODE: **fit_schedule_layer is BITWISE UNCHANGED and there is no SCHED_TRAVEL
+  switch** — the terms did not earn one, and the 1.688e-14 control hash across
+  3,690/3,690 games proves the production path never moved. The new
+  `fit_schedule_layer_ext(con, before, arms, state)` in production.py is
+  MEASUREMENT INFRASTRUCTURE only, called by no production path, and verified to
+  reproduce fit_schedule_layer exactly at arms=() (max|diff| 1.1e-13, pure lstsq
+  round-off from a different array assembly order). It is retained so the
+  fresh-corpus retest is a one-line call. 65/65 tests green. **The D132
+  certification stands unchanged and the capstone was NOT re-run** (nothing in
+  the scored path moved).
+  FOLLOW-UPS REGISTERED, NOT DONE: (1) backfill `schedule_features` across the
+  corpus — cheap, and it would let any future schedule work use one table
+  instead of two constructions; (2) the eligible retest for travel is a FRESH
+  corpus or a MARGIN/spread endpoint (where the effect is 2-7x better resolved),
+  NOT a re-run on these 6,148 games (second-look trap); (3) NBA global games
+  (Paris/Mexico City) are attributed to the nominal host arena, understating
+  travel for <0.25% of games — immaterial here, worth fixing before any
+  margin-endpoint retest.
+  [scripts/tv_gate.py, scripts/tv_margin_fit.py; data/travel_prereg.md,
+   data/travel_notes.md, data/arenas.csv, data/tv_gate_dev.json,
+   data/tv_gate_dev_rows.npz, data/tv_margin_fit.json,
+   data/logs/tv_gate_dev.log, data/logs/tv_margin_fit.log;
+   code nbapred/model/travel.py (new), nbapred/model/production.py
+   (fit_schedule_layer_ext added; fit_schedule_layer untouched)]
+- D137 HOME ADVANTAGE — DECOMPOSED, AND THE STATIONARITY VERDICT QUANTIFIED
+  (Sean's directive: "decompose home advantage and answer whether ANY part of
+  it is team-specific and STATIONARY enough to forecast with", plus his own
+  belief "the Lakers at home under JJ Redick", plus a mid-task addendum on the
+  within-season time profile). **DIAGNOSTIC ONLY — no production file touched,
+  nothing shipped, DB read_only=True.** Deliverable: **docs/HOME_ADVANTAGE.md**;
+  working notes data/homeadv_notes.md; scratch scripts scripts/ha_*.py.
+  **D70's VERDICT STANDS; ITS STATED MECHANISM IS NOW MEASURED RATHER THAN
+  ASSERTED — AND D70 WAS TOO STRONG IN ONE SPECIFIC WAY.**
+  METHOD: one regression per season, margin ~ team-strength FE (+1/-1 columns)
+  + per-team home effect + schedule controls (b2b/3in4/rest-diff/travel/tz,
+  BOTH sides). Minimum-norm lstsq gives sum_t s_t = 0 identically, so d_t is
+  fully opponent- and own-quality-controlled; the home block spans the
+  intercept so a_t is the team's own home advantage in points. 7 seasons,
+  8,191 non-neutral regular-season games. `schedule_features` covers only
+  2025-26 (D135/D136 both re-flagged this), so rest/b2b/travel/tz were rebuilt
+  for all 7 seasons from `nba_games` + the static ARENAS geo.
+  (1) **THE STATIONARITY VERDICT.** n = 41 home games/team-season; game-margin
+  residual SD ~13.6; d_t is identified as (home evidence about s_t+a_t) minus
+  (road evidence about s_t), so its sampling SE is ~sqrt(2)*13.6/sqrt(41) =
+  **3.0 pts — a 3.0-pt measurement error on a 1.8-pt effect.** Pooled over the
+  5 normal seasons (150 team-seasons):
+      sd(d_hat) observed  3.525 | rms sampling SE  3.030
+      tau (TRUE spread)   **1.800 pts** CI(0.768, 2.453)
+      SIGNAL SHARE        **26.1%** CI(6.0%, 39.7%);  parametric null p=0.0031
+      split-half, INDEPENDENT refit per half, Spearman-Brown  **0.227**
+        (agrees with the 26.1% EB share by a completely different route)
+      **LAG-1 +0.0212 CI(-0.1202,+0.1548) NS ; LAG-2 -0.1404
+        CI(-0.3498,+0.0855) NS** (cluster bootstrap over teams, 8000x)
+      rank-order lag-1 Spearman +0.033
+      **SD OF THE BEST FORECAST OF NEXT-SEASON d = 0.075 pts** (0.546 pts at
+      the upper end of the lag-1 CI)
+  So: **team home advantage is REAL WITHIN a season and has ZERO memory across
+  seasons.** D70 called it "a dead vein"; the precise statement is that the
+  effect exists and resets every October. Per-season signal share
+  25.1/40.9/52.9/13.9/**0.0**% — in 2025-26 the observed spread is SMALLER than
+  the sampling noise.
+  (1g) TWO ROBUSTNESS KILLS before calling tau real. (A) Residual-bootstrap
+  null (every team gets exactly the league HFA, real schedule/strengths/
+  residuals): simulated null sd(d) matches the analytic SE season by season
+  (2.97 vs 3.03 mean) -> **the SEs are honest**; Fisher-pooled p ~ 0.0008, but
+  2022-23 (p=.007) and 2023-24 (p=.000) carry ALL of it while 2024-25 (p=.213)
+  and 2025-26 (p=.800) show nothing — even the within-season signal is
+  episodic. (B) Letting team strength drift within season (team x half, x
+  third, x month FE) leaves tau at 1.70/1.79/1.58 vs 1.80 -> **tau survives;
+  it is not form x schedule timing.** Lag-1 rises slightly under finer FE
+  (+0.057 half, +0.097 month) — reported because it favours the hypothesis;
+  still NS, still <0.35 pts of forecast SD.
+  (1h) **POWER, STATED**: the lag-1 CI half-width 0.137 means the smallest
+  resolvable persistence is a forecast SD of ~0.48 pts. This test CANNOT prove
+  no small persistent effect exists; D70's endpoint null is what says that if
+  one exists it is worth zero. The two results are complementary, not
+  redundant.
+  (2) **MECHANISM DECOMPOSITION** (pooled fit, season-team FE, crowd-regime
+  home intercept, schedule state both sides):
+      RAW home edge, normal 5 seasons            **+1.958**
+        CROWD (2020-21 natural experiment)       **+0.991 CI(+0.092,+1.911)**
+        residual (empty arena, symmetric sched)   +1.074 CI(-0.001,+2.125)
+        net schedule terms                       -0.111 CI(-0.645,+0.444)
+        [sum +1.954]
+      pure HFA by stratum: nocrowd +1.074 / normal +2.065 / 19-20 pre +2.372
+  **Crowd is ~51% of the league home edge** and is the only piece with a causal
+  design. It necessarily includes crowd-mediated referee bias; nothing
+  available can separate them.
+  (2c) **TRAVEL IS NOT THE MECHANISM.** The contrastive counterfactual (give
+  the visitor the HOST's schedule state), normal 5 seasons:
+      FATIGUE block (b2b+3in4+rest) **+0.0833 CI(+0.0374,+0.1358) SIG = 4.3%**
+      TRAVEL block (km + tz, joint)  -0.0860 CI(-0.3352,+0.1670) NS = -4.4%
+      TOTAL schedule asymmetry       **-0.0027 CI(-0.2585,+0.2595) NS = -0.1%**
+  b2b costs ~2.2 pts to whoever is on it (h_b2b -2.246, a_b2b +2.111) but the
+  home/away asymmetry is only 3.2pp, so it buys almost no home advantage. The
+  visitor flies 538 km more than the host and it does not cost them points.
+  **CONVERGES WITH D136** by an entirely different construction: D136's
+  asymmetry diagnostic (trav_h -0.4568 SIG vs trav_a +0.1264 ns) gives the
+  MECHANISM for this null — the measurable travel cost sits on the HOME team
+  that just flew back, not on the visitor, so travel cannot generate home
+  advantage. Two independent builds, same conclusion.
+  (2d) **ALTITUDE.** E[altitude gain] over all home games = **0.22 m** — every
+  team hosts and visits a balanced slate, so altitude is REDISTRIBUTIVE and
+  cannot explain one point of the league-wide edge. Full-sample DEN+UTA home
+  +2.179 CI(+0.590,+3.651) SIG (DEN +1.571 ns, UTA +2.784 SIG) — but DEN's
+  per-season d_t runs +2.08/+0.91/-3.58/+8.67/+5.23/+0.21/-3.50, a 12-pt swing
+  between adjacent seasons. **Descriptively real, temporally useless. D96
+  stays closed**; this is the descriptive shadow of an effect that cannot be
+  estimated in time to use it.
+  (2e) 2020-21 dose response as limited attendance returned ~March 2021:
+  DiD +0.611 CI(-1.203,+2.515) **NS** — right sign, no power. Recorded as
+  corroboration only; the +0.991 crowd figure should be read as an UPPER BOUND
+  (2020-21 also had a 72-game compressed schedule, COVID protocols and unusual
+  absences; the schedule controls absorb only the observable part).
+  (3) **THE LAKERS — SEAN'S HYPOTHESIS IS NOT SUPPORTED.** LAL controlled d_t
+  by season: -2.06 / +0.83 / +2.56 / -0.56 / **+4.75** / +3.07 / +0.57 (ranks
+  22/15/8/16/**5**/6/16). Pooled over the 5 normal seasons **+2.091
+  CI(-0.431,+4.696) NS**, rank 3/30, z=1.53. Redick era **+1.921
+  CI(-2.718,+6.185) NS**. Era delta **+0.676 CI(-4.345,+5.741) NS**.
+  **LAL's home advantage in the three normal seasons BEFORE Redick (+2.250) is
+  LARGER than in the two seasons under him (+1.818), and their single best home
+  season in the corpus is 2023-24 under Darvin Ham (+4.75).** The raw
+  intuition's source is visible and is a different thing: LAL's Redick-era home
+  W% is .756/.683 while their road margin is negative — that is a good team
+  with a bad road record, not a home aura. Same test on the 4 other largest
+  apparent home edges (UTA/MEM/IND/MIL): every era delta NS.
+  (3e) **THE DECISIVE TEST.** Residual-bootstrap null over the 5 normal seasons
+  pooled (205 home games/team), zero persistent team-specific home advantage,
+  real schedule/strengths/residuals, 2000 draws:
+      biggest apparent home edge   OBSERVED **+2.627** vs NULL **+2.738**
+                                   [p5,p95] (+1.847,+3.832)  **p = 0.519**
+      spread sd(d)                 OBSERVED 1.481 vs NULL 1.335   p = 0.203
+  **Under a world with literally zero persistent team home advantage, the
+  biggest apparent 5-season home edge would be LARGER than what we observe.**
+  The entire top of the table is chance. Only 2 of 30 teams reach |z|>2 over 5
+  pooled seasons (UTA +2.73 z=2.02, PHI -3.38 z=-2.50) where ~1.4 is expected.
+  NOT in tension with (1): d_t is real within a season and the season effects
+  average out across five because they are independent draws.
+  **INDEPENDENTLY CONFIRMED BY D135** on data this investigation never touched:
+  the league's own `leaguestandingsv3` HOME split over **360 team-seasons,
+  2013-14..2024-25** gives residual year-over-year persistence **+0.000**.
+  Different source, different construction, 12 seasons instead of 5, same
+  answer. The persistent-team-home-advantage hypothesis has now failed FOUR
+  independent tests (D70 endpoint, D96 altitude, D135 league data, D137
+  descriptive+permutation).
+  (4) **PLAYER HOME SENSITIVITY — SEAN'S IDEA, BUILT FOR THE FIRST TIME.**
+  Minutes-weighted WLS per player-season (`rate_i = mu_p + delta_p*1{home}`,
+  weights = minutes, which is correct because a counting stat over minutes has
+  var ∝ 1/minutes); >=5 min/game, >=250 min EACH side; 160,477 player-games,
+  1,759 usable player-seasons on the normal 5.
+  League context: pts/36 home 17.088 vs road 16.801 (**+0.288**), GameScore/36
+  +0.476, **true shooting +0.95 pp**. (0.288 * 240/36 = 1.92 pts = the league
+  home edge — an accounting identity, but it confirms the panel reconciles.)
+      pts36 : sd 2.030, rms SE 1.950, tau 0.562, **signal share 7.7%**
+      gmsc36: sd 2.163, rms SE 2.080, tau 0.594, signal share 7.5%
+      TRUE SPREAD > 0: p = **0.0163** (pts36) / **0.0132** (gmsc36)
+      **LAG-1 pts36 r = +0.0660 CI(+0.0143,+0.1154) SIG, n=1,371 player-pairs**
+      (gmsc36 +0.047 CI(-0.006,+0.099) ns; lag-2 +0.034 / +0.006)
+  **This is the ONLY significant persistence coefficient anywhere in the
+  investigation** — not because the effect is bigger but because n is 1,371
+  player-pairs instead of 120 team-pairs. Some players really are more
+  home-sensitive than others, by tau ~0.56-0.59 pts/36.
+  (4d) **THE PRIZE — AND IT IS EMPTY.** Point-in-time roster aggregation (EB-
+  shrink each player's split on seasons STRICTLY BEFORE y, weight by his share
+  of team minutes in y), head-to-head against the team's own prior-season d_t,
+  both predicting realised d_t, normal seasons n=150:
+      ROSTER-AGGREGATED player sensitivity (PIT)  r = **-0.0325** CI(-0.171,+0.108) NS
+      TEAM IDENTITY (prior-season d_t)            r = +0.0243 CI(-0.139,+0.194) NS
+      DIFFERENCE                                  -0.0568 CI(-0.262,+0.134) NS
+  **THE TWIST WORTH KEEPING**: the roster aggregate IS far more stationary than
+  team identity — **lag-1 autocorrelation +0.486 vs +0.039** — so Sean's
+  mechanism reasoning was STRUCTURALLY RIGHT (aggregating a player-level
+  property does produce a stable team-level quantity where team identity
+  produces noise), and the stable quantity turns out to have no relationship at
+  all with realised home advantage. **Stationarity of a predictor is not
+  predictive power.** Two reasons it dies: (i) SCALE — the roster aggregate's
+  cross-team spread is 0.043 per-36 units = **0.286 pts** at team scale;
+  (ii) ATTENUATION CEILING — realised d_t has reliability 0.26, so any perfect
+  predictor of the true deviation caps at r = sqrt(0.26) = 0.51; observed -0.03
+  with CI half-width 0.14 bounds the true correlation at |rho| < 0.28.
+  (5) **WITHIN-SEASON TIME PROFILE** (Sean's mid-task addendum: home advantage
+  "typically diminishes over the season", "extra strong on opening night").
+  Every estimate controls season-team FE AND the schedule confounds that move
+  with the calendar. **THE PROFILE IS FLAT WITH A MILD DOWNWARD TILT THAT DOES
+  NOT REACH SIGNIFICANCE.**
+      linear trend  **-0.377 pts per half-season CI(-0.989,+0.255) NS**
+                    (quadratic +0.260 CI(-0.929,+1.451) NS)
+      3-bucket, normal 5: early(gp<10) +2.855 / mid +2.371 / late(gp>=50) +1.970
+      gp buckets: 2.39 / 3.38 / 2.59 / 2.28 / 2.37 / 2.32 / 1.31 / 2.61 / 2.01
+        (same shape under HALF-SEASON team FE, so late-season strength drift
+         and tanking are not producing it)
+      months: Oct 2.55 / Nov 2.69 / Dec 2.37 / Jan 2.49 / **Feb 1.50** /
+        Mar 2.32 / Apr 1.96  (the Feb / gp52-62 dip is the All-Star region)
+      **OPENING NIGHT n = 67 GAMES IN THE WHOLE CORPUS**: EARLY +0.454 vs REST
+      +2.407, DIFF **-1.953 CI(-5.377,+1.201) NS** — the LOWEST point estimate
+      in the table, i.e. the point estimate goes the WRONG way for the
+      hypothesis, on a window that can never settle anything.
+      opening week -0.055 ns | first 5 +0.108 ns | first 10 **+0.662
+      CI(-0.365,+1.686) ns** | first 20 +0.580 ns | October +0.267 ns
+  **THE SIGN IS SEAN'S, THE SIGNIFICANCE IS NOT.** It also fails to replicate:
+  2019-20 pre-shutdown runs the OPPOSITE way (+1.07 -> +2.07 -> +2.28).
+  (5d) **NO-CROWD CROSS-CHECK — the one part carrying mechanism information.**
+  2020-21 (no crowd) early(gp<10) **-0.740** / mid +0.519 / late -0.249: the
+  only negative early value in the table, and no early peak at all, against
+  +2.855 early for the normal seasons. Directional support for a CROWD reading
+  of whatever early elevation exists, but 2020-21's buckets carry +/-2.5 pt CIs
+  — consistent, not probative.
+  (5e) **SHAPE AS MECHANISM DIAGNOSTIC**: a travel/fatigue mechanism must
+  ACCUMULATE and push home advantage UP late. The travel asymmetry genuinely
+  does rise through the season (0.47 -> 0.63 -> 0.47 thousand km) while the
+  home edge does not follow it. **Independent corroboration of (2c) from a
+  completely different direction: travel is not the mechanism.** The profile is
+  dominated by LEVEL mechanisms (crowd presence, venue familiarity).
+  DATA FINDING (worth keeping, resolves D136's registered follow-up 3): the NBA
+  feed sets **is_home = FALSE on BOTH team-rows for NEUTRAL-COURT regular-season
+  games** — Mexico City, Paris, NBA Cup semifinals in Las Vegas. **10 such games
+  in the corpus** (5 in 2024-25, 5 in 2025-26), findable with
+  `GROUP BY game_id HAVING SUM(is_home)=0`, no new data needed. Dropping them
+  reproduces D131's realised home margin EXACTLY (2024-25 +1.6922 vs D131's
+  +1.692; keeping them gives +1.6325). The flag is INCOMPLETE for earlier
+  seasons (Dec-2023 Cup semifinals in Vegas unmarked) -> ~2-4 games/season
+  residual, <=0.01 pt on a 1,230-game mean. `nbapred/features/schedule.py`
+  parses the host from `matchup` and treats these as ordinary home games.
+  NOT FIXED (diagnostic task) — flagged for the schedule-layer owner.
+  TWO METHOD TRAPS HIT AND FIXED, recorded because each changed the answer by
+  ~2x: (i) **split-half must not share the fitted home effect** — residualising
+  with a_hat_t added back gives both halves a common term and inflates r from
+  0.13 to 0.47; (ii) **bootstrapping GAMES cannot estimate tau** — resampling
+  games adds a SECOND layer of noise to each d_hat, so var(d_hat_boot) ~
+  tau^2 + 2se^2 while mean(se^2_boot) ~ se^2 and method-of-moments returns
+  sqrt(tau^2+se^2); it reported tau=3.5 instead of 1.8. Fix: bootstrap the
+  SECOND STAGE (resample the (d_hat, se) pairs) plus a parametric null.
+  FOLLOW-UPS PRE-REGISTERED, NOT RUN, NOT SHIPPED (docs/HOME_ADVANTAGE.md s6):
+  **GATE HA-1** player home/road prior in **PROPS** (not sides) — the only place
+  a persistent signal was found, and it was measured on a per-36 rate, which is
+  a props object. One config, EB shrinkage on strictly prior seasons, props
+  CRPS endpoint, paired bootstrap 2000x, MDE80 stated before scoring. **Adverse
+  prior recorded now: I expect FAIL or hairline** (post-shrinkage ~0.06 pts/36
+  = ~0.05 pts on a 30-minute line). **Withdraw the gate entirely if the props
+  pipeline already conditions on home/away in the rate construction — check
+  that FIRST or it is double-counting.**
+  **GATE HA-2** season-phase interaction on the D46 home edge — **registered
+  NO-GO on this corpus** (descriptive precursor is a null, so running it would
+  be a second look at spent data). Exact test written down; reactivation
+  requires a FRESH corpus AND the linear phase trend reappearing with the same
+  negative sign and a CI excluding zero in the descriptive test first.
+  STANDING METHOD NOTE (pairs with D135's): **a full-sample descriptive
+  significance is not evidence of a forecastable feature.** DEN/UTA altitude is
+  +2.179 SIG full-sample and worth exactly zero walk-forward; the roster
+  aggregate is the mirror image (lag-1 autocorrelation +0.486, predictive
+  power -0.03). Before any team-trait feature enters a gate, report BOTH its
+  full-sample size AND its lag-1 persistence, and treat the persistence as the
+  binding constraint.
+  [docs/HOME_ADVANTAGE.md, data/homeadv_notes.md;
+   scripts/ha_panel.py, ha_core.py, ha_stationarity.py, ha_tau_check.py,
+   ha_decomp.py, ha_decomp2.py, ha_did21.py, ha_lakers.py, ha_player.py,
+   ha_timeprofile.py; seed 20260801 throughout; DB read_only=True.
+   NO production file touched, no capstone re-run, nothing shipped —
+   nbapred/ untouched, so D132 is undisturbed by construction.]
+- D138 THE FALSE-REJECTION QUESTION, ANSWERED ON FRESH DATA — **THE NS-PORTFOLIO
+  JOINT GATE PASSES ITS 2021-22+2022-23 HOLDOUT AT +0.00198, WHICH IS 99.0% OF
+  THE PRE-REGISTERED "ALL MEMBERS REAL" PREDICTION — AND THE REST OF THE
+  REJECTED PILE IS MEASURED NOISE.** Both halves of that sentence are the
+  finding; neither is complete without the other. **PROVISIONAL PASS, NOTHING
+  SHIPPED** (GATE_POLICY_V2 §3 conditions listed below). Read-only on
+  data/nba.duckdb; nbapred/ untouched; D132 undisturbed by construction.
+  PRE-REGISTRATION written and hashed BEFORE any holdout number existed:
+  **data/nsport_prereg.md sha256 2cec470fa252b27a1cf8adf72cc15ac3d79ba5abd19
+  aff423764f62db42f686e** — objective membership rule, frozen member list,
+  exact configs, endpoint, BOTH point predictions, decision rule, power, and
+  a disclosure section. Family: +1 member (the joint bundle, m=1, no sweep).
+  **WHY THIS WAS RUNNABLE NOW AND NOT ON 2026-07-30.** GATE_POLICY_V2 §3 says
+  the same-data joint gate cannot separate selection artifact from truth
+  (members sign-selected on the same 3,690 dev games; selection floor
+  b_sel = Σ0.8·SE_i ≈ 0.0030 against a point-sum of 0.0034) and demands FRESH
+  data. D101 unlocked 2021-22/2022-23 and D110 records that "no gate from D46
+  through D102 could select on them". Every ledgered member below was
+  registered in the D47-D71 window. The holdout is therefore selection-clean,
+  and on it b_sel is irrelevant by construction: nothing was chosen there.
+  (1) **THE LEDGER, RECONSTRUCTED, AND THE OBJECTIVE FILTER.** Rule adopted
+  verbatim from GATE_POLICY_V2 §3 ("all ledgered members with z ≥ 0.5 and
+  mechanically independent channels") plus three mechanical filters: F1 exclude
+  any member whose estimate used holdout data or whose channel has already been
+  scored at the endpoint on the holdout; F2 exclude channels occupied by a
+  SHIPPED term or structurally inert; F3 exclude negative point estimates.
+    member                          Δ pooled     SE       z     verdict
+    3P-luck defense-only            +0.00041   0.00042   0.98   **IN (M1)**
+    comp-heavy 60/40 blend          +0.00100  ~0.00051   1.96   **IN (M2)**
+    D130 ARM A urgency              +0.00048   0.00039   1.23   **IN (M3)**
+    D136 ARM A travel               +0.00011   0.00020   0.55   **IN (M4)**
+    event-recency (F2)              +0.00138   0.00112   1.24   OUT — F1
+    dead-team FE                    +0.00038   0.00128   0.30   OUT — z<0.5
+    continuity prior                +0.00020  ~0.00040  ~0.50   OUT — F2
+    carry ship-confirm (D63)        +0.00083   0.00051   1.63   OUT — SHIPPED
+    D131 COVID guard               +0.000079  0.000252   0.31   OUT — z<0.5 + F1
+    D127 S1 possession-def          −0.00108   0.00087  −1.25   OUT — F3
+    D71 F1 late-gated form          +0.00178   0.00051   3.51   OUT — F2
+  **[D143 CORRECTION to this row's exclusion reason: F1 was excluded here on
+  the ground that "its channel is occupied" by D73's tank term. That was never
+  the claim RT2 measured, and it is now moot — F1 re-gated on the current
+  certified control (post-D118, D90 gone) is pooled -0.00000076
+  CI(-0.00099,+0.00099) season-clustered. The channel argument is unnecessary:
+  the term is worth zero on its own. D71's "form dominates" anti-additivity
+  recommendation is REFUTED — form 0.0000 vs D73 tank +0.00199 (V3 §12).]**
+  Three exclusions are worth their own line. **(a) EVENT-RECENCY, the LARGEST
+  member of the original six, is excluded because its holdout answer is already
+  known and it is NEGATIVE**: D124 scored the frozen construction on all 6,148
+  games — pooled +0.00002 NS, **holdout 21-23 −0.00087**. The single biggest
+  entry in "what V1 cost us" was already refuted on fresh data before this gate
+  started. **(b) THE CONTINUITY PRIOR CANNOT MOVE A GAME.** It is
+  `es_continuity.py` config `B_prior_only`, reachable ONLY through the
+  `not ff.ready` ratings-fallback branch — and that branch has been DELETED
+  (`production.py:440-452` now raises), while D62 carry makes `ff.ready` true at
+  every opener in all five seasons (verified: 2160/2460 prior-season factor rows,
+  30/30 continuity teams, carry active, ready=True at each opening night). It can
+  move **0 of 6,148 games**, exactly the D110-(1b) cold-start pathology.
+  **LEDGER CORRECTION, INDEPENDENT OF THIS GATE:** GATE_POLICY_V2 §2's row
+  "+0.00020, SE ~0.00040, z ~0.50" is mis-transcribed — the measured numbers are
+  pooled **+0.00005 CI(−0.00001,+0.00010)** and early-window **+0.00019
+  CI(−0.00002,+0.00039)**, both against a **PRE-CARRY** control, so the row is
+  neither pooled nor comparable to the other members. **(c) D71's F1 form term**
+  (the only individually-significant ledger entry, +0.00178 z=3.51) is excluded
+  because its channel is occupied: D71 itself registers the anti-additivity rule,
+  D73's tank term is shipped into it, and D102 RT2 re-gated F1 on top of the
+  incumbent at −0.00012 NS.
+  (2) **CONTROL-HASH FIELD (D134 rule).** Same-run control vs
+  data/capstone_pergame.csv (D132 certified): **6,148/6,148 games matched,
+  max|dp| 1.366e-14, 0.0000 of games moved** (per season 7.0e-15 / 1.24e-14 /
+  1.37e-14 / 1.31e-14 / 9.4e-15). The manual margin reconstruction
+  `0.5·fm + 0.5·cm + he + b_hb2b·1{b2b_h} + b_ab2b·1{b2b_a} + k·tank_diff`
+  reproduces `model.p_home` at **2.22e-16 in every season**; the hybrid-FF
+  row-set reconstruction reproduces production's own `ff.W` at 3.1e-13..5.2e-13.
+  Env: all ten certified switches UNSET (D132 defaults) — explicitly NOT the
+  pinned D122 construction `pg_urgency2.py` uses, which would have blown its own
+  drift bounds against today's artifact.
+  GOTCHA FOUND EN ROUTE: `scripts/ba_portfolio.py:101-111 extract_parts()` is
+  **BROKEN** against the current stack — `model.ratings_margin` no longer exists
+  and `tr`/`w_comp` are no longer free variables of `model.margin`. Same fault in
+  `scripts/es_fadeshape.py:140` and `scripts/validate_production_comp.py:52`.
+  The harness here rebuilds from `model.margin.__closure__` instead.
+  (3) **PRIMARY ENDPOINT — the headline.** Paired bootstrap 2000x seed 20260801,
+  ll(control) − ll(joint), + = bundle better, no window, no subgroup:
+    **HOLDOUT 2021-22+2022-23, n=2,458: +0.001979 CI(+0.000283,+0.003652) PASS**
+    SE 0.000873, p_wrongside 0.011, z = 2.29, realized MDE80 +0.00246 (sd 0.0436)
+    vs pre-registered H_ALL-REAL (+0.00200):  **99.0% of prediction, z = −0.02**
+    vs pre-registered H_NONE-REAL (0):        **rejected, z = +2.29, p = 0.011**
+  The point-prediction agreement is the stronger evidence here, not the p-value:
+  a 2.29-sigma pass sits only just above E[max z] ≈ 2.15-2.45 for a holdout-scored
+  family of 10-20 (D110's arithmetic), whereas landing at 99% of a number written
+  down in advance is not something selection noise produces.
+  (4) **SECONDARY, ALL PRE-REGISTERED.**
+    dev 23-26  n=3,690  +0.001369 CI(−0.000069,+0.002687) NS (MDE80 +0.00199)
+    all five   n=6,148  +0.001613 CI(+0.000493,+0.002698) **PASS**
+    per-season +0.00227 / +0.00169 / +0.00233 / +0.00106 / +0.00072
+               **5/5 POSITIVE**, one-sided sign p = 0.031, mean +0.00161 sd 0.00071
+    DiD (holdout − dev) +0.00061 CI(−0.00164,+0.00273) **NS**; transfer ratio 1.45
+  **THE HOLDOUT ESTIMATE IS LARGER THAN THE DEV ESTIMATE.** That is the opposite
+  of the D110/D112 overfit signature, where every convicted term was
+  dev-concentrated (D90: dev +0.00267 → held +0.00014). Whatever this bundle is,
+  it is not a development-season artifact.
+  CAPSTONE EFFECT IF IT WERE APPLIED: pooled ll 0.60364 → 0.60203, normalized gap
+  **11.13% → 9.52%**, per season 17.69→15.14 / 11.25→8.79 / 13.02→10.95 /
+  5.08→4.13 / 10.07→9.48 — i.e. **14.4% of the remaining raw gap to market**.
+  (5) **PER-MEMBER MARGINALS (report-only, pre-registered).** Control + exactly
+  ONE member each:
+    member      HOLDOUT                              DEV
+    defonly     **+0.00072 CI(+0.00005,+0.00136) PASS**   +0.00030 NS
+    blend6040   **+0.00129 CI(+0.00010,+0.00240) PASS**   +0.00063 NS
+    travel        +0.00042 CI(−0.00048,+0.00131) NS       +0.00011 NS
+    urgency       −0.00021 CI(−0.00057,+0.00016) NS       +0.00044 NS
+  **TWO MEMBERS INDIVIDUALLY PASS ON DATA THAT WAS NEVER USED TO SELECT THEM**,
+  at 176% and 129% of their ledgered dev estimates. The travel arm reproduces
+  D136's registered dev number **+0.00011 exactly**, which is an independent
+  cross-validation of this harness against a separately-built one.
+  ADDITIVITY: holdout Σmembers +0.00420 vs joint +0.00198 = **47.1%** (dev
+  +0.00148 vs +0.00137 = 92.5%). **My own "mechanically independent channels"
+  judgement was WRONG about M1 and M2** — they are partial substitutes by
+  construction: M1 improves the FF leg and M2 down-weights it 0.5→0.4, so the
+  joint applies the better FF at 80% of the weight the M1-alone arm gives it.
+  D64's dev finding that the members "stack ADDITIVELY (overlap 0.00007)" does
+  NOT hold for this bundle on fresh data. Registered as a miss.
+  (6) **ERA CONFOUND — TESTED, NOT ASSUMED.** The dev/holdout split is exactly
+  the post- vs pre-Player-Participation-Policy boundary (2023-24 also brought the
+  In-Season Tournament and the new-CBA apron regime), and 2021-22 contains the
+  December Omicron wave. One-way between- vs within-era decomposition of the five
+  per-season estimates:
+    JOINT   pre-PPP +0.00198  post-PPP +0.00137
+            SS_between 4.47e-07  SS_within 1.60e-06  **between share 21.9%**
+            F(1,3) = 0.840  → **NOT an era step; within-era scatter dominates**
+  Per member, between-era share: defonly 27.2% (F=1.12), blend6040 20.5%
+  (F=0.77), travel 13.8% (F=0.48) — all noise-shaped. The ONE exception is
+  **urgency at 98.4% (F=187)**, and that is the pre-DISCLOSED cold-coefficient
+  artifact, not an era effect: `pg_urgency2.UrgencyModel` carries a
+  `season >= '2021-22'` corpus-floor literal, so its k_u frame is EMPTY at the
+  2021-22 opener and runs at **k_u 0.95 / 0.69 on the holdout vs 1.84 / 2.59 /
+  2.87 on dev**. M3 is attenuated by construction on the holdout — hall-of-shame
+  #8 again, disclosed in the prereg before the run, and its −0.00021 is
+  UNINFORMATIVE rather than refuting.
+  ALSO CHECKED (the claim was cited to Sean and is now verified rather than
+  assumed): **D124's F2 per-season profile is NOT an era story.** −0.00061 /
+  −0.00113 / −0.00201 / +0.00292 / +0.00092 gives SS_between 2.63e-06 vs
+  SS_within 1.24e-05, **between share 17.5%, F(1,3)=0.634, p=0.484** — the
+  largest negative (2023-24) and the largest positive (2024-25) are BOTH dev
+  seasons. The variation is within-era noise. Same test on D102 RT4's fitted
+  blend: between share 15.3%, F=0.541, p=0.515.
+  (7) **LOSO (all five leave-one-season-out folds).** Because every member config
+  is FROZEN, "fit on 4 / score 1" reduces exactly to the per-season held-out
+  estimate (the walk-forward fits inside each season already use strictly-prior
+  data only). Folds: +0.00227 / +0.00169 / +0.00233 / +0.00106 / +0.00072 —
+  **5/5 positive, mean +0.00161, sd 0.00071, range [+0.00072, +0.00233]**.
+  **STATED PLAINLY: the folds REUSE data and are NOT five independent
+  confirmations** — the walk-forward estimators are cumulative, and only 2021-22
+  and 2022-23 are clean of hypothesis selection. This is a stability diagnostic:
+  the sign is consistent in every fold and the spread is 3.2x smaller than the
+  mean, which is the most that a 5-season corpus can say.
+  (8) **THE CATCH, AND IT IS A REAL ONE: THE BIGGEST MEMBER IS DECAYING.**
+  M2's per-season profile is +0.00147 / +0.00112 / +0.00164 / +0.00062 /
+  **−0.00037** — positive in the holdout era, NEGATIVE on the most recent season.
+  That is not a post-hoc pattern: D102 RT4 registered the identical shape a week
+  ago from an entirely different construction (a walk-forward FITTED blend weight
+  rather than a fixed 60/40): +0.00106 / +0.00163 / +0.00223 / +0.00012 /
+  **−0.00120**. **corr = 0.946 across the five seasons**, trends −0.00042 and
+  −0.00060 per season, both negative on 2025-26. Two independent builds of the
+  same channel agree on level, shape and sign flip. D102's own words — "the same
+  do-not-ship signature as D64(d)'s comp-heavy 60/40" — are now confirmed by the
+  fixed-weight construction as well. CONSEQUENCE: the +0.00198 holdout number is
+  a BACKWARD-looking measurement of what the gate cost, not a forecast of what
+  shipping the bundle today would earn. The two most recent folds average
+  **+0.00089**.
+  OMICRON CAVEAT, disclosed: 2021-22 carries the December health-and-safety
+  wave, and M2 up-weights the composition leg (the leg that prices OUT sets), so
+  a mass-absence season structurally flatters M2. It is not necessary to the
+  result — 2022-23 (+0.00169, no Omicron) and 2023-24 (+0.00233, the largest dev
+  season) are both positive — but the 2021-22 fold should be read with it.
+  (9) **META-ANALYSIS OF THE WHOLE REJECTED PILE — the general answer.**
+  scripts/scratch_nsport_meta.py → data/nsport_meta.json. Population: every
+  registered SIDES per-game log-loss gate on a candidate feature TESTED AND NOT
+  SHIPPED, one row per independent hypothesis-channel, **k = 25**. Excluded and
+  documented: props CRPS/MAE, possession-level log loss, betting ROI/CLV, ORACLE
+  and hindsight CEILINGS (D97/D72/D112 — bounds, not features), corpus/data-fix
+  deltas (D102 RT1, D104, D112 floor relaxation), ablations of already-shipped
+  terms (the D110/D112 transfer battery), composites (D64/D71/D136-ABCD), and
+  arms that exist only as controls for a primary (D127 S2/S3, D133 A0/B).
+    set                      pooled (inv-var)   z     sign     z-scores
+    FIRST registered est.    **+0.000113 ± 0.000071**  1.59   13/25 (p=1.00)  mean +0.27  sd 1.22
+    LATEST (most-powered)    **+0.000049 ± 0.000072**  0.68   13/25 (p=1.00)  mean −0.03  sd 0.86
+  Heterogeneity collapses too: Q 30.15/df21 (I²=0.30, tau 0.00023) → Q 14.26/df20
+  (**I²=0, tau²=0**). **EXCESS POSITIVE MASS** — under a global null each estimate
+  ~N(0,SE) so E[Σ X·1{X>0}] = 0.39894·ΣSE: FIRST observed +0.00760 vs expected
+  +0.00590 = **excess +0.00170**; LATEST observed +0.00381 vs expected +0.00563 =
+  **excess −0.00182** (and negative mass −0.00825 against an expected −0.00563).
+  So the pile carried ~+0.0017 of apparent excess positive mass at first
+  measurement, and on re-test it does not merely vanish, it reverses. Funnel /
+  Egger precision regression: intercept +0.00052 ± 0.00034 (t=1.5), slope
+  **−1.081 ± 0.404** — the asymmetry runs the WRONG way for publication bias
+  (higher-SE tests are more NEGATIVE, driven by two underpowered subgroup arms,
+  D130-B and D85). No era concentration: post-PPP-only estimates pool to
+  −0.0000044 ± 0.00011, both-era estimates to +0.000084 ± 0.000093.
+  **THE DISTINCTION THE OWNER ASKED FOR.** We test things we HOPE will work, so
+  E[true effect | tested] should be positive if our hypothesis-picking is any
+  good — a positive-shifted pile is therefore NOT by itself evidence of a
+  too-conservative gate; it is evidence that we choose decent ideas. The gate is
+  too conservative only if the true effects are ALSO large enough to be worth
+  shipping. We observe neither: the pile is centred within 0.7 SE of zero, and
+  after removing the four bundle members the **remaining 18 channels pool to
+  +0.000012 ± 0.000081 (z = 0.15) — flat zero, 9/18 positive.**
+  (10) **RECONCILING (3) WITH (9) — this is the whole answer.** The joint bundle
+  passes on fresh data AND the pile is noise, because the bundle is not a random
+  draw from the pile: it is the positive z ≥ 0.5 tail, selected by a rule fixed
+  in advance, and the fresh-data run confirms that this specific tail is real
+  while the other 18 channels are not. **Selection can manufacture a positive DEV
+  estimate; it cannot manufacture a positive HOLDOUT estimate on games it never
+  saw.** The honest reading is therefore NOT "our gate systematically discards
+  real effects" and NOT "the rejected pile is entirely noise" — it is that
+  **~2 identifiable effects were false-rejected and everything else in the pile
+  is what it looked like.** GATE_POLICY_V2 §2's guess — "~2-4 true small effects
+  false-rejected, ~0.001-0.003 pooled log-loss left unshipped" — is CONFIRMED,
+  and can now be sharpened to **2 confirmed members and +0.0016-0.0020**.
+  (11) **THE HONEST BOUND ON UNSHIPPED LOG LOSS.**
+    (a) fresh-data joint, backward-looking  **+0.00161 to +0.00198**,
+        CI (+0.00049, +0.00270) on five seasons / (+0.00028, +0.00365) on the holdout
+    (b) rest of the rejected pile (18 channels) +0.00001 ± 0.00008 each; even
+        assuming every one is truly worth the pooled mean AND applying the
+        MEASURED 47.1% additivity haircut, the total is **+0.0001
+        (−0.0012, +0.0014)** — indistinguishable from zero
+    (c) ceilings: D97's perfect-talent oracle (+0.00400) does not bind this
+        bundle at all — M1/M2 are four-factors ESTIMATION and blend weight, not
+        talent resolution; D84-C's 49-feature null and D112's hindsight-k
+        ceilings (≤ +0.00043/gm) likewise sit in other families. The binding
+        constraint is D132's remaining gap, +0.01120 raw / 11.13% normalized.
+    (d) forward-looking haircut for M2's measured decay (§8)
+  **STATED BOUND.** Log loss plausibly left unshipped through false rejection:
+    BACKWARD-LOOKING (what the V1 rule actually cost us over 2021-26)
+      **+0.0016 to +0.0020, interval +0.0005 to +0.0037**
+      = **14-18% of the +0.01120 remaining raw gap to market** (band 4-33%)
+    FORWARD-LOOKING (what shipping this bundle today would be worth)
+      **+0.0007 to +0.0011 = 6-10% of the gap**, because the largest member is
+      measurably fading and is negative on the most recent season
+    EVERYTHING ELSE EVER REJECTED, together: **+0.000 to +0.001, consistent with
+    zero.**
+  So: we were too conservative, by about one sixth of the remaining gap, on
+  about two features — and we were right about the other eighteen. The
+  false-rejection problem is real, bounded, small, and now named.
+  (12) **VERDICT AND WHAT A SHIP WOULD REQUIRE. PROVISIONAL PASS — NOTHING IS
+  SHIPPED, no production file was touched, the D132 certification stands.**
+  Per the prereg §6 and GATE_POLICY_V2 §3, promotion to a real ship still needs
+  ALL of: (a) a calibration-battery veto pass (COMPLEXITY.md gate 2), not run
+  here; (b) a BH q=0.10 recomputation over the full gate family with this entry
+  included; (c) resolution of the §8 decay — the bundle as frozen contains a
+  member whose most recent season is negative, and a T2 provisional ship of a
+  fading term is not defensible; (d) the mandatory 2026-27 shadow control (the
+  no-bundle model runs all season) with the pre-registered mid-season n≈615 and
+  season-end n=1230 kill rules; (e) a human ship decision recorded as its own
+  D-line. RECOMMENDED SEQUENCE INSTEAD OF A BUNDLE SHIP: gate **M1 (3P-luck
+  defense-only) SOLO** — it is the member that passes fresh data (+0.00072),
+  has no decay (per-season +0.00019/+0.00125/+0.00028/+0.00032/+0.00030, 5/5
+  positive, between-era share 27.2% F=1.12), has zero fitted hyper-parameters,
+  and is mechanically independent of everything shipped. M2 needs the decay
+  question settled first; M3 needs a warm k_u (relax the `season >= '2021-22'`
+  literal the way D112 relaxed tanking.py's); M4 has spent its one holdout shot
+  and is now retest-eligible only on a fresh corpus or the margin endpoint.
+  SECOND-LOOK BAR, REGISTERED: this holdout is now SPENT for all four members.
+  No member of this bundle may be re-tested at the win-probability endpoint on
+  these 6,148 games again. The next unbiased read is 2026-27.
+  [scripts/scratch_nsport_joint.py, scripts/scratch_nsport_meta.py;
+   data/nsport_prereg.md (sha256 2cec470f…6e), data/nsport_notes.md,
+   data/nsport_joint_pergame.csv, data/nsport_joint_results.json,
+   data/nsport_joint_diag.json, data/nsport_meta.json,
+   data/logs/nsport_joint.log; GATE_POLICY_V2.md §6 ledger updated]
+- D139 MULTI-SPLIT + ERA-STRATIFIED EVALUATION PROTOCOL (Sean's objection:
+  "is there possibly an issue of incompatible datasets/changing eras ... should
+  be testing rigorously across MULTIPLE test train splits"). **HE IS RIGHT ON
+  BOTH COUNTS AND THE SINGLE SPLIT WAS WORSE THAN AMBIGUOUS — IT WAS
+  CONFOUNDED WITH THE E5 RULE CHANGES. But the honest headline is that the
+  multi-split verdicts largely VINDICATE the register: no shipped term is
+  reverted.** DIAGNOSTIC ONLY — production.py and engine/props.py untouched,
+  DB read_only=True, no model re-run (every arm re-scored is an
+  already-registered on-disk artifact, so the deltas are bit-identical to what
+  the original gates saw and only the INFERENCE moved). Deliverables:
+  **docs/ERAS.md**, **nbapred/eval/splits.py** (+ tests/test_splits.py, 18
+  tests), **GATE_POLICY_V2.md §§8-13 = V3** (file kept at the V2 path so all
+  ~40 existing citations resolve; docs/GATE_POLICY_V3.md is a pointer),
+  scripts/era_measure.py, cv_rescore.py, cv_cluster_audit.py; working notes
+  data/cv_protocol_notes.md.
+  (1) **THE ERA TABLE, MEASURED** (docs/ERAS.md, data/era_signatures.json).
+  Seven seasons, regular season only. season | home margin | home WR | travel
+  km/team-game | b2b | 3in4 | mean rest | repeat-opp | poss | core-DNP:
+      2019-20 +2.130 .5515  945.2† .149 .223 3.65 .011 102.65 .1660
+      2020-21 +0.944 .5435  830.2  .212 .337 2.03 .086 101.42 .2271
+      2021-22 +1.723 .5439  842.1  .172 .253 2.12 .035 100.44 .2394
+      2022-23 +2.500 .5805  800.8  .163 .248 2.12 .058 101.65 .2023
+      2023-24 +2.146 .5431  826.3  .172 .250 2.12 .049 100.81 .2063
+      2024-25 +1.692 .5423  850.9  .183 .268 2.12 .048 101.16 .2502
+      2025-26 +1.726 .5520  855.1  .179 .268 2.12 .040 101.84 .2435
+  († 2019-20 mixes E0 and the bubble; E0 alone is +2.174 / 894.4.)
+  Eras: **E0** pre-COVID (2019-10-22..2020-03-11, NOT SCORABLE), **E0H**
+  hiatus, **E1** bubble (2020-07-30..2020-10-11, NOT SCORABLE), **E2** no-crowd
+  compressed (2020-21, out of corpus per D131), **E3** re-entry+Omicron
+  (2021-22), **E4** post-COVID baseline (2022-23), **E5** PPP+IST+CBA
+  (2023-24), **E6** apron maturing (2024-25, 2025-26). Sub-era **E3-OMI**
+  2021-12-13..2022-01-02.
+  CONFIRMED FROM DATA: 2020-21 home margin −1.014 vs the 2021-26 baseline,
+  z=−2.02 (D131 reproduces exactly); Omicron dated by ISO week — 2021-W50..W52
+  core-DNP **0.3033 vs a 0.1332 pre-wave baseline (2.28x)**, with the same
+  calendar weeks a year later flat (0.1696 vs 0.1614); the In-Season Tournament
+  start — `game_id` prefix **006 first appears in 2023-24** and every season
+  since; 2019-20 unscorable (fit_production raises "no carry rows from
+  2018-19").
+  **THREE CORRECTIONS TO THE BRIEF'S TAXONOMY, all data-backed.**
+    (a) **"2020-21 deliberately reduced travel" IS NOT IN THE DATA.** 830.2
+    km/team-game sits INSIDE the normal band (800.8 in 2022-23 ... 855.1 in
+    2025-26); season-total travel is down only ~9% and that is the 72-game
+    schedule, not shorter trips. What actually compressed is **REST**: b2b
+    .212 vs .163-.183, 3-in-4 .337 vs .248-.268, rest>=3 .138 vs .187-.195.
+    Series-style scheduling is real but modest (repeat-opp .086 vs .035-.058).
+    (b) **2022-23 IS NOT "the only clean normal season" — it is the corpus's
+    HOME-ADVANTAGE OUTLIER**: home WR .5805 vs .5453 pooled over the other four
+    scorable seasons (**z=+2.23**), margin +2.500 vs +1.822. It is also the
+    market's worst season (ll_mkt 0.62437, corpus max). Since 2022-23 is HALF
+    the legacy holdout, every past "fails on the holdout" verdict for a
+    home-advantage-sensitive feature was partly a test against an outlier.
+    (c) **The PPP did not reduce measured star absence**: core-DNP .2023
+    (2022-23) -> .2063 (2023-24) -> .2502 / .2435 (E6). If it moved anything in
+    our data it moved it the wrong way.
+  **NEW HAZARD FOUND:** the Orlando bubble's TRUE travel is 0 km/team-game and
+  `nbapred/model/travel.py` assigns **1,505.5** (it derives the host from
+  `matchup`). Any travel/venue/altitude feature evaluated on E1 measures a
+  fiction. `player_game_stats` also has ZERO rows for those 88 games.
+  FEATURE-AVAILABILITY TRAP LIST (ERAS.md §5): `game_inactives` starts 2022-23,
+  `injury_reports_pit` starts 2023-10. A feature consuming either is
+  STRUCTURALLY INERT on half or all of the legacy holdout — calling that "does
+  not transfer" is the D110 §1a cold-estimator error generalised.
+  (2) **D136's "never touched COVID" CLAIM — VERIFIED, AND PARTLY FALSE.** TRUE
+  for the log-loss endpoint (dev 2023-26 only, holdout deliberately not
+  scored). **FALSE for the margin readout D136 calls "the well-powered half":**
+  `tv_margin_fit.py`'s FULL frame is `seasons=None` = 2019-20..2025-26,
+  n=8,279 — it includes the bubble and the no-crowd season. Consequence, from
+  D136's OWN artifact (data/tv_margin_fit.json):
+      term        FULL(incl COVID)      SCORED 2021-26        DEV
+      dtrav_kkm   -0.3088 t=-2.21 SIG   -0.2903 t=-1.75 ns   -0.3971 ns
+      d3in4       -0.6144 t=-2.00 SIG   -0.5827 t=-1.61 ns   -0.6471 ns
+      dtz_east    -0.2150 ns            -0.3383 t=-1.99 SIG  -0.5212 SIG
+  **BOTH of D136's "SIG MATCH" margin coefficients exist ONLY in the
+  COVID-inclusive frame.** Including the COVID era MANUFACTURED them (the
+  opposite direction from Sean's hypothetical, same mechanism). D136's NO-SHIP
+  verdict is unaffected — the endpoint was null either way — but its
+  "physiology is visible and sign-stable" language rests on a contaminated
+  frame and is annotated accordingly. Any travel retest uses the E3-E6 frame.
+  (3) **THE HARNESS** (`nbapred/eval/splits.py`). `Panel.from_logloss` /
+  `from_losses` -> `full_report()` gives, for any per-unit artifact with a
+  season column: pooled paired bootstrap; **ROLLING-ORIGIN** (train<=k, test
+  k+1, the only causal split); **LOSO** (delete-one-season, reported as
+  test-on-k AND jackknife-on-the-rest with each season's INFLUENCE);
+  **LEGACY dev/holdout** verbatim; **BLOCK BOOTSTRAP** (7-day calendar blocks);
+  **ERA DECOMPOSITION** (per-era estimate, between/within variance share,
+  DerSimonian-Laird Q / I² / tau); **CLUSTERING REPORT** (i.i.d. vs week vs
+  month vs season clusters, intra-season ICC, ANOVA design effect, and the
+  cluster-mean t interval at K-1 dof); and a mechanical `adjudicate()`.
+  **LOSO IS DECLARED A STABILITY DIAGNOSTIC IN THE RETURN VALUE**
+  (`independent_folds=1`, `pairwise_data_overlap=0.75`, plus an interpretation
+  string): on a 5-season corpus any two folds share 75% of their data, so five
+  folds are ~ONE corpus of information and it is a policy violation to present
+  them as five proofs. 18 tests pin the properties the policy depends on;
+  **83/83 tests green** (65 pre-existing + 18 new).
+  (4) **RETROSPECTIVE RE-SCORING** (scripts/cv_rescore.py, data/cv_rescore.json).
+  Rolling-origin folds are quoted test-season by test-season.
+    **D46 SCHEDULE LAYER — SURVIVES EVERYTHING, and is the only term that does.**
+      pooled +0.00597; RO 2022-23 +0.00233 ns / 2023-24 +0.00929 SIG /
+      2024-25 +0.00748 SIG / 2025-26 +0.00114 ns, **4/4 positive**;
+      per-era E3 +0.00963 / E4 +0.00233 / E5 +0.00929 / E6 +0.00431,
+      **Q=4.09 p=0.250 I²=27% ERA-STABLE**; season-cluster CI(+0.00288,+0.00907)
+      SIG; **cluster-mean t at 4 dof CI(+0.00104,+0.01091) SIG**.
+      VERDICT MULTI-SPLIT PASS. D111's "the only individually OOS-passing term"
+      is confirmed by a completely different route.
+    **D73 TANK — SHIP STANDS, CLAIM DOES NOT.** warm-floor pooled +0.00199
+      i.i.d. SIG and season-cluster SIG, but **cluster-mean t CI(−0.00036,
+      +0.00434) ns**; RO +0.00090 / +0.00032 / +0.00151 / **+0.00517 SIG**,
+      4/4 positive but only the newest season significant, **drift +0.00140 per
+      season**. Era-stable at the warm floor (I²=0%); at the OLD floor I²=53%
+      purely because the term is inactive in 2021-22 (D110 §1a). Reading: the
+      term is not refuted and harms no era, but its apparent value is
+      CONCENTRATED IN THE MOST RECENT SEASON, which is what an era-growing
+      effect AND a late-corpus artifact both look like. D73's "PASSES,
+      DECISIVELY" is dead; D112's UNCONFIRMED stands, now with a shape.
+    **D62 CARRY — NO-PASS** +0.00011 CI(−0.00044,+0.00066) ns, RO 3/4, one
+      season flips the pooled sign. Confirms D111's "contributes ~0".
+    **D91 OCTOBER BRIDGE — NO-PASS** +0.00012 ns, RO 3/4.
+    **D90 LATE-STATE (negative control, already reverted) — NO-PASS**, and it
+      carries the largest sides design effect measured (1.39 bootstrap / 2.29
+      ANOVA). The harness convicts the term the register already convicted.
+    **D124 F2 RETIREMENT — UPHELD, and NOT era-driven.** +0.00002 ns,
+      **I²=19% ERA-STABLE**, RO sign flips 2/4. Independently corroborates
+      D138 §6's F-test on the same profile.
+    **D130 ARM A URGENCY — NO-PASS, and structurally uncheckable.** Its artifact
+      contains NO holdout seasons (dev-only, 3,690 games), so era-stability
+      cannot be assessed at all. Any 2026-27 one-shot must score every era.
+    **D133 PROPS EARLY-MINUTES RAMP (SHIPPED TODAY) — SURVIVES. NO REVERT.**
+      This was the most important question in the task and the answer is clean.
+      Oct-Nov points CRPS, player-clustered, all five seasons: pooled +0.04045;
+      **RO 2022-23 +0.04241 / 2023-24 +0.05639 / 2024-25 +0.03321 / 2025-26
+      +0.02851 — 4/4 folds SIG**; 5/5 seasons SIG; season-cluster
+      CI(+0.03242,+0.04868) SIG; **cluster-mean t at 4 dof CI(+0.02728,+0.05378)
+      SIG**. **It is NOT a post-PPP-era effect**: the two pre-PPP eras give
+      E3 +0.04213 and E4 +0.04241, statistically indistinguishable from pooled.
+      The I²=70% flag is MAGNITUDE heterogeneity with no sign flip (E5 +0.05639
+      is the high point, E6 +0.03080 the low), so it is ERA-CONDITIONAL, not
+      era-specific. **ACTION REGISTERED: the effect is DECAYING at −0.0065 per
+      season; the honest live expectation for 2026-27 is the most recent fold
+      ~+0.028, not the pooled +0.040.** ARM A0 (the level-only adversarial
+      control) is +0.01481 = 37% of A, so the gp SHAPE still carries the
+      majority out-of-era, exactly as D133 claimed.
+    **D138 NS-PORTFOLIO JOINT — SURVIVES CLUSTERING** (registered hours before
+      this entry, so its i.i.d. bootstrap was in scope). Its intra-season ICC is
+      **NEGATIVE** (−0.00054, season DEFF 0.50), i.e. the i.i.d. CI was if
+      anything CONSERVATIVE. All-5 pooled +0.00161 season-cluster
+      CI(+0.00105,+0.00218) SIG, cluster-mean t CI(+0.00073,+0.00250) SIG,
+      RO 4/4 positive, I²=0%. One caution: on the 2-season holdout arm alone the
+      MONTH-cluster CI straddles zero (−0.00020,+0.00425).
+    **D132 HEADLINE** −0.01120 vs market: robust to every split and every
+      clustering (season-cluster CI(−0.01437,−0.00782)).
+  (5) **THE CLUSTERING DEFECT — AUDITED, MEASURED, AND SMALLER THAN FEARED ON
+  SIDES, LARGER THAN ASSUMED ON PROPS** (scripts/cv_cluster_audit.py; raised by
+  the coordinator, corroborated by the sister project
+  /hdd/steveqin/sean_dev/football_exercise, which RETRACTED a "we beat the
+  market" claim on exactly this — 0.9540 vs 0.9572 became −0.0031
+  CI[−0.0069,+0.0008] ns once clustered by season).
+  AUDIT: a sweep finds **98 files resampling i.i.d. against 6 clustering**.
+  EVERY sides gate that authorized a shipped term is i.i.d. game-level —
+  of_transfer_ablation.py:90 (D110/D112), apr_program.py:643 (D73),
+  es2_hardstop.py:319 (D62), ov_latestate_gate.py (D90), pg_urgency2.py:330
+  (D130), tv_gate.py:149 (D136), pg_eventrecency.py (D124),
+  scratch_nsport_joint.py:307 (D138) — **including ba_gatepower.py:44, the
+  script that produced GATE_POLICY_V2 §1's own power table.** The props gates
+  DID cluster, but by PLAYER only (pr_ramp_gate.py:122), so season-level
+  dependence was unhandled there too.
+  MEASURED (intra-season ICC; DEFF_boot = SE_seasonCluster/SE_iid;
+  DEFF_anova = 1+(n0−1)·ICC):
+      D46 sched   +0.00048  1.13 / 1.58     D62 carry  −0.00009  0.85 / 0.89
+      D73 old     +0.00082  1.27 / 2.01     D91 bridge −0.00008  0.86 / 0.90
+      D73 warm    +0.00003  0.93 / 1.03     D124 F2    +0.00008  0.91 / 1.10
+      D90 late    +0.00105  1.39 / 2.29     D132 mkt   −0.00032  0.67 / 0.61
+      D138 joint  −0.00054  0.50 / 0.34
+      **D133 props ARM A +0.00063  1.68 / 3.78**   ARM A0 +0.00097 1.96 / 5.29
+  **RULE OF THUMB FOR THE REGISTER: our historical SIDES CIs were 0-40% too
+  narrow; our PROPS CIs were 68-96% too narrow.** The sides defect is modest
+  because a per-game log-loss delta is dominated by irreducible outcome noise
+  (y−p), which genuinely IS independent across games; props deltas are not.
+  **DOES IT EXPLAIN D110/D111? PARTIALLY, AND STRIKINGLY.** Applying the
+  measured factor to the registered z's: **D46 3.46->3.05 PASS, D73
+  2.81->2.22** (with its t interval straddling zero), **D90 2.68->1.93 FAIL** —
+  i.e. clustered inference reproduces D111's per-term verdict FROM THE
+  INFERENCE ALONE, and would have caught the two convicted terms AT GATE TIME
+  instead of ~100 entries later. But the selection channel is bigger and
+  untouched by any SE correction: E[max z] at 96-511 comparisons is 2.34-2.91
+  by itself. Both channels are real; neither alone accounts for the shortfall.
+  **THE TENSION WITH D138 / "ARE WE TOO CONSERVATIVE" IS NOT RESOLVED BY
+  PICKING A SIDE — BOTH ARE TRUE AND THEY ACT ON DIFFERENT QUANTITIES.**
+  V2 §1's power problem (MDE80 0.0044 above the entire 0.0005-0.002 effect
+  band; 5-24% power) inflates FALSE NEGATIVES for small global effects. §5's
+  understated SEs inflate FALSE POSITIVES for terms whose coefficients are
+  season-shared and whose true effect is ~0. **Correcting the SE makes the
+  power problem WORSE.** The only instrument that fixes both is fresh data.
+  **SMALL-K WARNING, found while doing this:** at K=5 the season-cluster
+  bootstrap is unreliable IN BOTH DIRECTIONS. D130 ARM A (K=3, season means
+  +0.00053/+0.00047/+0.00045) returns a season-cluster SE of **0.00002** and a
+  spuriously SIGNIFICANT interval on a plainly null result. Always report the
+  ANOVA design effect beside the bootstrap; never ship on a K<10 cluster
+  bootstrap alone.
+  (6) **POLICY -> V3** (GATE_POLICY_V2.md, §§1-7 verbatim and UNRENUMBERED,
+  §§8-13 new; file deliberately kept at the V2 path per the D134 no-broken-
+  citations rule). §8 multi-split requirement (all four splits + era
+  decomposition; LOSO-is-not-k-proofs written into the policy). §9 clustered
+  inference MANDATORY — the shipping CI is the clustered one, the i.i.d. CI is
+  secondary, cluster level justified by the coefficient-sharing mechanism, ICC
+  + design effect + cluster-mean t all reported, small-K warning. §10 the era
+  statement: eval universe by ERA CODE, era-availability check against ERAS.md
+  §5, and a verdict of exactly ERA-STABLE / ERA-CONDITIONAL / ERA-SPECIFIC,
+  plus a COVID-frame check with D136 as the worked precedent. §11 mechanical
+  adjudication when folds disagree, with tie-breaks: rolling-origin beats LOSO
+  beats legacy; clustered beats i.i.d.; any rolling-origin sign flip is
+  disqualifying for T1; **the most recent fold is the live forecast**; a
+  disagreement that coincides with an era boundary is an ERA finding until
+  proven otherwise. §12 the retroactive audit above. §13 everything V3 does not
+  change (calibration veto, tiers, MDE80/§5.5, BH family register, NS-portfolio
+  + selection floor + fresh-season kill rule, D45 control rule, D134
+  control-hash, G2).
+  (7) **HONEST BOTTOM LINE, in the terms the brief demanded.** The single split
+  WAS confounded and the objection was correct — but **the multi-split analysis
+  mostly says our verdicts were right all along**, and manufacturing a crisis
+  would have been the dishonest option. **No shipped term is reverted. D133,
+  shipped today, survives every split and every clustering and is NOT an era
+  artifact.** What V3 actually overturns is (a) a CLAIM — D136's two significant
+  travel/density margin coefficients are COVID-frame artefacts — and (b) a
+  METHODOLOGY — i.i.d. gating, now retired. The two live actions are: use
+  +0.028, not +0.040, as D133's 2026-27 expectation; and stop quoting D73 as
+  decisive.
+  [code nbapred/eval/splits.py (new), tests/test_splits.py (new);
+   scripts/era_measure.py, scripts/cv_rescore.py, scripts/cv_cluster_audit.py;
+   docs/ERAS.md (new), docs/GATE_POLICY_V3.md (pointer),
+   docs/GATE_POLICY_V2.md §§8-13 (V3 additions);
+   data/era_signatures.json, data/cv_rescore.json, data/cv_cluster_audit.json,
+   data/cv_protocol_notes.md, data/logs/cv_rescore.log,
+   data/logs/cv_cluster_audit.log]
+- D140 NEUTRAL-SITE TRAVEL BUG — **FIXED IN nbapred/, AND THE CLAIM IT WAS
+  BLAMED FOR IS CORRECTED IN THE OPPOSITE DIRECTION FROM THE EXPECTATION.**
+  D139 registered that the 2020 Orlando bubble's TRUE travel is 0 km/team-game
+  while `nbapred/model/travel.py` assigned **1,505.5**, and filed it next to
+  the finding that D136's two "SIG" margin coefficients live only in the
+  COVID-inclusive frame — which invites the reading that the fiction MANUFACTURED
+  them. **It did not.** Both halves are registered below. PRODUCTION IS
+  STRUCTURALLY UNTOUCHED: `fit_production` never reaches either edited module
+  (proven, not asserted — `travel.build_state`, `travel.neutral_game_venues`
+  and `features.schedule.build` were monkey-patched to RAISE and
+  `fit_production(con,'2025-26',before=2026-03-01)` still fits and prices;
+  `fit_schedule_layer_ext` is the only importer of travel.py and nothing in
+  the production path calls it). D132 stands untouched.
+  (1) **THE DEFECT, RESTATED PRECISELY.** `build_state` derived the venue from
+  `matchup`, which names a NOMINAL host even when the game is at a neutral
+  court. That is wrong twice: it invents travel INTO the game, and it then
+  carries the nominal host forward as the ORIGIN of the team's NEXT game. Two
+  neutral classes exist in this corpus, both now detected mechanically by
+  `travel.neutral_game_venues(con)` — never by a hand-kept game list:
+    * **the 2020 bubble** — 88 regular-season games, 2020-07-30..2020-08-14,
+      22 nominal hosts x 4 games each, all at one complex. Venue `WWOS_ORL`
+      (ESPN Wide World of Sports, Bay Lake FL, 28.3382/-81.5494, 21 m).
+    * **the feed's own marker** — `is_home` FALSE on BOTH team-rows (D137's
+      finding, now consumed rather than merely noted): **exactly 10 games**,
+      5 in 2024-25 and 5 in 2025-26, `GROUP BY game_id HAVING SUM(is_home)=0`.
+  (2) **THE FIX** (`nbapred/model/travel.py`). `venues()` = arenas() + a
+  NEUTRAL_VENUES table; `haversine_km`/`utc_offset_h` resolve venue keys as
+  well as team abbrevs (keys are deliberately non-abbrev so collision is
+  impossible). The per-team history chains on the **VENUE**, so consecutive
+  bubble games are venue-to-venue identical and travel 0, and a team leaving
+  the bubble is measured FROM the bubble. `at_home` is FALSE for BOTH teams at
+  a neutral court. **HIATUS RESET**, `HIATUS_RESET_DAYS = 14`: a gap longer
+  than that restarts the chain exactly as a season opener does, because acute
+  travel load does not survive 141 days of shutdown. **This is not a tuned
+  parameter** — measured, the longest inter-game gap in EVERY scorable season
+  (2020-21..2025-26) is **13 days**, so any threshold in [14, 140] selects the
+  22 bubble restart games and nothing else. A regression test asserts that, so
+  the day a scorable season develops a 15-day gap the suite fails loudly
+  instead of silently moving a gated feature.
+  **HONESTY FIELD — UNKNOWN IS NOT ZERO.** The 10 feed-flagged venues (Mexico
+  City / Paris / Vegas) have no coordinates in this repo. They get a per-game
+  key with unknown geo and are reported **`travel_valid=False`** with
+  travel/tz/elev 0.0 — as must the NEXT team-game after each, whose origin is
+  equally unknown. **36 team-games** carry the flag. Consumers must DROP them.
+  Setting them to 0 km would have been a second fiction replacing the first.
+  D137's other caveat stands: the flag is INCOMPLETE before 2024-25 (Dec-2023
+  Cup semifinals in Vegas unmarked), ~2-4 games/season undetected in E3-E5.
+  (3) **MEASURED, BEFORE vs AFTER, on the 176 bubble team-games.**
+    travel_km  mean **1,505.5 -> 0.0000** (nonzero 148/176 -> 0/176, max 4,075 -> 0)
+    |tz_east|  mean 0.960 -> 0.0     |elev_gain_m| mean 275.8 -> 0.0
+    at_home    22 of 176 TRUE -> 0 of 176      venue: all `WWOS_ORL`
+  Neutral team-games detected in total: 196 = 176 bubble + 20 flagged.
+  (4) **`nbapred/features/schedule.py` FIXED TOO** (D137 flagged it treating
+  the same games as ordinary home games). Same neutral detection imported from
+  travel.py rather than duplicated; `is_home` FALSE for both at a neutral
+  court; the geo chain follows the VENUE; the hiatus reset applies; and
+  `travel_km`/`tz_shift`/`travel_adv` are written **NULL, not 0**, when a
+  neutral venue's coordinates are unknown, so `schedule_features` can never
+  store a fabricated distance.
+  (5) **D136's MARGIN FIT, RE-RUN ON CORRECTED DATA — THE CLAIM CORRECTION.**
+  `scripts/tv_margin_fit.py` re-run verbatim (pre-fix artifact preserved at
+  data/tv_margin_fit_precorrection.json). n is unchanged in every frame
+  (8,279 / 6,140 / 3,690 / 2,450) — the 10 flagged games were already excluded
+  by that script's `h.is_home AND NOT a.is_home` join.
+    frame                     term        BEFORE            AFTER
+    FULL 2019-20..2025-26     dtrav_kkm   -0.3088 t=-2.21 SIG   **-0.3061 t=-2.17 SIG**
+    FULL                      d3in4       -0.6144 t=-2.005 SIG  **-0.6144 t=-2.005 SIG** (bit-identical)
+    FULL                      dtz_east    -0.2150 t=-1.50 ns    -0.2091 t=-1.45 ns
+    FULL                      d5in7       -0.5779 t=-0.73 ns    -0.5779 t=-0.73 ns
+    SCORED 2021-26            dtrav_kkm   -0.2903 t=-1.75 ns    **-0.2843 t=-1.72 ns**
+    SCORED 2021-26            d3in4       -0.5827 t=-1.61 ns    **-0.5827 t=-1.61 ns**
+    SCORED 2021-26            dtz_east    -0.3383 t=-1.99 SIG   -0.3365 t=-1.98 SIG
+    DEV 2023-26               dtrav_kkm   -0.3971 t=-1.81 ns    -0.3862 t=-1.76 ns
+    HOLDOUT 2021-23           dtrav_kkm   -0.1422 t=-0.56 ns    -0.1422 t=-0.56 ns
+  **D139's VERDICT SURVIVES; D139's IMPLIED MECHANISM DOES NOT.** Both of
+  D136's coefficients are still ns on the scorable 2021-26 frame after the fix,
+  so "the two SIG margin coefficients are COVID-frame artefacts" STANDS. But
+  the travel fiction is NOT what produced them:
+    * `d3in4` is **bit-identical** before and after, because `is_3in4` is a
+      pure date computation that the venue bug never touched. Any reading in
+      which the 1,505.5 km fiction manufactured d3in4 is simply wrong.
+    * `dtrav_kkm` moves by **0.9% of its magnitude and 0.04 of its t**, and
+      stays SIG. The bubble is 88 of 8,279 rows (**1.06%**) and after the fix
+      its dtrav_kkm is exactly 0 for all 88, i.e. it now contributes pure
+      leverage-free intercept mass.
+  (6) **SO WHAT DOES CARRY THE FULL-FRAME SIGNIFICANCE?** Nested refits
+  (`scripts/tv_bubble_correction.py`):
+    universe                                n      dtrav_kkm         d3in4
+    FULL (corrected)                      8279  -0.3061 t=-2.17 SIG  -0.6144 t=-2.01 SIG
+    FULL minus the 88 bubble games        8191  -0.3050 t=-2.16 SIG  -0.5779 t=-1.88 **ns**
+    FULL minus bubble minus unknown-geo   8175  -0.2972 t=-2.10 SIG  -0.5890 t=-1.91 ns
+    SCORED 2021-26 (corrected)            6140  -0.2843 t=-1.72 ns   -0.5827 t=-1.61 ns
+    COVID ERAS ONLY 2019-20 + 2020-21     2139  -0.3582 t=-1.34 ns   -0.6396 t=-1.10 ns
+  Two separate stories, and the register should stop merging them.
+  **d3in4's** FULL-frame significance DOES depend on the bubble — dropping the
+  88 games alone takes it to ns — but through the bubble's extreme SCHEDULE
+  DENSITY (is_3in4 rate .239 on 8 games in 16 days), not through travel. That
+  is a real era artefact and D139's conclusion is right for the wrong reason.
+  **dtrav_kkm's** is a POWER story, not an artefact story: the COVID seasons
+  add +35% n (6,140 -> 8,279) at a LARGER same-signed point estimate (-0.358 on
+  COVID-only vs -0.284 on scorable). Removing them removes significance by
+  removing n. The honest sentence is **"on the scorable era the travel
+  coefficient is the same sign and the same order of magnitude but
+  underpowered"**, NOT "including COVID manufactured it". D136 shipped nothing
+  and still ships nothing; this changes a CLAIM, not a model.
+  (7) **TESTS** — `tests/test_travel_neutral.py`, 13 new, all green. Eight run
+  against a fake connection so the LOGIC is pinned without a DB: neutral venue
+  keys cannot collide with abbrevs; haversine/utc_offset resolve venue keys;
+  two games at one neutral venue give 0 travel to both teams; a neutral game
+  does not poison the next game's origin; leaving a neutral venue measures FROM
+  it and NOT from the nominal host (asserted >1,000 km apart); unknown-geo
+  neutral is `travel_valid=False` for the game AND the next one; ordinary games
+  are bit-unchanged; the hiatus reset fires at >14d and NOT at exactly 14d.
+  Five run against the corpus: 176 bubble team-games at exactly 0 travel/tz/
+  elev, 88 bubble + 10 flagged games detected, and the guard that no scorable
+  season has a >14d gap. **Full suite 96 passed** (83 before).
+  [nbapred/model/travel.py, nbapred/features/schedule.py,
+   nbapred/eval/splits.py (E1 era note), docs/ERAS.md §2/§3/§5;
+   scripts/tv_bubble_correction.py (new), scripts/tv_margin_fit.py (re-run);
+   tests/test_travel_neutral.py (new);
+   data/tv_margin_fit.json (corrected), data/tv_margin_fit_precorrection.json,
+   data/tv_bubble_correction.json, data/logs/tv_margin_fit_d140.log,
+   data/logs/tv_bubble_correction.log]
+- D141 M1 (3P-LUCK DEFENSE-ONLY) GATED SOLO UNDER V3 — **NO-SHIP, AND THE
+  SHIP REQUEST RESTED ON A FALSE PREMISE THAT WOULD HAVE SHIPPED A DIFFERENT,
+  REGISTERED-LOSER TERM.** Directive was: "M1 is already implemented —
+  `four_factors.py:61,81` (`luck_adjust_3p`) reached via `production.py:438`
+  `FF_LUCK == "1"` — and it defaults OFF ... run the mechanical checks and ship
+  if they pass." **The first clause is false.** Nothing in nbapred/ or
+  production.py was modified. D132 stands. Read-only on data/nba.duckdb.
+  (1) **CONSTRUCTION CHECK — THE TWO TERMS ARE NOT THE SAME TERM.**
+  **`FF_LUCK=1` is the BLUNT variant** (`four_factors.py:81-92`): it rewrites
+  the ridge TARGETS in place for EVERY row —
+  `efg += 0.5*(lg3p*thra - thrm)/fga`, `ortg += 300*(lg3p*thra - thrm)/poss` —
+  so the same adjusted number feeds the OFFENSE credit, the DEFENSE credit and
+  the factor->ortg map. It destroys real offensive 3P skill along with the
+  defensive luck. `scripts/exp_ffluck2.py:3-5` records it verbatim: "The blunt
+  version (FF_LUCK=1 ...) made 2023-24/2024-25 WORSE (+0.0024/+0.0035)", and
+  `scripts/audit_gate_stats.py:113` carries **"FF_LUCK blunt"** in the BH
+  family as a registered loser.
+  **M1 is the DEFENSE-ONLY hybrid**, a different construction: two ridge sets
+  for the `efg` factor only — offense credit + mu + home from the RAW fit,
+  DEFENSE credit from a league-avg-3P%-substituted fit — with W refit on the
+  hybrid predictions against **RAW** ortg (the row's luck belongs to the
+  offense and is deliberately kept raw):
+    `efg_lg = TeamRatings(25, team_home_ridge=None).fit([(tid,oid,home,`
+    `  (efg + 0.5*(lg3p*thra - thrm)/fga)*100) ...], weights=w)`
+    `hy = HybridFF(fms_off=ff.fms, fms_def={**ff.fms, "efg": efg_lg})`
+    `pred(f,t,o,h) = o.mu + o.off[t] - d.deff[o] + (o.home if h else 0)`
+    `hy.W = lstsq(A_hybrid, y_RAW_ortg)`
+  It lives ONLY in `scripts/scratch_nsport_joint.py:92-148` and its ancestors
+  `scripts/ba_portfolio.py` / `scripts/exp_ffluck2.py:138-139`. **There is no
+  `defonly` code path anywhere in `nbapred/`**: `grep -rn FF_LUCK nbapred/`
+  returns exactly one hit, production.py:438, and it wires the blunt version.
+  **CONSEQUENCE: flipping the FF_LUCK default to "1" would have shipped the
+  blunt term** — never gated, registered as a loser, and carrying none of
+  D138's holdout evidence. Per the directive's own stop-clause the default is
+  untouched. This is the D45/D134 same-run-control discipline applied to
+  IDENTITY rather than to numbers, and it is a new hall-of-shame class:
+  **a switch named after a hypothesis is not evidence that it implements it.**
+  (2) **THE V3 BATTERY, RUN ANYWAY, ON THE CORRECT CONSTRUCTION.**
+  `scripts/m1_v3_battery.py` re-scores the on-disk D138 artifact
+  data/nsport_joint_pergame.csv (`p_ctl` vs `p_defonly`, n=6,148) under §§8-11.
+  Exactly the operation D139 §12 ran on the JOINT arm: **no model re-run, the
+  deltas are bit-identical to what D138 scored.** It reproduces D138 exactly
+  (holdout +0.00072 CI(+0.00005,+0.00136); M2 profile identical to 5 d.p.).
+  **CONTROL-HASH FIELD (D134):** control vs data/capstone_pergame.csv (D132
+  certified, copied aside to capstone_pergame_d132.csv, md5 dc256d0b…4283)
+  **6,148/6,148 games matched, max|dp| 1.366e-14, 0.0000 of games moved**
+  (per season 7.0e-15/1.24e-14/1.37e-14/1.31e-14/9.4e-15).
+    POOLED i.i.d.       +0.00047 CI(+0.00004,+0.00091) SIG  se 0.00023  p 0.0155
+    **SEASON-CLUSTER**  +0.00047 CI(+0.00024,+0.00087) SIG  se 0.00017
+    season-mean t dof=4 +0.00047 CI(-0.00008,+0.00101) **ns** t=2.386 (t_crit 2.776)
+    BLOCK BOOT 7d       +0.00047 CI(-0.00003,+0.00098) **ns** (130 blocks)
+    MONTH cluster       +0.00047 CI(-0.00018,+0.00112) **ns**
+    ICC(season) **-0.00020**  DEFF_anova **0.755**  DEFF_boot **0.766**
+    temporal DEFF 1.135      pooled MDE80 **0.00063**
+    ROLLING-ORIGIN 4/4 POSITIVE, no sign flip:
+      ->2022-23 +0.00125 SIG | ->2023-24 +0.00028 ns | ->2024-25 +0.00032 ns
+      | ->2025-26 +0.00030 ns;  mean +0.00054 sd 0.00047 drift -0.00028/season
+    LOSO 5/5 positive, spread +0.00019..+0.00125, `independent_folds=1`
+    LEGACY dev +0.00030 ns / holdout +0.00072 SIG, transfer 2.39
+    ERA: E3 +0.00019 / E4 +0.00125 / E5 +0.00028 / E6 +0.00031; between-era
+      share **0.049%**, Q=3.14 dof=3 p=0.371, I2=5%, tau 0.00010
+  **ERA STATEMENT (§10), in the required form.** Eval universe by era code:
+  **E3+E4+E5+E6** (2021-26), i.e. the whole scorable corpus; legacy dev =
+  E5+E6, legacy confirm = E3+E4. **Era-availability: clean** — M1 consumes only
+  `player_game_stats` box lines (fgm/fga/thrm/thra/tov/oreb/dreb/fta/pts),
+  present in every scored era; it touches neither `game_inactives` (starts
+  2022-23) nor `injury_reports_pit` (starts 2023-10), so the ERAS.md §5 trap
+  does not apply and no fold is structurally inert. **Verdict: ERA-STABLE**
+  (I2=5%, Q not significant at p=0.10) — with §10's own caveat that at 3 dof
+  the test is underpowered and cannot PROVE stability. **COVID-frame check: no
+  fit frame includes E0/E1/E2**; the artifact is 2021-26 only, so D136's
+  precedent hazard does not arise here.
+  `splits.adjudicate()` returns **MULTI-SPLIT PASS (with notes)**, flags:
+  "significance does not survive the block bootstrap" and "SIG under i.i.d.,
+  NOT SIG under the season-mean t interval (K-1 dof)".
+  (3) **BLOCKER (a) — CALIBRATION VETO (COMPLEXITY.md gate 2): PASS.**
+  `scripts/m1_calib_bh.py`, reliability/ECE/link/HL on the sides probabilities.
+    metric        control (D132)        M1 defonly            delta
+    log loss      0.60364               0.60318               -0.00046
+    Brier         0.20843               0.20825               -0.00017
+    ECE10         0.01097               0.00993               **-0.00104** CI_iid(-0.00552,+0.00336)
+    ECE20         0.02132               0.01730               **-0.00402** CI_iid(-0.00855,+0.00405)
+    link a (z)    -0.0238 (-0.82)       -0.0261 (-0.90)
+    link b (z_b-1) 0.9725 (-0.80)       **0.9817 (-0.53)**    toward 1
+    HL chi2 dof=8  7.66 (p 0.467)       9.51 (p 0.301)
+    bias (mean p - base rate) +0.00612  +0.00622
+  4 of 5 seasons improve ECE10 (2024-25 the exception, +0.00174). Nothing
+  degrades; the recalibration slope moves TOWARD 1. **No veto.**
+  (4) **BLOCKER (b) — BENJAMINI-HOCHBERG q=0.10: FAILS.** Family RECOUNTED,
+  append-only, from the K=57 snapshot of 2026-07-30 plus every CI-gated primary
+  registered since (D127 +4, D138 +1, D86 +1, and the D49-D139 sweep):
+  **K = 106**, +1 for this gate = **107**. 78 members carry a usable one-sided
+  p (7 published z, 15 published `p_wrongside`, 56 reconstructed as
+  z=est/((hi-lo)/3.92)); **28 have no published CI/z/p anywhere and enter at
+  p=1.0** — conservative for them, and they stay in the K denominator, which is
+  the correct conservative handling. Enumeration: data/bh_family.csv.
+    p used for M1                       rank   BH thr    verdict
+    i.i.d. bootstrap 0.0155             26/107 0.02430   SURVIVES
+    season-cluster bootstrap 0.0000     —      —         NOT CREDIBLE (see below)
+    **cluster-mean t, 4 dof: 0.0378**   28/107 0.02617   **FAILS**
+  BH step-up rejects the 27-28 smallest p (largest rejected 0.01875) either way.
+  **The governing read is FAILS.** §9.1 makes the clustered inference primary
+  and demotes the i.i.d. CI to a secondary; and the season-cluster BOOTSTRAP p
+  of 0.0000 is the exact pathology §9.3 warns about — ICC is NEGATIVE so
+  DEFF is **0.77**, i.e. the "clustered" SE has COLLAPSED BELOW the i.i.d. SE
+  at K=5, which is §9.3's own D130 ARM A worked example in mirror image. §9.3's
+  own instruction is to "treat the cluster-mean t interval as the conservative
+  bound" and "never ship on a K<10 cluster bootstrap alone". We follow it.
+  (5) **DECISION: NO-SHIP.** Five independent reasons, any one sufficient:
+    1. **NOT IMPLEMENTED** (§1). The switch the directive named ships a
+       different, registered-loser term.
+    2. **V2 T1 requirement 2 FAILS** (kept verbatim by V3 §13): the point
+       estimate must be >= 0.002 pooled OR >= its own MDE80. It is
+       **+0.00047**, against 0.002 and against **MDE80 0.00063**. It is below
+       even the T2 floor of 0.0005. Forward-looking it is worse: §11 tie-break
+       4 makes the most recent fold the live forecast, **+0.00030 ns**.
+    3. **BH q=0.10 FAILS** under the mandated clustered inference (§4).
+    4. **§11's MULTI-SPLIT PASS row requires the block bootstrap to agree.**
+       It does not (ns, temporal DEFF 1.135), and the month-cluster CI
+       straddles zero as well. The row actually earned is PASS (with notes).
+    5. **THE CORPUS IS SPENT.** D138 registered a SECOND-LOOK BAR: "No member
+       of this bundle may be re-tested at the win-probability endpoint on these
+       6,148 games again." §2 above is a re-scoring of the SAME artifact under
+       new inference, not a new test; it adds ZERO new information about
+       whether M1 is real and cannot by itself license a ship.
+  **WHAT PASSED, STATED SO IT IS NOT LOST:** rolling-origin 4/4 positive with
+  no sign flip, LOSO 5/5, ERA-STABLE, calibration strictly improved, zero
+  fitted hyper-parameters, and the season-clustered bootstrap CI does exclude
+  zero. M1 remains the best candidate in the NS-portfolio and the D138
+  recommendation to gate it solo was correct. **What it needs is not another
+  analysis of these 6,148 games — it is (i) a real `defonly` implementation in
+  nbapred/ behind its own switch, pre-registered, and (ii) the 2026-27
+  one-shot.** M1 stays a T2 NS-portfolio member; status UNCHANGED.
+  (6) **M2 (comp-heavy 60/40) IS EXPLICITLY HELD — NOT SHIPPED, NOT GATED.**
+  Per-season (re-measured this run, identical to D138 §8):
+  **+0.00147 / +0.00112 / +0.00164 / +0.00062 / -0.00037**, OLS trend
+  **-0.00042 per season**, negative on the most recent season. D102 RT4's
+  independently-built fitted-weight version gives +0.00106 / +0.00163 /
+  +0.00223 / +0.00012 / **-0.00120**, trend -0.00060, **r = 0.946** across the
+  five seasons — two constructions of one channel agreeing on level, shape and
+  sign flip. A T2 provisional ship of a term whose most recent season is
+  negative is not defensible, and no amount of re-analysis of this corpus can
+  distinguish decay from noise on 5 points. **WHAT WOULD RESOLVE IT: the
+  2026-27 one-shot, pre-registered, scoring the frozen 60/40 blend against the
+  same-run production control for the full season** (n=1230, MDE80 ~0.0024 at
+  the observed sd, so a single season CANNOT confirm a +0.001 effect — the
+  decision rule must therefore be a KILL rule, not a confirm rule: if 2026-27
+  lands negative or near zero, M2 is retired from the NS-portfolio permanently;
+  only a >= +0.002 season would revive a ship conversation). Until then M2 is
+  HELD and may not be bundled into any joint gate as evidence.
+  (7) **NUMBERS THAT DID NOT MOVE.** No production file was edited, so the D132
+  certified table is unchanged and NO new capstone was run and NO charts were
+  regenerated: pooled ll_us **0.60364**, normalized gap **11.13%**. Reporting a
+  "new certified table" would have required a ship, and there was none.
+  [scripts/m1_v3_battery.py (new), scripts/m1_calib_bh.py (new);
+   data/m1_v3_battery.json, data/m1_calib_bh.json, data/bh_family.csv (new),
+   data/m1_ship_notes.md, data/capstone_pergame_d132.csv (D132 copy),
+   data/logs/m1_v3_battery.log, data/logs/m1_calib_bh.log;
+   GATE_POLICY_V2.md §6 ledger annotated, FEATURE_LEDGER.md updated]
+- D142 LINE SHOPPING AT THE OPEN — **PARTIALLY CLOSES D121'S 1.47pp DEFICIT AND
+  DOES NOT CLOSE IT: best-of-2 buys +0.94pp (rule union) / +0.97pp (universe) of
+  BREAKEVEN = 64-66% of the gap, leaving -0.50pp against D121's registered
+  number; after the outlier-realism haircut it is +0.68..+0.77pp = 46-52%.** The
+  one clearly actionable result is CLV: best-of-2 adds **+0.0094 of CLV per bet
+  (+49% on the one-book baseline), SIGNIFICANT in 5 of 5 sets** — and CLV is
+  what October measures. Every prior betting D-line priced ONE number per game;
+  this is the first test that prices a BOOK PANEL. Read-only on data/nba.duckdb;
+  nbapred/, scripts/bet_engine.py and the frozen registry untouched.
+  (1) **THE PANEL IS 2 BOOKS, NOT 3 — the headline finding about the data
+  itself.** data/raw/teamrankings/spread_movement.jsonl renders a "Book 3"
+  column and it is **EMPTY for every NBA game** (open row non-null: book1 5,056,
+  book2 5,463, **book3 0**; same in the Current row and in all 23-row-median
+  histories). Games by opening quote count: 2 books 4,639 / 1 book 1,241 / 0
+  books 52. The maximum shop this source can simulate is BEST-OF-2. Pair-joined
+  onto our keys exactly as build_odds_open.py::_pair_join (frozenset pair +
+  date, TR_TEAMS map, favourite-perspective sign flip to expected HOME margin):
+  5,932 -> 5,930 matched; against the PRIMARY frame (ds_rt1_pergame p_full,
+  4,882 games with both prices) **3,594 = 73.6% carry 2 books** (per season 964
+  / 1,141 / 925 / 564).
+  (2) **THE SIZE OF THE PRIZE — dispersion, reported before anything else.**
+  |book1 - book2| at the open, n=4,639: **mean 0.6485 pts, median 0.50, sd
+  0.981**; == 0.0 pts **36.2%**, >=0.5 63.8%, >=1.0 27.7%, >=1.5 13.1%, >=2.0
+  7.8%, >=3.0 3.3% (thin tail to 22.5). A shopper captures HALF of that over a
+  one-book bettor: **measured gain +0.331 pts** (universe) / +0.323 (union).
+  TR's summary `Open` cell — the number odds_open.csv carries and D120/D121/D126
+  priced — is one of the two per-book Opens only 69.7% of the time and lies
+  OUTSIDE [min,max] on 27.3%, so it is a THIRD quote, not an average. VENDOR
+  BRIDGE: TR consensus minus the registered odds_open open has mean|diff| **0.803
+  pts** (corr 0.971, identical 39.8%; per season 0.411/0.814/1.199/0.798) —
+  LARGER than the book-to-book dispersion, so any policy mixing vendors is an
+  upper bound, not a shop. That is why the baseline here is ONEBOOK (the average
+  of the B1-only and B2-only prices), not "the consensus".
+  (3) **TWO HARNESS CONTROLS, BOTH EXACT.** (a) D126 reproduced verbatim on the
+  2022-23 late window (n=533 scored, 382 late): R4_LOWT n=59 hit 71.19 ROI
+  +1.57 dROI +5.77 CLV +0.03437; T20_D03_10_W n=15 93.33/+23.24/+7.77/+0.04674;
+  T20_D03_10 n=26 88.46/+18.19/+7.97/+0.05010; STAR_FAV_SHARPER n=87
+  72.41/+2.89/+1.76/+0.01925; UNION n=109 hit 71.56 be 70.03 ROI +1.64 dROI
+  +3.47 CLV +0.02584 — **every registered digit**. (b) D121's ML headline
+  reproduced on the full frame: **n=3,682, 68.14% vs 69.61% = -1.47pp, ROI
+  -1.64%**. (c) A third, structural check: with the SIDE held fixed a better
+  handicap can only weakly raise the cover rate, and fixed-side ATS is monotone
+  WORST4 51.29 < WORST2 52.63 < B2 53.73 < B1 54.34 < BEST2 55.45 < BEST3 56.05
+  < BEST4 56.74 — the sign convention is verified, not assumed.
+  (4) **THE HEADLINE — PURE EXECUTION (bet set frozen by the registered
+  consensus open, ONLY the transacted price varies; hit% therefore cannot
+  move).** The deficit is a BREAKEVEN EXCESS, so shopping closes it by LOWERING
+  breakeven:
+      set                 n    hit%  be 1bk  be BEST2   dBE  %of1.47  be BEST4   dBE
+      ALL_UNIVERSE     3594   65.47   70.36     69.39  +0.97     66%     68.45  +1.91
+      R4_LOWT           231   74.46   74.31     73.26  +1.05     71%     72.74  +1.57
+      T20_D03_10_W      104   83.65   82.00     81.27  +0.74     50%     80.81  +1.20
+      T20_D03_10        374   79.41   78.48     77.63  +0.85     58%     76.83  +1.66
+      STAR_FAV_SHARPER  712   69.94   72.22     71.32  +0.90     61%     70.39  +1.83
+      UNION             938   71.32   73.18     72.23  +0.94     64%     71.33  +1.85
+  Union ROI: ONEBOOK -2.68% -> BEST2 -1.27% -> BEST4 +0.05%; WORST2 -4.10%,
+  WORST4 -5.21%. Paired dROI on the IDENTICAL bet set, union: BEST2 - ONEBOOK
+  **+1.417pp [+1.243,+1.598] SIG**, WORST2 - ONEBOOK -1.417pp SIG, BEST4 -
+  ONEBOOK +2.729pp SIG; SIG in the same direction for all four rules. Per-window
+  (D115 partition) the union dBE is POOL -0.94 / DEV -1.01 / NONDEV -0.83 — it
+  is a price mechanic, so it does not split, which is the point.
+  **APPLIED TO D121'S OWN REGISTERED NUMBER: -1.47 + 0.97 = -0.50pp. SHORT.**
+  The BEST4 rows DO clear (+1.85..+1.91pp = 126-130% of the deficit) but BEST4
+  mixes two books with two vendor snapshots taken at different times by
+  different scrapers, which is not a simultaneously-transactable shop — it is
+  the upper bound, and it is labelled as one.
+  (5) **HONEST CONTROLS — the five the task demanded, none of which rescues it.**
+  (i) STALENESS: pure execution cannot move hit% (same bets), so the live worry
+  is whether the size of the shop gain predicts losing. corr(gain pts, hit) =
+  +0.0084 p=0.797; hit% when the books AGREE 72.67% (n=344) vs when shopping
+  gains something 70.54% (n=594) = -2.14pp, **z=-0.70, p=0.483 NS**. Bucketed
+  edge_pp at BEST2 is non-monotone and noisy (0.0 -2.01 | 0-0.3 -2.93 | ~0.5
+  -1.57 | ~1.0 +7.56 n=87 | >=1.5 +7.19 n=44). No adverse-selection signal
+  survives; the only thing the shop changes is the number (realised ATS margin
+  vs the number we took: BEST2 +13.341 pts vs ONEBOOK +13.664, difference =
+  exactly the gain).
+  (ii) OUTLIER/LIMIT REALISM: **8.10%** of BEST2 prices are >1.5 pts from the
+  other book (>1.0 13.97%, >2.0 4.69%, >3.0 2.03%). EXCLUDING those games (938
+  -> 862 bets) the union gain falls **+0.94 -> +0.68pp**; CAPPING the realised
+  gain at 0.75 pts vs the midpoint gives **+0.77pp**. Either haircut lands at
+  46-52% of the deficit.
+  (iii) BIGGER SHOP (EXTRAPOLATION, LABELLED): measured quote-count ladder over
+  all subsets of the 4 available quotes is strongly concave — k=1 be 73.03, k=2
+  -0.97pp, k=3 -1.42pp, k=4 -1.70pp. Gaussian extrapolation on the ONLY clean
+  measurement (2 real books; per-book idiosyncratic sd sigma = 0.586 pts, and a
+  component common to all books cancels in a best-of-N so this is the right sd):
+  N=3 +1.41 | N=4 +1.72 | N=5 +1.94 | N=6 +2.12 | N=8 +2.38pp — i.e. **a 5-8
+  book shop would clear 1.47pp**. THIS IS A CEILING, NOT A FORECAST: 36% of book
+  pairs are EXACT TIES and sd/mean|diff| = 1.48 vs the Gaussian 1.25 — a spike
+  at zero plus a fat tail, meaning extra books frequently copy and add nothing,
+  which E[max] does not model; half-point granularity truncates small gains; and
+  the outlier book is the one that limits you.
+  (iv) FAMILY-WISE (D121's 9-vs-14.4 standard): **81 cells scored, 4.0 expected
+  significant under a global null, OBSERVED 0.** Nothing here needs a
+  multiplicity discount because nothing here is significant against breakeven —
+  every ROI CI still spans zero.
+  (v) SPREADS ARE NOT MONEYLINES: D121's 1.47pp is on REAL opening MLs;
+  TeamRankings publishes SPREADS ONLY, so everything here goes through p =
+  sigmoid(margin/6.96) and the 1.045 proportional overround. On the 2,622 games
+  carrying BOTH, the SP convention's breakeven is **+1.908pp HIGHER** than the
+  real ML's (D120 measured +1.98pp) — a LEVEL bias in our favour that CANCELS in
+  every dBE, since both policies go through the same map. Spread-scale
+  sensitivity: the 2-book gain is +1.01pp at scale 6.5, +0.94 at 6.96, +0.87 at
+  7.5. Neither uncertainty reaches 1.47pp.
+  (6) **THE CAVEAT THAT BINDS HARDEST, AND IT IS A NEW ONE: THE 2-BOOK SUBSAMPLE
+  IS NOT A RANDOM HALF.** On the ML frame, 2-book games are n=2,622 at
+  **-3.47pp** while games WITHOUT 2 books are n=1,060 at **+3.48pp**. TR's
+  2-book coverage collapses across seasons (on the ML-priced frame: 2023-24
+  1,136/1,225; 2024-25 925/1,230; **2025-26 561/1,227**), and 2025-26 is the
+  season the model did
+  best in — so the shop is measured on the WORSE half of the corpus. The shop
+  GAIN is a price property and transfers; the LEVEL does not. Hence the two
+  honest readings: residual -2.50pp against the 2-book subsample's own deficit,
+  residual -0.50pp against D121's registered -1.47pp. **Both are short.** Any
+  future multi-book work must not read the 2-book subsample's ROI level as the
+  programme's ROI.
+  (7) **RE-FIRE ARM — SHOP THE PRICE, DO NOT SHOP FOR MORE BETS (secondary, and
+  a clean negative).** Letting the rules compute edge against the BEST price
+  changes the bet set: union 938 -> 1,033 (+172 added, -77 dropped). Re-fire
+  @BEST2 n=1,033 hit 70.67 be 72.72 = **-2.05pp, ROI -3.29%** — WORSE than the
+  pure-execution BEST2 arm (-0.91pp, -1.27%). The ADDED bets alone: n=172, hit
+  68.02, edge **-3.86pp**, ROI -6.30%, against the KEPT bets' -1.69pp / -2.68%.
+  **The extra volume a shop unlocks is NEGATIVE SELECTION** — a shopped price
+  must be used to improve execution on bets the model already wants, never to
+  qualify new ones. This is the operational rule the result buys us.
+  (8) **CLV — THE ONE DIRECTLY ACTIONABLE RESULT.** Best-of-2 adds CLV in every
+  set, significantly:
+      set               n   ONEBOOK    BEST2   BEST2-ONEBOOK [95% CI]
+      ALL_UNIVERSE   3594  +0.00923 +0.01915  +0.00992[+0.00942,+0.01044] SIG
+      R4_LOWT         231  +0.02855 +0.03906  +0.01051[+0.00880,+0.01240] SIG
+      T20_D03_10_W    104  +0.02333 +0.03054  +0.00720[+0.00577,+0.00874] SIG
+      T20_D03_10      374  +0.02537 +0.03376  +0.00839[+0.00745,+0.00939] SIG
+      STAR_FAV_SHARPER 712 +0.01352 +0.02249  +0.00897[+0.00812,+0.00990] SIG
+      UNION           938  +0.01933 +0.02874  +0.00941[+0.00860,+0.01022] SIG
+  **+0.0094/bet on the union = a +49% lift on the one-book baseline**, the
+  largest proportional improvement anywhere in this test. WORST2 nearly
+  ANNIHILATES it (union +0.00993, universe -0.00069 — a one-book bettor who
+  happens to hold the wrong account books NEGATIVE CLV on the universe). This
+  gain is ARITHMETIC, not information (CLV = p_close_side - p_open_side and a
+  better open lowers p_open_side by exactly the price gain) — it is NOT a second
+  independent confirmation of the ROI result and must never be reported as one.
+  But CLV is the yardstick October actually measures, so unlike the ROI effect
+  it is bankable there. SP-frame monthly bands, union @open, 26 months, median
+  38 bets/month (NOT interchangeable with D120/D121's ML-frame -0.0131/+0.0200):
+  ONEBOOK mean-of-months +0.01960, 2-sigma [+0.00134,+0.03785], 96% of months
+  positive; BEST2 +0.02896, [+0.00960,+0.04832], 100% positive.
+  (9) **VERDICT AND WHAT IT CHANGES.** Line shopping PARTIALLY closes the gap:
+  best-of-2 is worth two-thirds of the deficit before haircuts and about half
+  after, and it does not turn the open arm profitable. D121's recommendation is
+  UNCHANGED — **no capital at open or close**. What DOES change is that
+  multi-book capture stops being optional telemetry: D125 shipped
+  bet_quotes_panel logging every book's quote and noted it "has never been shown
+  to NEED one". It is now shown. The panel is the difference between +0.0193 and
+  +0.0287 of CLV per bet on the very metric the October programme is scored on,
+  and between a one-book bettor who is +0.0092 and one who is -0.0007 on the
+  universe. **CAPTURING >=2 BOOKS AT THE OPEN IS NOW A DATA-COLLECTION
+  REQUIREMENT, NOT A DIAGNOSTIC**, and D125's 2026-12-31 decision rule ("if one
+  book family supplies >=75% of positive CLV, line shopping is the product")
+  should be read with the prior that best-of-N is worth ~+0.009 CLV at 2 books
+  and materially more at 5-8. Also registered: the re-fire prohibition in (7).
+  LIMITS: 2 books maximum, one vendor, spread-only (no MLs), 73.6% panel
+  coverage that is season-confounded per (6), no limit or availability
+  modelling, and opening lines carry the lowest limits of the day (D120's
+  standing caveat, which bites hardest exactly on the outlier book a shop wants
+  to hit).
+  [scripts/bo_lineshop.py (new; imports bo_openbacktest.py verbatim),
+   data/bo_lineshop.json, data/logs/bo_lineshop.log, data/lineshop_notes.md;
+   inputs data/raw/teamrankings/spread_movement.jsonl,
+   data/derived/odds_open.csv, data/ds_rt1_pergame.csv,
+   data/bo_open2223_oos.json (D126 registered values), odds_market (read-only);
+   TRADING_STRATEGY.md updated]
+- D143 SEASON-PHASE ADAPTIVE MEMORY — the owner's "be more aggressive later"
+  hypothesis, MEASURED FIRST and then gated. **THE PROFILE IS FLAT: constant
+  memory is optimal, and the late-season aggressiveness the intuition sees is
+  an artifact of a FIXED memory meeting a LENGTHENING history. All three
+  pre-registered arms are NO-SHIP, and D71's F1 late-gated form term is now
+  DEAD ON ITS OWN MERITS rather than by absorption.**
+  PRE-REGISTRATION written before any win-probability log loss existed:
+  `data/adaptive_memory_prereg.md` sha256
+  **a3aae24b3193c2cf04c5e438b4c3c0b7ea51211ac5100c474f3d3dec64ec3bc9**.
+  CONTROL = `data/capstone_pergame_d132.csv`, a byte copy of the D132 certified
+  artifact taken before any run (md5 dc256d0b85a072c0083f074083194283); margins
+  recovered exactly by m = SCALE*logit(p_us). **Control fidelity (D134):
+  max|dp| 0.0, 0 of 6,148 games moved.** No file under `nbapred/` was edited;
+  all work is in `scripts/am_*.py`.
+  (1) **THE MEASUREMENT — MEASURE FIRST, MODEL SECOND** (`am_measure.py`,
+  `am_measure_d.py`; margins only, no control, no log loss). Held-out-optimal
+  exponential half-life by phase, LOSO cross-fit on `y_home_margin ~ 1 + c*x_h`:
+      bucket        n     h=5      h=13     h=21     h=34     h=inf    argmin
+      gp[10,20)    762  13.5268  13.4392  13.4317  13.4306  13.4350   h=34
+      gp[20,30)    750  14.1416  14.0578  14.0558  14.0597  14.0747   h=21
+      gp[30,41)    835  14.5757  14.4174  14.4118  14.4192  14.4488   h=21
+      gp[41,55)   1046  14.2945  14.1060  14.0733  14.0634  14.0698   h=55
+      gp[55,82)   1965  14.5911  14.2876  14.2615  14.2816  14.3946   h=21
+  **The optimal half-life is FLAT at ~21 GAMES; it does not fall with gp.** A
+  per-phase-tuned h buys 0.0011 / 0 / 0 / 0.0109 / 0 RMSE over a single global
+  h=21 — nothing. What DOES rise with phase is the COST OF INFINITE MEMORY:
+  +0.0044 / +0.0189 / +0.0370 / +0.0073 / **+0.1330** RMSE, and that rise is
+  mechanical (h=21 and h=inf are nearly the same estimator at 14 games and
+  maximally different at 68).
+  The owner's intuition is REAL at the level he sees it: the fitted PER-GAME
+  weight on the last 5 games relative to the older games rises monotonically
+  **1.092 / 1.368 / 1.662 / 2.198 / 2.736** (season-clustered CI excludes 1.0
+  from gp>=41 on). **But a CONSTANT h=21 predicts 1.277 / 1.464 / 1.713 /
+  2.010 / 2.584** — the whole climb. Inverting each observed ratio for its own
+  half-life gives **58.8 / 25.7 / 22.4 / 18.3 / 19.6 games**, CIs all containing
+  ~20. And team strength is not less persistent late: corr(prev-10-game mean
+  margin, next-10-game mean margin) over 150 team-seasons is
+  **+0.575 / +0.491 / +0.487 / +0.482 / +0.593** — flat-to-RISING at gp>=55, the
+  opposite of the deadline/tanking premise.
+  **REGISTERED FACT, independent of any gate: the season-phase profile of
+  optimal memory is FLAT. The load-bearing gap is not that our memory should
+  vary — it is that we have NO memory decay at all.** `FourFactors.fit` accepts
+  `half_life_days` and production never passes it; current-season rows are
+  weighted uniformly and D62 carry hard-stops at 200 rows, so the effective
+  in-season half-life is INFINITY. The measured optimum ~21 games is ~44 days,
+  which is why D18's 60d retest sat near the right constant and still came back
+  NS — see (3), which now puts a number on why.
+  (2) **DIRECTIONAL PREDICTION, REGISTERED BEFORE SCORING, AND WHETHER IT
+  MATCHED.** P1 (theory as formed): monotone-DECREASING optimal memory. **P1's
+  SHAPE IS REFUTED BY THE MEASUREMENT** — flat. The pre-registered endpoint
+  predictions therefore followed the measurement: E1 ARM C (constant) >= ARM B
+  (phase-varying); E2 ARM A pooled in (0, +0.00178]; E3 ARM A and ARM C are the
+  same channel; E4 a flat answer is a legitimate answer. **E1 HELD, E2 FAILED
+  (ARM A is zero, not attenuated-positive), E3 HELD (r=0.561 between the two
+  terms on the gp>=55 window), E4 is the outcome.** Per the directive's own
+  rule, a fitted profile with the wrong shape is a null, not a discovery.
+  (3) **POWER, STATED BEFORE SCORING** (sd from the nearest measured analogue =
+  D102 RT2, ARM A's own construction on 4 seasons: sd_pooled 0.03511,
+  sd_changed 0.05980). Pre-registered vs realized MDE80:
+      ARM A pooled                 0.00125  ->  realized 0.00126
+      ARM A window either gp>=55   0.00369  ->  realized 0.00375
+      ARM B/C pooled               0.00185  ->  realized 0.00193 / 0.00190
+      ARM B/C window both gp>=20   0.00247  ->  realized 0.00257 / 0.00254
+      ARM B/C window both gp>=55   0.00378  ->  realized 0.00545 / 0.00466
+  The analogue was accurate everywhere except the both-gp>=55 window, where the
+  changed-game sd is larger than RT2's and the realized MDE80 is ~35% worse than
+  registered — stated rather than buried. **ARM A's design is adequately
+  powered for the effect it went looking for** (D71's registered +0.00178 sits
+  above 0.00126; D71's late +0.0053 sits above 0.00375), so ARM A's null is
+  INFORMATIVE, not underpowered. ARMs B/C at MDE80 ~0.0019 are powered only at
+  or above the T1 floor and their nulls are labelled UNDERPOWERED-NS.
+  (4) **ARM A — F1 LATE-GATED FORM, RE-GATED. VERDICT: EXACT NULL.**
+  SECOND-LOOK DECLARATION, up front: F1 has been measured twice before — D71
+  isolation **+0.00178 CI(+0.00076,+0.00275) z=3.51** (3 seasons, different
+  control) and D102 RT2 **-0.00012 CI(-0.00111,+0.00085) NS** ON TOP of the
+  shipped D90 late-state layer, which struck it from the freeze list. **This
+  third look is licensed ONLY because the baseline materially changed: D112/D118
+  REVERTED D90 (`LATE_STATE` defaults "0"), so RT2's control contained a layer
+  production no longer has.** This is a RE-GATE AGAINST A CHANGED CONTROL under
+  the D45 rule, not fresh discovery, and D138 §3's exclusion of F1 ("its channel
+  is occupied by D73's tank term") is a different claim from the one RT2
+  measured — which is exactly why it was worth re-measuring.
+      pooled            **-0.00000076**  iid CI(-0.00090,+0.00085) se 0.000447
+      season-cluster    **-0.00000076**  CI(-0.00099,+0.00099) se 0.000510  <- SHIPPING CI
+      cluster-mean t, 4 dof            CI(-0.00159,+0.00159) ns
+      ICC_season +0.000507, DEFF_anova 1.623, DEFF_boot 1.142
+      month-cluster ns; 7-day block bootstrap ns, temporal DEFF 1.050
+      per-season / rolling-origin  -0.00027 / -0.00128 / -0.00107 / +0.00091 /
+                                   +0.00170   RO 2/4, drift **+0.00109/season**
+      LOSO 2/5, sd 0.00128, jackknife range [-0.00043, +0.00032]
+      legacy dev(23-26) +0.00052 CI(-0.00065,+0.00160); holdout(21-23) -0.00078
+      era E3 -0.00027 / E4 -0.00128 / E5 -0.00107 / E6 +0.00131;
+        I2 48.7%, Q p 0.117 -> **ERA-STABLE** (heterogeneity underpowered, 3 dof)
+      window either gp>=55, n=2066: **-0.0000023** season-cluster
+        CI(-0.00296,+0.00295), t 4 dof CI(-0.00473,+0.00471);
+        per-season -0.00081/-0.00380/-0.00317/+0.00271/+0.00502, I2 51.6% p 0.100
+      `adjudicate()` = **NO-PASS under multi-split**
+  **READ THIS HONESTLY.** On D71's OWN three dev seasons the term is +0.00052 =
+  **29% of its registered +0.00178**, and NS. On the two seasons no gate could
+  select on it is **-0.00078**. Pooled it is zero to the 7th decimal. Its
+  apparent life is entirely a rising per-season trend (+0.00109/season) whose
+  positive mass is the two newest seasons — the same "value concentrated in the
+  newest season" signature D139 used to demote D73. **F1's isolation number was
+  a selection artifact of the 3-season window it was found in, and removing D90
+  does not revive it.** F1 stays struck from the freeze list, now for a
+  MEASURED reason on the CURRENT stack rather than by absorption.
+  **CONSEQUENCE FOR D71's OWN LESSON:** D71 wrote "dead-FE and form both price
+  capitulation — carry only ONE late-season term (**form dominates**)", and we
+  shipped the OTHER one (D73 tank). That recommendation is now **REFUTED on
+  this corpus**: form is worth **0.0000**, and D73 tank is worth +0.00199
+  (V3 §12, PASS-with-notes). Shipping tank instead of form was correct, by
+  accident and now by measurement.
+  **FORM-vs-TANK HEAD-TO-HEAD: NOT RUN, BY PRE-REGISTRATION.** The prereg made
+  it conditional on ARM A clearing its clustered CI. It did not, and the
+  question collapses: "is form better than tank?" reduces to "is 0.0000 better
+  than +0.00199?". Spending a `TANK_TERM=0` capstone and a fourth family slot
+  on that would have been a look at a foregone conclusion on spent data.
+  (5) **ARMS B and C — DOES THE MEMORY NEED TO VARY BY PHASE? NO.** Both add
+  the ORTHOGONALISED recency innovation the production stack throws away,
+  `gap_t = wmean(margins_t, h(gp_t)) - mean(margins_t)`, with
+  `term = k_gap * (gap_home - gap_away)` on both-gp>=20 and `k_gap` fit by a
+  structural mirror of `fit_form_k` (730d window, weekly refit,
+  X = [1, gap_diff, wpct_diff] with the wpct control fit-only, n/(n+600) shrink).
+  **ARM B is the owner's hypothesis literally: h = 34 / 13 / 8 on
+  gp[20,41)/[41,55)/[55,) — monotone more aggressive. ARM C is the same code
+  with h = 21 everywhere.**
+      arm  pooled      season-cluster CI      t 4 dof CI            MDE80    RO   LOSO
+      B   +0.000232  (-0.00118,+0.00165)  (-0.00204,+0.00251)  0.00193   2/4  3/5
+      C   +0.000131  (-0.00119,+0.00150)  (-0.00207,+0.00234)  0.00190   1/4  2/5
+      B @ both gp>=55  +0.00045 ns ;  C @ both gp>=55  +0.00091 ns
+      B per-season +0.00157/-0.00165/-0.00152/+0.00247/+0.00028 (I2 39.9%, ERA-STABLE)
+      C per-season +0.00218/-0.00155/-0.00123/+0.00191/-0.00066 (I2 17.2%, ERA-STABLE)
+      both `adjudicate()` = NO-PASS under multi-split
+  **THE CONTRAST B - C IS THE DIRECT ANSWER TO THE OWNER'S QUESTION** (C is B's
+  own control; same construction, one substituted h):
+      pooled            +0.000101  season-cluster CI(-0.00035,+0.00062)
+                        t 4 dof CI(-0.00069,+0.00089)   MDE80 **0.00082**
+      both gp>=41       **-0.000188**  season-cluster CI(-0.00096,+0.00061)
+      both gp>=55       **-0.000455**  season-cluster CI(-0.00175,+0.00084)
+  Pooled it is a null well inside its own MDE80. **And in BOTH pre-registered
+  windows where the phase-varying arm is actually more aggressive than the
+  constant arm (h=13 vs 21, then h=8 vs 21), the sign is NEGATIVE — varying the
+  memory by phase is worse exactly where it varies.** The endpoint agrees with
+  the measurement. Prediction E1 held.
+  **SAME-CHANNEL CHECK (E3):** on either-gp>=55 the ARM A and ARM C terms
+  correlate **r = 0.561** and their per-game log-loss deltas **r = 0.535** — F1
+  and a constant-memory correction are one channel, as predicted, and neither
+  member of it is worth anything.
+  (6) **CALIBRATION BATTERY — WOULD HAVE VETOED ALL THREE ANYWAY.** Every arm
+  moves the logit-link slope AWAY from 1 (control 0.9725 -> A 0.9404, B 0.9518,
+  C 0.9540, i.e. each ADDS overconfidence) and every arm degrades
+  Hosmer-Lemeshow (p 0.414 -> 0.170 / 0.119 / 0.318). ARM B also degrades ECE10
+  (+0.00281) and ECE20 (+0.00289). Seasons-better 2/5, 3/5, 2/5.
+  **BH q=0.10, FAMILY RECOUNTED.** The register `data/bh_family.csv` held **106
+  rows** at D141 and **109** after these three arms were appended at
+  pre-registration time per §4 (losers included); a concurrent D142 append
+  landed immediately after, taking it to **110** — noted for the record, and it
+  moves no rank here. 78 of the legacy rows carry a usable one-sided p, so the
+  BH denominator used was **K=81**. On the §9-mandated
+  CLUSTERED p: ARM A p 0.4765 rank 57 thr 0.0704 **FAIL**; ARM B p 0.3795 rank
+  51 thr 0.0630 **FAIL**; ARM C p 0.3865 rank 54 thr 0.0667 **FAIL**. Largest
+  passing rank in the family is 27.
+  (7) **§6.6 IMPLEMENTATION IDENTITY — VERIFIED BY CONSTRUCTION, NOT BY NAME**
+  (the D141 lesson). (a) `fit_form_k`, FORM_GP=55, FORM_N=5, FORM_SHRINK=600,
+  FORM_WINDOW_D=730 resolve to `/hdd/steveqin/sean_dev/nba_model/scripts/
+  ba_windowed.py` — imported, never re-typed. (b) **ARM A's walk-forward k
+  trajectory is BIT-IDENTICAL to D102 RT2's stored trajectory on all six shared
+  refit dates (max |diff| = 0.0)**: 0.09714 / 0.10697 / 0.10078 / 0.10232 /
+  0.11040 / 0.10830. Same estimator, different control — which is precisely the
+  design. (c) zero-outside-window max|dp| = **1.11e-16** for all three arms.
+  (d) the h functions were EVALUATED and printed at gp = 20/30/40/41/50/54/55/
+  70/81 so no switch can be named after a hypothesis it does not implement.
+  (e) **estimator warmth checked on every fold** (the D138 §6.4.2 requirement):
+  n_form 503->1054, n_gap 1519->2168, k_form 0.029->0.111, k_gapC 0.307->0.897 —
+  every arm is WARM on every season including 2021-22, so no arm is
+  "untestable-because-cold". No corpus-floor literal exists in any of this code.
+  (8) **ERA STATEMENT (§10).** (1) Eval universe **E3+E4+E5+E6**, n=6,148.
+  (2) **Era-availability: every input is `nba_games` only** (season, game_date,
+  team_id, is_home, pts, matchup) — no `game_inactives` (starts 2022-23), no
+  `injury_reports_pit` (starts 2023-10), no DARKO, no odds. All three arms are
+  STRUCTURALLY LIVE in every scored era; this is not a D110 §1a category error.
+  (3) **ERA-STABLE** for all three (I2 48.7% / 39.9% / 17.2%, Q p 0.117 / 0.171
+  / 0.305), with the standing caveat that Q has 3 dof and heterogeneity is
+  underpowered; ARM A's gp>=55 window carries the §11 high-I2 note (51.6%,
+  p 0.100). (4) **COVID-frame check:** the 730d fit frames at the 2021-22 opener
+  reach into E2/E1. Dropping 2021-22 entirely: ARM A +0.000067
+  CI(-0.00088,+0.00100), ARM B **-0.000104**, ARM C **-0.000381** — excluding
+  the COVID-touched frame does not rescue any arm and turns both memory arms
+  NEGATIVE.
+  (9) **DECISION: NO-SHIP, ALL THREE ARMS.** Not one clears condition 1 (a
+  clustered CI excluding zero); the calibration battery independently vetoes all
+  three; BH fails for all three; and `adjudicate()` returns NO-PASS on every
+  panel and every window. `data/am_ship.diff` was NOT written because nothing
+  passed. **NO PRODUCTION FILE WAS EDITED AND NO NEW CAPSTONE WAS RUN — the
+  D132 certified table is unchanged: pooled ll_us 0.60364, gap +0.01120,
+  norm 11.13%.** Full test suite **96 passed**.
+  (10) **THE ANSWER TO THE OWNER'S QUESTION, PLAINLY.** *Should the effective
+  learning rate vary by season phase?* **No — on this corpus the optimal memory
+  is a CONSTANT ~21-game half-life, and making it phase-varying is worth nothing
+  pooled and is NEGATIVE in the windows where it actually varies.** The
+  intuition that we get more aggressive late is a correct observation of a real
+  quantity (the per-game recency premium does climb 1.09 -> 2.74) with the wrong
+  mechanism attached: it is what a FIXED memory does when the history it looks
+  back over keeps growing, not a regime change in February. Team strength is not
+  measurably less persistent late; if anything it is more.
+  **THE FINDING WORTH KEEPING IS THE OTHER ONE.** Production runs at h =
+  INFINITY inside the season, and the RMSE cost of that at the margin level is
+  +0.0044 early rising to +0.1330 at gp>=55. We built the correction for it
+  (ARM C) and at the win-probability endpoint it is worth **+0.00013 pooled,
+  CI(-0.00119,+0.00150)** — i.e. the margin-level cost does NOT convert into
+  win-probability skill at a detectable size. That is a clean, measured answer
+  to D48's ungated-constant #(3)/(5) family for the four-factors memory channel,
+  and it also explains D18's old 60d null (60 days ~ 28 games, close to the
+  measured optimum, and the whole prize there is ~0.0001).
+  (11) **WHAT WOULD ACTUALLY RESOLVE ANY OF THIS: the 2026-27 one-shot.** All
+  numbers here are SAME-CORPUS on the 6,148 games this program has been looking
+  at for 140 entries. A single fresh season (n=1230, MDE80 ~0.0024 at the
+  observed sd) cannot CONFIRM a +0.0001-0.0005 effect, so for ARMs B/C the only
+  defensible 2026-27 design is a KILL rule, and for ARM A there is nothing left
+  to test — it is zero on 6,148 games with a warm estimator and an adequately
+  powered design. **F1 is RETIRED, not frozen.**
+  [scripts/am_measure.py, am_measure_d.py, am_gate.py, am_v3_battery.py,
+   am_calib_bh.py (all new); data/adaptive_memory_prereg.md,
+   data/adaptive_memory_notes.md, data/am_measure.json, data/am_measure_d.json,
+   data/am_pergame.csv, data/am_gate_results.json, data/am_v3_battery.json,
+   data/am_calib_bh.json, data/bh_family.csv (+3 rows),
+   data/capstone_pergame_d132.csv (control copy), data/logs/am_gate.log;
+   FEATURE_LEDGER.md updated, freeze-list F1 line corrected]
+- D144 AVAILABILITY-DEPTH MINING OF THE TWO CACHED-AND-NEVER-USED SOURCES
+  (D135's ranked items **#1 national-TV flag** and **#5 GameRotation**) —
+  **NO-SHIP, on a term that passed the full V3 battery with no flags and failed
+  its OWN pre-registered PIT veto in BOTH splits.** Two registered facts come
+  out of it that are worth more than the arm: a measured national-TV star-DNP
+  suppression whose **attributed mechanism is refuted by its own policy
+  boundary**, and a replicated demonstration that **rotation ROLE is not
+  MINUTES** — the GameRotation starter flag carries a 2.4-minute projection
+  error that the minutes history does not see. DB read_only=True throughout;
+  **no file in nbapred/ or production.py was modified** and no env switch was
+  added, so D132's certified table and D133's shipped ramp are untouched.
+  PRE-REGISTRATION written before any points-CRPS number existed:
+  **data/avail_depth_prereg.md sha256
+  4f7356e79b38521180e6792fbdf2f4faa997550cb4a4d11cf724f174c901a6d4** — 2 arms
+  (1 gated primary + 1 adversarial control), ONE config each, m=1, no sweeps;
+  **MDE80 stated BEFORE scoring: 0.01995** (D133's realized Oct-Nov
+  points-CRPS MDE80 0.01119 scaled by sqrt(12618/4088)*sqrt(481/467)). Working
+  notes checkpointed as the run went: data/avail_depth_notes.md.
+
+  (1) **INGEST + VALIDATION, ZERO API CALLS** (scripts/ad_ingest.py,
+  data/ad_ingest.json). `boxscoresummaryv2` -> 4,914 games, 0 unparsable,
+  **1,134 carry `NATL_TV_BROADCASTER_ABBREVIATION` = 23.08%**, reproducing
+  D135's figure exactly. `gamerotation` -> 5,028 files, 2 unparsable,
+  **336,823 stints / 5,026 games / 107,584 player-games**, carrying `USG_PCT`,
+  `PT_DIFF` and the in/out stint times, none of which appear anywhere in
+  STAT_INVENTORY.
+  **VALIDATION against `player_game_stats` on 102,584 matched player-games:
+  rotation seconds vs box seconds MAE 5.17 s, median 0.0, 99.79% within 5 s;
+  `PLAYER_PTS` exact on 99.80%, MAE 0.021; zero rotation-only rows.** The
+  derived starter flag (`first_in <= 0.5` tenths) yields **exactly 5 starters
+  on 99.682% of 10,052 cached team-games**; the 32 that do not are DROPPED,
+  not guessed. `player_game_stats` has no starter column, so this is genuinely
+  new information, not a re-derivation.
+  **POINT-IN-TIME ARGUMENT, STATED PER SOURCE.**
+  *GameRotation is POST-GAME and is used ONLY as trailing history.* The frozen
+  artifact data/ad_role_flags.npz is keyed `(player_id, ord)` and every consumer
+  slices `[:i]` where `i = searchsorted(ords, day)`; `row_state` asserts
+  `ords[i-1] < day` on every call, and tests/test_role_state.py pins it by
+  flipping the scored row and the entire future and requiring the state to be
+  byte-identical.
+  *The national-TV flag is PRE-GAME BY CONSTRUCTION* — a scheduling attribute
+  the NBA publishes at schedule release and `ScheduleLeagueV2` serves
+  prospectively; we read it from a post-game artifact only because that is where
+  our cache holds it. Residual risk disclosed: limited ESPN/NBC-era flex
+  scheduling. It is bounded by two facts — a flex decision is made on STANDINGS
+  days ahead so the flag is still knowable pregame, and **the measured effect is
+  LARGEST in 2022-23, before any flex window existed.** Before any LIVE use the
+  flag must be read from ScheduleLeagueV2, not from the box-score summary.
+
+  (2) **NATIONAL TV: THE MECHANISM IS MEASURED AND ITS ATTRIBUTED CAUSE IS
+  REFUTED** (scripts/ad_natltv_mechanism.py + ad_natltv_robust.py). Confound
+  confirmed real before modelling anything: natl-TV team-games have season win%
+  **.5671 vs .4798**, b2b .1499 vs .1817, rest 2.270 vs 2.138 — so the raw
+  contrast IS selected for good teams and must be run within player-season.
+  Panel = 40,788 core player-games / 195 players / 4,914 games; core cohort is
+  era_measure.py:112-130's definition verbatim (gp>=20 at >=1680 s), so the
+  rates are directly comparable to D139's era table.
+  **Core-DNP rate natl .1746 vs local .2010.**
+    E1 raw                      **-0.02636** CI(-0.04264,-0.00911) SIG
+    E2 player-season FE         **-0.02189** CI(-0.03030,-0.01295) SIG
+    E3 FE + b2b/rest/home/tgp/opp-wpct  **-0.02466** CI(-0.03353,-0.01542) SIG
+    season-mean t, K=4 dof=3    **-0.02189** CI(-0.03505,-0.00872) SIG
+  i.e. a **~11% relative suppression** of star absence on 23% of the slate.
+  **THE POLICY-BOUNDARY CHECK KILLS THE PPP ATTRIBUTION.** Per-season E2:
+  **2022-23 -0.02911 (the ONLY pre-policy season, and the LARGEST effect)** /
+  2023-24 -0.02383 / 2024-25 -0.02463 / **2025-26 -0.00998 ns**. DiD
+  (natlTV x post-PPP), player-season FE: **+0.00979 CI(-0.01219,+0.03344) ns**
+  — the gap does not widen at the 2023-24 boundary, it is largest before it and
+  decays after. D135 item 1 called this "a hard written rule, not a behavioural
+  regularity". **On our data it is the opposite: the regularity is real and
+  predates the rule.** This corroborates D139's correction (c), which found the
+  PPP did not reduce measured star absence overall, and extends it — the PPP did
+  not create the national-vs-local gap either.
+  **FALSIFICATION BATTERY, all in data/ad_natltv_robust.json:**
+    P1 PLACEBO, 200 within-player-season permutations of the flag: null mean
+      +0.000337 sd 0.004893, band (-0.00947,+0.00912); observed -0.02189 sits
+      outside it, **P(placebo <= observed) = 0.0000**. The FE machinery does not
+      manufacture the effect.
+    P2 + weekday fixed effects: **-0.02040** CI(-0.02880,-0.01131) SIG.
+    P3 **BROADCASTER GRADIENT — a second, independent strike against the PPP
+      story**: ABC/ESPN+ -0.06209 SIG | TNT -0.03016 SIG | ABC -0.03129 ns |
+      Peacock -0.02667 ns | Amazon -0.02286 ns | ESPN -0.02024 SIG |
+      NBC -0.01567 ns | **NBA TV -0.01243 SIG (the least marquee national
+      window, the smallest effect)**. A rule that says "national television"
+      predicts NO gradient across networks; a marquee/showcase mechanism
+      predicts exactly this one.
+    P4 STAR TIER by season-mpg tercile inside the core cohort: core-hi
+      (35.1 mpg) **-0.03680 SIG** / core-mid -0.00879 ns / core-lo -0.01789 ns
+      — concentrated in the top tier, consistent with a star-specific effect of
+      either kind.
+    P5 CALENDAR: drop Christmas -0.02050 SIG; drop the first 5 team games
+      -0.02401 SIG; drop both -0.02247 SIG. Not a holiday/opening-week artefact.
+  **DIRECT TEST ON THE POLICY'S OWN OBJECT.** `injury_reports_pit` carries an
+  explicit **"Rest"** reason (211 rows league-wide). On E5+E6 (the only eras
+  where that table exists — ERAS.md §5) labelled-Rest DNPs run **.00114 natl vs
+  .00305 local**, FE **-0.00131** CI(-0.00247,-0.00019) SIG. So the policy's
+  literal object IS suppressed ~2.7x on national TV — **but at 0.0013 absolute
+  it is only ~6% of the 0.0219 total suppression.** ~94% of the effect is not
+  labelled rest. Reading: teams (and players) treat marquee windows differently
+  in ways that never reach the injury report, and they did so before the policy.
+  **WHY IT IS MEASURED AND NOT GATED (V2 §5.5, decided before scoring).** The
+  props eval universe conditions on `seconds >= 720` — the player HAVING PLAYED
+  — so a DNP-hazard term is structurally outside the scored set. The only route
+  to points CRPS is a minutes shift conditional on playing, and that is
+  measured: player-season-FE minutes **+0.1041 CI(-0.0229,+0.2204) ns**, and
+  walk-forward the residual difference is **+0.0888 / -0.0063 / -0.0069**
+  minutes across the three available fit cutoffs — sign-unstable, ~0.007 min =
+  **0.02% of proj_min**, implying ~1e-4 CRPS against an MDE80 of ~0.011, a
+  factor of 100 below the floor. §5.5 forbids running that and calling the NS a
+  rejection, so it was NOT run. **The national-TV flag is registered as
+  STRUCTURALLY UNREACHABLE at our current endpoints, with the DNP measurement
+  as the deliverable.** It becomes gateable the day we have an availability or
+  slate-construction endpoint; it is not a props feature and it is not a sides
+  feature at 0.022 DNP on ~2 core players per team.
+  **ERA-AVAILABILITY (§10.2), and it is a trap**: the boxscoresummaryv2 cache
+  starts at **2022-23**, so the flag exists on **E4+E5+E6 ONLY** and is
+  structurally absent on all of E3 — half the legacy holdout — and every
+  earlier era. One pre-policy season is a weak natural experiment and the DiD
+  above is correspondingly underpowered; what it can do, and does, is fail to
+  show the effect APPEARING at the boundary, which is what the policy story
+  requires.
+
+  (3) **GAMEROTATION: THE APPLICATION CHOSEN, AND WHY.** Of D135 item 5's two
+  candidate uses, (a) a props minutes/role input and (b) a star-out
+  redistribution pool / the D129 null_u-vs-softmax question, the measurements
+  chose (a) and the choice was not close. D133 established that the props
+  minutes defect is **LOCATION** and that `player_rates_from_stats` is
+  structurally blind to role because it EWMAs played minutes at half-life 10.
+  A discrete rotation change is therefore absorbed over ~10 games. The
+  rotation cache dates that change exactly. Design table
+  (scripts/ad_design.py, ad_design2.py; run and DISCLOSED before the
+  pre-registration, endpoint never touched), residual = proj_min - realized
+  minutes on D133's eval universe (114,743 rows / 770 players, with the
+  SHIPPED D133 ramp already applied):
+    staleness matters and the STRICTEST guard is the sharpest —
+      gap<=0 **PROMOTED -2.2078 / DEMOTED +2.3497** (STABLE +0.0080)
+      gap<=1 -2.1530/+2.2912 ... gap unrestricted -1.7705/+1.7145
+    so the frozen guard is `gap == 0`, chosen for the mechanism, not the size.
+  Bucket rule is **threshold-free**: `sr_last` is binary and the 5-game window
+  is ODD, so a majority can never tie and 0.5 is not a tuned cut.
+  Walk-forward stationarity across 5 fit cutoffs: PROM -2.627/-2.452/-2.497/
+  -2.434/-2.424; DEM +2.197/+2.511/+2.568/+2.530/+2.428.
+  Item (b) was NOT spent: with only 16% residual magnitude live in starout
+  (D83) and D129's own note that the live stakes are small either way, the
+  arm budget went to the channel D133 proved pays. The garbage-time /
+  leverage construction (rotation stints x `lineup_stints` running margin;
+  mean garbage share 0.0931, 14.2% of player-games >20% garbage) was BUILT and
+  banked at data/ad_garbage_pg.csv.gz but not gated.
+
+  (4) **ARM R — the gate** (scripts/ad_role_gate.py). `proj_min -= b(bucket)`,
+  b walk-forward from strictly-prior seasons, b(STABLE)=b(NA)=0 EXACTLY.
+  Control = production `player_rates_from_stats` + `simulate_player` in the
+  SAME RUN with PROPS_MIN_RAMP at its shipped default; the local simulator is
+  asserted **BITWISE equal to props.simulate_player** before any row is scored
+  (§6.6 discipline applied inside the harness). D133's harness verbatim: 002,
+  seconds>=720, n_games>=8, proj_min>=20, 4,000 sims/row, paired same-seed MC,
+  cluster bootstrap by player 2000x seed 20260801.
+  DEV E5+E6, n=12,032 rows / 542 players (4,034 role-active):
+    **ROLE-ACTIVE points CRPS +0.03600 (+0.731%) CI(+0.01322,+0.05976) SIG**,
+      1.80x the pre-stated MDE80 0.01995; points MAE +0.04607 SIG;
+      **minutes CRPS +0.19482 SIG, minutes MAE +0.27371 SIG**
+    pooled +0.01207 CI(+0.00412,+0.01973) SIG
+    **ZERO-OUTSIDE-WINDOW EXACT: max|dCRPS| = 0.000e+00 on 7,998 rows**
+  HOLDOUT E3+E4, run ONCE, config frozen, coefficients from strictly-prior
+  seasons only, n=9,387 / 443 players (1,387 active):
+    **+0.05119 CI(+0.01634,+0.08570) SIG = 142.2% of dev** (confirm rule needed
+    sign + >=50%); minutes CRPS +0.30216 SIG; pooled +0.00756 SIG; zero-outside
+    exact.
+  **ARM M, THE ADVERSARIAL CONTROL, SETTLES THAT ROLE IS NOT MINUTES.** Same
+  bucket machinery driven by last-game minutes vs the player's own trailing
+  20-game median — no rotation input at all — gives only **+0.00198 dev /
+  +0.00164 holdout**, and **R - M = +0.03402 CI(+0.01188,+0.05744) dev,
+  +0.04954 CI(+0.01476,+0.08359) holdout, both SIG.** At the minutes level the
+  same contrast is stark: the minutes-only partition sees residuals of
+  -0.3039/+0.3345 where the rotation partition sees -2.2078/+2.3497, and
+  **INSIDE the minutes-STABLE cell the rotation flag still gives -2.5427 /
+  +2.5234** (n=2,475 / 1,903). A newly promoted starter is not identifiable
+  from his minutes; he is identifiable from the rotation sheet.
+
+  (5) **THE FULL V3 BATTERY (§§8-11)** on the combined 5-season panel
+  (n=21,419 rows, 5,421 role-active), scripts/ad_role_v3_battery.py via
+  `nbapred.eval.splits.full_report` — no re-simulation, the deltas are
+  bit-identical to what the gate scored.
+  **ARM R | ROLE-ACTIVE — `adjudicate()` = MULTI-SPLIT PASS, ZERO FLAGS:**
+    POOLED (player cluster, the shipping CI) **+0.03989 CI(+0.02009,+0.05810)
+      SIG**  MDE80 0.02480  p_wrongside 0.000
+    BLOCK BOOT 7d +0.03989 CI(+0.02070,+0.06059) SIG (130 blocks, temporal
+      DEFF 1.04)
+    ROLLING-ORIGIN **4/4 positive, no sign flip**: ->2022-23 +0.03122 ns |
+      ->2023-24 +0.02876 ns | ->2024-25 +0.05450 SIG | ->2025-26 +0.02977 ns;
+      mean +0.03606 sd 0.01233 drift **+0.00214/season** (the live forecast per
+      §11 tie-break 4 is the last fold, +0.030)
+    LOSO 5/5 positive, spread +0.02876..+0.08148, `independent_folds=1`
+    LEGACY dev +0.03600 SIG / holdout +0.05119 SIG, **transfer 1.42**
+    ERA E3 +0.08148 SIG / E4 +0.03122 ns / E5 +0.02876 ns / E6 +0.03941 SIG;
+      between-era share **0.051%**, Q=2.65 dof=3 p=0.450, I2=**0%**, tau 0.000
+      -> **ERA-STABLE**
+    CLUSTERED: i.i.d. CI(+0.02283,+0.05763) | week CI(+0.02070,+0.06059) |
+      month CI(+0.02149,+0.05853) | **SEASON CI(+0.02957,+0.05525) SIG** |
+      **season-mean t dof=4 CI(+0.01666,+0.07363) SIG** (t=4.399);
+      ICC(season) **-0.00007**, DEFF_anova **0.93**, DEFF_boot **0.79**
+      — §9.3 small-K note applies (K=5), and here the conservative interval
+      agrees with the bootstrap rather than contradicting it.
+  ARM R | ALL SCORED — MULTI-SPLIT PASS, no flags, +0.01010
+    CI(+0.00520,+0.01518) SIG, RO 4/4, ERA-STABLE I2=0%.
+  R - M | ROLE-ACTIVE — MULTI-SPLIT PASS, +0.03799 CI(+0.01894,+0.05568) SIG,
+    season-mean t SIG, RO 4/4, ERA-STABLE.
+  ARM M | ROLE-ACTIVE — MULTI-SPLIT PASS (with notes), +0.00181, flag
+    "significance does not survive the block bootstrap".
+  **ARM R | PROMOTED — PASS-WEAK and on the HARM side**: -0.02717
+    CI(-0.05161,-0.00394) SIG i.i.d. and season-cluster, but **season-mean t
+    dof=4 CI(-0.06147,+0.00507) ns**; RO sign 1/4; ERA-STABLE I2=0%;
+    legacy dev -0.02730 SIG / holdout -0.02681 ns, **transfer 0.98**.
+  **ARM R | DEMOTED — ERA-CONDITIONAL** (I2=**81%**, Q=15.91 dof=3 p=0.001):
+    E3 +0.24435 / E4 +0.07659 / E5 +0.12264 / E6 +0.11727, all four SIG, RO
+    4/4 SIG, season-mean t CI(+0.05700,+0.21465) SIG, DEFF_boot 1.27.
+  **BH q=0.10.** Family recounted append-only. It was **K=106 at D141 and is
+    109 now** — a concurrent agent appended 3 members (AM ARM A/B/C) while this
+    ran — so K = 109 + 1 = **110**. Enumeration: data/bh_family.csv.
+    ARM R on the §9.1-primary clustered p (season-mean t, 4 dof) =
+    **0.005848, rank 20/110, BH threshold 0.01818 -> SURVIVES**; on the
+    player-cluster p (0.000000, rank 1/110) it also survives; BH rejects 28
+    either way. **BH is not the binding constraint here.**
+
+  (6) **DECISION: NO-SHIP.** The pre-registered rule has seven conditions and
+  **six pass**:
+    1 dev CI + MDE80 ......... PASS  +0.03600 vs pre-stated 0.01995
+    2 source load-bearing .... PASS  R-M SIG in both splits
+    3 vetoes V1/V2/V3 ........ **V1 FAIL**, V2 PASS (exact 0), V3 PASS 3/3
+    4 holdout >=50% .......... PASS  142.2%
+    5 V3 battery ............. PASS  MULTI-SPLIT PASS, zero flags
+    6 BH q=0.10 .............. PASS  rank 20/110
+    7 §6.6 identity .......... n/a, nothing shipped
+  **VETO V1 — PIT on the primary stratum must move TOWARD 0.5 — FAILS IN BOTH
+  SPLITS**: dev .5014 -> .4967 (|dev| 0.0014 -> 0.0033), holdout .4924 ->
+  .4888 (0.0076 -> 0.0112). The honest gloss is that the control's pooled
+  0.5014 is a CANCELLATION of +.0388 (PROMOTED) against -.0476 (DEMOTED) and
+  that under ARM R both sub-strata improve by 4x and 9x (.5388->.4899 and
+  .4524->.5055 dev; .5457->.4951 and .4276->.4811 holdout). **That gloss does
+  not rescue it.** The veto is the one this gate registered, in writing, before
+  scoring; softening it after seeing +0.036 is the exact selection the policy
+  exists to prevent. It fails, and it fails twice.
+  **AND THE SUBSTANTIVE REASON, WHICH IS THE MORE IMPORTANT ONE.** The term is
+  ASYMMETRIC and the harmful half is the bigger half:
+    | stratum | share of treated | points CRPS dev | holdout | minutes CRPS dev |
+    | DEMOTED  | 43% | **+0.11895 SIG** | +0.14600 SIG | +0.24326 SIG |
+    | PROMOTED | 57% | **-0.02730** | -0.02681 | +0.15786 SIG |
+  **Minutes improve in BOTH halves; points improve only on demotions**, and the
+  promoted-half loss REPLICATES to within 0.0005 across independent splits.
+  This is **D133 ARM C's documented failure mode reappearing on a new axis** —
+  D133 registered that a two-axis availability minutes model "won on minutes and
+  lost on points ... points also need a per-minute EFFICIENCY correction that
+  neither arm makes", and named that as the cautionary precedent for exactly
+  this class of arm. The mechanism is now pinned: a promoted player's per-minute
+  rates were earned in a BENCH role and do not survive being scaled to starter
+  minutes, so adding 2.4 correct minutes adds too many points.
+  **A DEMOTED-ONLY VARIANT IS NOT SHIPPED AND WAS NOT GATED.** Selecting the
+  half that won after seeing the dev result is the §5.2/§5.3 second-look trap;
+  and §11's own reading of the DEMOTED battery is ERA-CONDITIONAL (I2=81%),
+  which would forbid a solo ship anyway. It is registered below as the
+  pre-specified hypothesis for a future arm, to be gated fresh.
+  **NO PRODUCTION CODE PATH WAS ADDED, deliberately.** D141's sixth condition
+  says a switch named after a hypothesis is not evidence that it implements it;
+  adding a default-OFF `PROPS_ROLE_STATE` for a construction that failed its own
+  veto would create precisely that hazard for the next reader. props.py contains
+  zero occurrences of the string (verified).
+
+  (7) **WHAT IS NOW KNOWN THAT WAS NOT, stated so it is not lost.**
+    * **GameRotation is a validated, free, 336,823-stint source and it is not
+      redundant with the box score.** It supplies a starter flag our DB does not
+      have, at 99.68% internal consistency and 99.79% agreement with box-score
+      seconds.
+    * **Rotation ROLE carries a 2.4-minute projection error that MINUTES do
+      not see** (-2.2078/+2.3497 vs -0.3039/+0.3345, and -2.5427/+2.5234 inside
+      the minutes-stable cell). At the endpoint this is worth **+0.19482 minutes
+      CRPS on active rows and +0.06532 pooled — 1.4x D133's entire pooled
+      minutes gain** — from a cache we already paid for.
+    * **The props minutes/points bridge, not minutes, is now the binding
+      constraint.** Two independent arms (D133 ARM C, this D-number's ARM R)
+      have now bought large minutes gains that failed to convert on points in
+      the direction where per-minute efficiency changes. **The next props arm
+      should be the efficiency correction itself, not another minutes model.**
+    * **The national-TV DNP suppression is real, robust to placebo, weekday,
+      calendar and broadcaster-set perturbation, and is NOT the Player
+      Participation Policy.** It predates the policy, does not strengthen at the
+      boundary, decays across E6, shows a marquee gradient a rule cannot
+      explain, and its labelled-rest channel accounts for only ~6% of it.
+    * Activation ceiling for any future role term: role-active rows are
+      **3.2%-9.4%** of the props universe depending on rotation cache coverage
+      (9.4% in 2025-26, where coverage is 1230/1230). Backfilling the missing
+      ~4,400 regular-season games would raise the activation rate, never the
+      per-row effect.
+  **QUEUED, PRE-SPECIFIED, NOT YET GATED (do not treat as results):**
+    (i) role term + a per-minute efficiency correction for PROMOTIONS
+        (shrink the promoted player's rate vector toward his starter-context
+        rate, or toward the team's starter-minute rate), gated on points CRPS
+        with a PER-STRATUM PIT veto instead of the pooled one this entry got
+        wrong; (ii) demotion-only, gated fresh with the era statement DEMOTED's
+        I2=81% demands; (iii) the banked garbage-time reweighting; (iv) the
+        D129 null_u-vs-softmax question using measured `USG_PCT` rather than the
+        fitted softmax; (v) the national-TV DNP prior, the day an availability
+        endpoint exists.
+  TESTS: **103/103 green** (96 pre-existing + 7 new in tests/test_role_state.py
+  pinning PIT-safety — the scored row and the entire future are flipped and the
+  state must be byte-identical — plus the zero-outside-window partition and the
+  odd-window no-tie property).
+  [scripts/ad_ingest.py, ad_natltv_mechanism.py, ad_natltv_robust.py,
+   ad_design.py, ad_design2.py, ad_build_role_artifact.py, ad_role_gate.py,
+   ad_role_v3_battery.py, ad_bh.py, ad_role_shipconfirm.py (written, NOT run —
+   there was nothing to confirm) — all new;
+   data/avail_depth_prereg.md, data/avail_depth_notes.md, data/ad_ingest.json,
+   data/ad_natl_tv.csv, data/ad_rotation.csv.gz, data/ad_rotation_pg.csv.gz,
+   data/ad_role_flags.npz, data/ad_garbage_pg.csv.gz, data/ad_natltv_panel.csv.gz,
+   data/ad_natltv_mechanism.json, data/ad_natltv_robust.json, data/ad_design.json,
+   data/ad_design2.json, data/ad_design_rows.csv.gz, data/ad_design2_rows.csv.gz,
+   data/ad_role_dev.json, data/ad_role_holdout.json, data/ad_role_dev_rows.npz,
+   data/ad_role_holdout_rows.npz, data/ad_role_v3_battery.json, data/ad_bh.json,
+   data/bh_family.csv (K 109 -> 110);
+   data/logs/ad_*.log; tests/test_role_state.py;
+   STAT_INVENTORY.md and FEATURE_LEDGER.md updated.
+   NO file under nbapred/ and no production.py change.]
+  (8) **CONTROL-HASH / STALENESS DISCLOSURE (D134 field, D131 hazard class) —
+  THE CONTROL THIS GATE USED WENT STALE 8 SECONDS AFTER THE HOLDOUT FINISHED.**
+  Both D144 gate runs used production `player_rates_from_stats` +
+  `simulate_player` in the same run with `PROPS_MIN_RAMP` at its shipped default
+  and the local simulator asserted BITWISE equal to `props.simulate_player`
+  before scoring. Env: nothing set; `PROPS_MIN_RAMP` unset -> "1" (D133 shipped).
+  Timestamps: `data/ad_role_dev.json` 2026-08-01 23:45:35,
+  `data/ad_role_holdout.json` 23:54:49, and **`nbapred/engine/props.py`
+  23:54:57** — a CONCURRENT agent shipped an `absence_ramp` /
+  `PROPS_ABSENCE_RAMP` (default ON) minutes-location term into
+  `player_rates_from_stats` **8 seconds after this gate's holdout wrote out**.
+  Both splits are internally consistent (identical control code in each, and
+  the running processes had already imported the pre-change module), so nothing
+  reported above is contaminated — but **the control is now stale relative to
+  production and ARM R's INCREMENTAL value on top of the absence ramp is
+  UNMEASURED.** This is exactly D131's lesson (a registered table went stale in
+  hours with no code change of its own) applied to a props gate.
+  **THE OVERLAP IS MEASURED, NOT ASSUMED** (scripts/ad_overlap_absence.py,
+  data/ad_overlap_absence.json; n=88,124 eval-universe rows over all five
+  scored seasons): role-active **5,421 (6.15%)**, absence-active
+  (miss10>=5) **8,836 (10.03%)**, **BOTH 869**. So **16.0% of role-active rows
+  are also absence-active**, 9.8% the other way, **Jaccard 0.065**. Per bucket
+  the absence share is PROMOTED 13.1% / DEMOTED 19.8% vs STABLE 9.3% — mildly
+  enriched, nowhere near collinear. Also **61.6% of role-active rows have
+  gp>=20**, the region where D133's ramp is identically zero. Reading: the three
+  minutes-location axes (games-played, absence, role) are **largely disjoint
+  populations**, so the D144 finding is not the absence ramp in disguise; but
+  any future role arm must be gated against the CURRENT production stack, not
+  against these numbers.
+  ALSO OBSERVED, not fixed here (that file belongs to the concurrent agent):
+  the shipped absence-ramp code block cites **"D142"** in its docstring and its
+  prereg filename, while D142 in this register is LINE SHOPPING AT THE OPEN.
+  That is a live D-number collision of the D134 §1 class and its owner should
+  resolve it by alias, not by renumbering.
+- D145 "BLIND TO ABSENCE" AS A BUG CLASS — AUDITED ACROSS THE WHOLE CODEBASE,
+  AND THE ANSWER IS SPLIT: **THE CLASS GENERALISES AT THE ESTIMATOR LEVEL
+  EVERYWHERE IT WAS PREDICTED TO, BUT ONLY ONE SITE HAS AN ENDPOINT THAT CAN
+  HEAR IT. THAT ONE IS GATED AND SHIPPED: the props ABSENCE RAMP, +0.06001
+  points CRPS on its pre-registered window, 4.6x MDE80, every V3 split passed.**
+  The comp-leg instance is REAL, LARGER IN ITS OWN UNITS THAN D133's, and
+  ARITHMETICALLY UNDETECTABLE at the sides endpoint — registered as a
+  null-by-power, NOT as a rejection. Only `nbapred/engine/props.py` was
+  modified. DB read_only=True throughout. **D132 stands untouched:
+  data/capstone_pergame.csv md5 dc256d0b85a072c0083f074083194283, byte-identical
+  to data/capstone_pergame_d132.csv, no capstone re-run and no charts
+  regenerated — `prod_by_season.py` does not import props (verified by AST walk:
+  0 of the modules reachable from `fit_production` is props/starout), exactly
+  the D133 precedent.**
+
+  (1) **THE INVENTORY (`data/absence_audit_notes.md` §1).** 18 participation
+  filters in `nbapred/`, each classified by whether the estimator it feeds
+  learns a RATE (per-minute / per-possession — conditioning on played games is
+  the CORRECT universe, absence-neutral) or a ROLE/LEVEL (minutes, usage share,
+  rotation membership, minutes thresholds — absence-sensitive). **Only 6 are
+  ROLE/LEVEL and absence-exposed** (props `proj_min` = D133, `composition`
+  `trail_min`, `composition` ROSTER_DAYS membership, `october_bridge`
+  `trail_min`, `starout.team_context`, `starout._team_season_rows`); 1 is ROLE
+  but CORRECT BY DESIGN (`market/windows.py` W1/W2 — the rule asks "did an
+  ESTABLISHED rotation player miss the last two?", so an absence-diluted
+  `avg_min` would make it self-cancelling); 1 is ROLE but DEFAULT-OFF
+  (`latestate`, D112); 2 are membership-by-necessity (October `001` rosters —
+  participation is the only roster source that exists in October); and **8 are
+  RATE estimators that were explicitly NOT flagged** (`four_factors`,
+  `team_ratings`, `tanking`, `rapm`, `v1_fit`, `bpm`, `compose`,
+  `skill_priors`/`pit`). `four_factors` has no player-level participation filter
+  at all to be blind — its team rows sum EVERY box line — so it is the mirror
+  problem (absence-CONTAMINATED ratings) that the 50/50 comp leg exists to
+  handle, not a D133-class site. `model/form_filter.py` is the one estimator in
+  the repo that already models absence (`P += Q*dt` widens the posterior on the
+  day gap).
+
+  (2) **COMPOSITION: THE BUG IS THERE, AND IT IS BIGGER THAN D133's**
+  (`scripts/ab_comp_diag.py`, n=104,793 player-games, production-faithful —
+  weekly refit cadence of `prod_by_season.py`, `CompositionModel` verbatim,
+  oracle OUT sets). Bias = `trail_min` − realized minutes on players comp
+  actually COUNTS:
+      games missed in team's last 10   0      1      2     3-4    5-7   8-10
+      ALL                            +0.246 +0.799 +1.208 +1.962 +3.461 +6.733
+      **team-gp>=30 (Feb-Mar)**      +0.212 +0.579 +0.908 +1.496 +3.231 +6.625
+      Oct-Nov                        +0.286 +1.431 +2.325 +3.723 +4.872 +8.031
+  and on D133's OWN axis, the player's season games-played, at team-gp>=30:
+  **+6.05 / +4.10 / +2.91 / +2.15 / +1.96 / +0.74** min at gp 1-2 / 3-5 / 6-9 /
+  10-14 / 15-19 / 20+. The mid-season curve is the pooled curve, so it is NOT a
+  calendar effect — D133's own control, reproduced at a second site. The
+  missed-nothing control is ~0 (+0.212). Stable 5/5 seasons (miss>=1 minus
+  miss==0: +1.82/+1.78/+2.01/+1.60/+1.72). **D133's gp0 leg was +3.01 min;
+  composition's is +6.05.**
+
+  (3) **AND THE SIDES ENDPOINT CANNOT HEAR IT — MEASURED, NOT ASSUMED**
+  (`scripts/ab_comp_design.py`, `ab_comp_excl.py`, `ab_comp_stale.py`,
+  `ab_roster_design.py`, `ab_power_window.py`). Changing `trail_min` shifts the
+  margin ADDITIVELY and changes nothing else (comp has no fit; ROSTER_DAYS reads
+  `last_played`, not `trail_min`; ff/sched/tank untouched), so
+  `p_new = sigmoid(logit(p_us) + dmargin/7.2)` is EXACT and the footprint is
+  computable without re-running the model or reading a single outcome.
+      arm                                    rms dmargin  moved   MDE80   best-case dLL
+      A  trail_min -= b(miss10) walk-fwd       0.1428     75.8%  0.00030   0.000036
+      B  trail_min -= b(gp) (D133's shape)     0.1444     75.8%  0.00029   0.000035
+      C  minutes conservation (team rescale)   0.2318     75.8%  0.00045   0.000084
+      **O ORACLE — PERFECT MINUTES**           0.5566     94.8%  0.00122   **0.000577**
+  best-case dLL = `0.5*E[d^2 p(1-p)]` at the logit level (uses p only, never y):
+  the value IF the correction removed a true bias exactly. **ARM A's best case
+  is 8.3x BELOW its own MDE80**, and even PERFECT MINUTES for the whole counted
+  roster is worth at most 0.00058 pooled — below the T1 floor. GATE_POLICY_V2
+  §5.5 ("if MDE80 > 3x the plausible effect the test is uninformative — do not
+  run it and call the NS a rejection") therefore FORBIDS gating these, and they
+  were not gated. **This is a null-by-power, not a refutation.**
+
+  (4) **THE COMP EXPOSURE IS MOSTLY MEMBERSHIP, NOT MINUTES — and it splits
+  into a live bug and a BACKTEST-vs-LIVE FIDELITY GAP.** 26,477 player-games in
+  which a player PLAYS but `strength()` gives him weight ZERO (`FastComp`
+  reproduces `CompositionModel` bit-exactly on 3 audit cutoffs, 0/2,549
+  mismatches):
+      leg                                                n     mean min  talent  rms dmargin  moved  best-case dLL
+      **S1 REFIT STALENESS** (a game-date-fresh comp WOULD include him) 9,645  21.63  -0.305  **0.7203**  44.8%  0.000956
+      **S2 GENUINE >12d ABSENCE** (ROSTER_DAYS evicts him anyway)      16,832  10.47  -0.927    0.4742   74.2%  0.000423
+      S1+S2                                                           26,477    —      —      **0.8652** 85.7%  0.001376
+  plus 4,112 WRONG-TEAM rows (post-trade assignment lag) credited to the team he
+  left. **S1 IS NOT A LIVE BUG**: `nbapred/engine/slate.py:slate_context` calls
+  `fit_production(con, season, before=today)` and `CompositionModel(con,
+  before=today)`, i.e. **live rebuilds comp EVERY SLATE**; the 7-day refit exists
+  only in `prod_by_season.py` and ~30 other backtest scripts. **So the certified
+  capstone scores a comp up to 6 days staler than the one production runs, and
+  D132 is if anything a FLOOR on the live model.** `scripts/ig_refit_cadence.py`
+  was written to measure this and its result was NEVER REGISTERED; registering
+  the gap is now a named open item. S2 IS a live bug and IS shippable in
+  principle — ROSTER_DAYS=12 is a participation-defined membership rule, so it
+  evicts a player whose absence exceeds 12 days and does not re-admit him until
+  he plays again, the D133 mechanism applied to MEMBERSHIP.
+  **IT STILL CANNOT BE GATED.** ARM R (widen the window to N days consistently
+  in `strength()` and in the OUT-set construction) was costed at
+  N = 14/18/21/25/30/45/inf: best-case dLL / MDE80 = **0.36 / 0.46 / 0.49 /
+  0.52 / 0.54 / 0.57 / 0.80 — never above 1**, and the ratio is nearly INVARIANT
+  across every effect-concentration window tried (|dmargin| > 0/0.25/0.5/1.0/1.5,
+  and the D77 mid-distribution window), exactly as §1's footprint fact predicts.
+  **A pass is therefore structurally impossible: even a PERFECT arm cannot clear
+  V2 T1 requirement 2 (point >= max(0.002, MDE80)) on this corpus.** Also
+  measured for the record: P(a player with dsl>12 actually plays tonight) =
+  0.53 / 0.41 / 0.34 / 0.30 / 0.26 / 0.21 / 0.045 at dsl 13-14 / 15-17 / 18-21 /
+  22-25 / 26-30 / 31-45 / 46+, so the 12-day cut is discarding a population that
+  is majority-still-active out to ~3 weeks; and N=inf leans entirely on the
+  availability oracle, which is a bought-tier dependency, not a free-tier one.
+
+  (5) **STAROUT — THE SAME CLASS, INVERTED, AND A GUARD THAT NEVER FIRES**
+  (`scripts/ab_starout_diag.py`, n=64,401 absent player-games).
+  `starout.team_context` computes `trail_min`/`trail_att`/`last_date` over EVERY
+  box row with **no `seconds` filter**, unlike composition and props (both
+  >=720). DNP-row coverage in this corpus is **61.2%** (39,156 of 63,981 missed
+  team-games inside a player's own span carry a `seconds = 0` row), so the
+  window really does ingest zeros. Consequences, both measured:
+      k consecutive games missed        1      2      3     4-5    6-9
+      n (CLEAN >=12-min-defined stars) 4,126  1,935  1,313  1,630   427
+      clean trail_min                  32.48  32.39  32.35  32.35  32.25
+      **CURRENT trail_min**            31.09  30.18  29.61  29.06  28.58
+      **P(the detector fires)**        0.842  0.760  0.708  0.689  0.705
+  i.e. **the star DE-STARS HIMSELF while out** and the D33/D39 redistribution
+  silently stops firing on ~21% of genuine star-outs (recall **0.789**, 2,135
+  false negatives / 148 false positives out of 9,431). Worse, the module
+  docstring's stated double-count guard is INOPERATIVE: `P(fresh)` is **1.0000
+  in every k bucket** because a DNP box row refreshes `last_date`, and in
+  **10,002 rows** the player is "fresh" while his last >=12-min game is already
+  older than FRESH_DAYS. The only thing suppressing the term on a long absence
+  is the ACCIDENTAL `trail_min` dilution above. Registered, NOT gated: the term
+  it gates is applied at residual scales 0.16 (attempts) / 0.39 (minutes), so
+  21% missed firings on an already-attenuated term is a small quantity, and
+  fixing it is a separate pre-registration.
+
+  (6) **THE ONE GATEABLE SITE: D133 FIXED THE PROXY, NOT THE AXIS.** D133's
+  ramp is keyed on games-PLAYED and is IDENTICALLY ZERO at gp>=20 — **65% of the
+  props eval universe** — yet the mechanism D133 itself named is ABSENCE, and
+  absence is fully present there. Residual of the SHIPPED (D133-ramped)
+  estimator vs realized minutes (`scripts/ab_props_design.py`, n=115,274):
+      miss10                        0       1       2      3-4     5-7     8-10
+      **gp>=20 (ramp == 0)**      -0.316  -0.117  +0.001  +0.035  **+0.827** **+2.968**
+      gp>=20 & team-gp>=30        -0.317  -0.112  -0.021  +0.012  +0.831  +2.962
+      gp>=20, Oct-Nov EXCLUDED    -0.317  -0.117  +0.000  +0.035  +0.827  +2.968
+      gp<20 (ramp active)         -0.425  +0.215  +0.250  +0.439  +0.976  +2.606
+  The mid-season and Oct-Nov-excluded rows are NUMERICALLY IDENTICAL to the
+  pooled ones — not a calendar effect, D133's own control. Per-season contrast
+  (miss>=3 minus miss==0, gp>=20): **+0.791/+0.940/+0.926/+0.808/+1.191, 5/5**.
+
+  (7) **PRE-REGISTRATION**, written before any points-CRPS number for any arm
+  existed: **data/absence_prereg.md sha256
+  c6c7044cc494346aa00d85b84dfacc05f68e3c6e0ece95204a7e0a8d09c5031e**. 3 arms,
+  ONE config each, m=1, no sweeps; the minutes-level design diagnostic was run
+  and DISCLOSED first (the D133 protocol verbatim). **MDE80 STATED BEFORE
+  SCORING = 0.0131** (D133's realized 0.01119 at n=12,618, scaled by
+  sqrt(12,618/9,152) to this window), with a predicted effect of **+0.067**
+  derived from D133's own published dCRPS-per-minute slope — 5.1x the floor, so
+  §5.5 is satisfied by a factor of 15 (MDE80 = 0.20x the plausible effect vs the
+  3x ceiling). The window `miss10>=5` and the forced zero below it were fixed
+  BEFORE scoring, on the fit table's own stationarity: bucket{5,7} =
+  0.653/0.670/0.752/0.770/0.785 and bucket{8,10} = 3.019/2.740/2.692/2.756/2.853
+  across all five walk-forward cutoffs, while bucket{3,4} is -0.027..+0.102 with
+  an UNSTABLE SIGN. **ARM A = `proj_min -= b_miss(miss10)` applied ON TOP of the
+  D133 gp ramp, exactly 0 for miss10<=4** (89.7% of the universe).
+
+  (8) **GATE RESULT** (`scripts/ab_props_gate.py`; harness functions IMPORTED
+  from `scripts/pr_ramp_gate.py`, so CRPS / randomized PIT / by-player cluster
+  bootstrap / the 4,000-sim generative replica are bit-identical to D133's, and
+  the replica-equals-`simulate_player` assertion PASSED at run start). 5 seasons
+  2021-26 in ONE run, walk-forward coefficients (2019-20 + 2020-21 fit fuel only,
+  never scored), n=15,005 rows / 664 players.
+      stratum                             n      ARM A points CRPS
+      **WINDOW miss10>=5 (PRIMARY)**    8,924   **+0.06001 (+1.227%) CI[+0.04934,+0.07089] SIG**
+      **PRIMARY & gp>=20 (D133-inert)** 4,897   **+0.05755 CI[+0.04285,+0.07205] SIG**
+      PRIMARY & gp<20                   4,027   +0.06301 CI[+0.04765,+0.07896] SIG
+      miss10 8-10                       2,572   +0.15042 (+3.09%) CI[+0.11769,+0.18484] SIG
+      miss10 5-7                        6,352   +0.02341 CI[+0.01802,+0.02876] SIG
+      PRIMARY Dec-Jun                   8,061   +0.05890 CI[+0.04793,+0.07035] SIG
+      PRIMARY Oct-Nov                     863   +0.07045 CI[+0.03811,+0.10436] SIG
+      ALL SCORED pooled                15,005   +0.03569 CI[+0.02912,+0.04233] SIG
+      **miss10<=4 (must be 0)**         6,081   **+0.00000, max|dCRPS| = 0.0e+00**
+  **The pre-registered discriminating prediction was the `gp>=20` stratum**: H
+  true => positive there, H false => ~0 there because D133's ramp is identically
+  zero and cannot have absorbed anything. **It is +0.05755 SIG. H CONFIRMED.**
+  Predicted +0.067, observed +0.060 = **90% of the pre-registered prediction**.
+  Per season 5/5 SIG positive: +0.03717/+0.06342/+0.07146/+0.04929/+0.08299.
+  VETOES: **V1** PIT on the window **0.4741 -> 0.5036** (|dev| 0.0259 -> 0.0036),
+  8-10 bucket 0.4458 -> 0.5078, untouched rows 0.5102 -> 0.5101 — nothing
+  degrades; **V2** bitwise zero outside the window; **V3** no season harmed;
+  **V4** non-gated channels reached by the same `proj_min` DISCLOSED — minutes
+  CRPS **+0.15476 SIG**, minutes MAE **+0.28712 SIG** (this arm also finally
+  banks D133's OPEN ITEM 4, "ARM C's minutes superiority is unexploited").
+  **ARM A0, the adversarial constant on the same window: +0.04950, A - A0 =
+  +0.01051 CI[+0.00421,+0.01680] SIG.** Stated plainly and not buried: A0
+  captures **82.5%** here versus only 42.6% in D133, i.e. **most of this effect
+  is the WINDOW (knowing who is absent) and the minority is the within-window
+  SHAPE**. That is a weaker shape claim than D133's and the honest reading is
+  that the absence INDICATOR is what matters. **ARM C, the absence axis
+  REPLACING the gp ramp: +0.05594, A - C = +0.00407 CI[+0.00172,+0.00663] SIG**,
+  and C SIG-HARMS the miss10<=4 rows (-0.01466). **The two axes are
+  COMPLEMENTARY, not substitutes — D133's gp ramp is not redundant and stays.**
+
+  (9) **THE FULL V3 BATTERY** (`scripts/ab_v3_battery.py` ->
+  `nbapred.eval.splits.full_report`, B=2000 seed 20260801, PRIMARY window):
+      POOLED (player-cluster, D133 convention) **+0.06001 CI(+0.04934,+0.07089) SIG** MDE80 0.01357 p_wrongside 0.000
+      **SEASON-CLUSTER (the §9.1 SHIPPING CI)  +0.06001 CI(+0.04743,+0.07505) SIG** se 0.00754
+      **cluster-mean t, dof=4                  +0.06001 CI(+0.03845,+0.08328) SIG** t=7.433 (t_crit 2.776)
+      BLOCK BOOT 7d (120 blocks)               +0.06001 CI(+0.04909,+0.07160) SIG (temporal DEFF 1.05)
+      MONTH cluster                            +0.06001 CI(+0.04605,+0.07352) SIG
+      i.i.d. (secondary only)                  +0.06001 CI(+0.05064,+0.06893) SIG se 0.00487
+      **ICC(season) +0.00110  DEFF_anova 2.96  DEFF_boot 1.55  ICC(player) +0.01750**
+      ROLLING-ORIGIN **4/4 SIG POSITIVE, no sign flip**: ->2022-23 +0.06342 |
+        ->2023-24 +0.07146 | ->2024-25 +0.04929 | ->2025-26 +0.08299;
+        mean +0.06679 sd 0.01416 **drift +0.00366/season (IMPROVING)**
+      LOSO **5/5 SIG**, spread +0.03717..+0.08299, `independent_folds=1`,
+        max |influence| 0.00666
+      LEGACY dev +0.06772 CI(+0.05305,+0.08247) SIG / holdout +0.04907
+        CI(+0.03314,+0.06562) SIG, **transfer 0.72**
+      ERA: E3 +0.03717 / E4 +0.06342 / E5 +0.07146 / E6 +0.06625; between-era
+        share **0.0756%**, Q=5.05 dof=3 **p=0.166**, **I2=41%**, tau 0.00929
+  `splits.adjudicate()` returns **MULTI-SPLIT PASS (with notes)**, single flag:
+  "season design effect 1.55 — the i.i.d. CI is 1.55x too narrow" (which is why
+  the shipping CI quoted above is the season-clustered one). **Note that unlike
+  D141, the cluster-mean t interval at K-1 dof is SIG here — the small-K
+  pathology §9.3 warns about does not arise: ICC is POSITIVE and both design
+  effects EXCEED 1.** Same battery on the gp>=20 stratum: season-cluster
+  CI(+0.04229,+0.07689) SIG, cluster-mean t CI(+0.03293,+0.08639) SIG,
+  RO 4/4, LOSO 5/5, I2=21% Q p=0.283. ARM A0 and ARM C each independently
+  return MULTI-SPLIT PASS (with notes) and are reported in
+  `data/ab_v3_battery.json`.
+  **§11 TIE-BREAK 4 (the most recent fold is the live forecast):** the folds
+  TREND UPWARD (+0.00366/season) and the last fold is +0.08299, so the honest
+  2026-27 expectation is **~+0.08, not the pooled +0.060** — the opposite
+  direction from D133's decay warning, and it is quoted as a trend, not a
+  promise.
+
+  (10) **ERA STATEMENT (§10), in the required form.** Eval universe by era code:
+  **E3+E4+E5+E6** (2021-26), the whole scorable corpus; legacy dev = E5+E6,
+  legacy confirm = E3+E4; the FIT frames additionally use E0/E1 (2019-20) and
+  E2 (2020-21) as FUEL ONLY — those seasons are never scored.
+  **Era-availability: CLEAN.** The arm consumes only `player_game_stats` box
+  lines (`seconds`, `pts`, shot counts) and `nba_games` (`game_date`, `season`,
+  `team_id`), present in every scored era; it touches neither `game_inactives`
+  (starts 2022-23) nor `injury_reports_pit` (starts 2023-10), so the ERAS.md §5
+  trap does not apply and no fold is structurally inert. (D139's E1 note — the
+  bubble's 88 games have ZERO `player_game_stats` rows — is irrelevant here
+  because E1 is fit-fuel-only and simply contributes nothing.)
+  **Verdict: ERA-STABLE** (I2=41% < 50%, Q=5.05 dof=3 p=0.166 > 0.10), with
+  §10's own caveat that at 3 dof the test is underpowered and cannot PROVE
+  stability.
+  **COVID-FRAME CHECK (§10.4), and it is the D136 test passed rather than
+  failed** (`scripts/ab_covid_frame.py`): the shipped table follows the D133
+  convention and is fit on 2019-20..2025-26, which INCLUDES E0/E1/E2. Refit
+  without them:
+      frame                                 n        applied b{5,7}  b{8,10}
+      FULL 2019-20..2025-26 (SHIPPED)     114,624       0.858        2.987
+      E3-E6 only 2021-22..2025-26          88,038       0.909        2.980
+      COVID frames only 2019-20+2020-21    26,586       0.653        3.019
+  i.e. dropping the COVID frames moves the applied table by **+0.051 and -0.008
+  minutes**. **The effect is NOT manufactured by the COVID frame** — the exact
+  opposite of D136's travel coefficients. The shipped table is kept on the full
+  frame for D133-convention consistency; the E3-E6 table is registered here so
+  the swap is a one-line change if a future audit prefers it. Independent
+  corroboration: the 2021-22 rolling-origin fold used a b table fit on
+  2019-20+2020-21 ONLY — a pure COVID-frame fit — and still returned +0.03717 SIG.
+
+  (11) **BLOCKER (a) — CALIBRATION VETO: PASS.** The props analogue of the sides
+  battery is the randomized PIT (`scripts/ab_bh.py`). |dev from 0.500|:
+  primary window 0.0259 -> **0.0036**; gp>=20 0.0231 -> 0.0039; miss10 8-10
+  0.0542 -> **0.0078**; miss10 5-7 0.0145 -> 0.0019; untouched rows 0.0102 ->
+  0.0101; all scored 0.0113 -> 0.0062. **6 of 6 strata improve or are unchanged;
+  nothing degrades. No veto.**
+
+  (12) **BLOCKER (b) — BENJAMINI-HOCHBERG q=0.10: SURVIVES.** Family recounted
+  append-only. `data/bh_family.csv` has grown from D141's K=106 snapshot to
+  **109** (three concurrent D143 "AM ARM" members appended while this audit ran),
+  +1 for D141's own M1 gate (which is not in the CSV) +1 for this gate =
+  **K = 111**. The governing p is the §9.1 CLUSTERED one — the season
+  cluster-mean t at 4 dof, **p = 0.000875** (t = 7.433). Rank **15/111**,
+  threshold **0.01351** -> **SURVIVES** by a factor of 15. Step-up rejects the 28
+  smallest p (largest rejected 0.01875), so the verdict is unchanged under either
+  reading. Secondary i.i.d. p = 3.6e-35 (rank 1). **Unlike D141, the clustered
+  and i.i.d. readings AGREE.**
+
+  (13) **BLOCKER (c) — §6.6 IMPLEMENTATION IDENTITY: PASS**
+  (`scripts/ab_shipconfirm.py`). D141's hall-of-shame 15 says a switch named
+  after a hypothesis is not evidence it implements it, so the shipped switch was
+  RUN, on the gate's own 15,005 rows with the gate's own seeds:
+    (i) **shipped-OFF (`PROPS_ABSENCE_RAMP=0`) reproduces the gate's CONTROL
+        BITWISE: max|dCRPS| 0.000e+00, 0/15,005 rows mismatched;**
+    (ii) **row identity 0/15,005 bucket mismatches, and 15,005/15,005 rows carry
+         EXACTLY the shipped table value; max applied on miss10<=4 = 0.000e+00;**
+    (iii) **shipped-ON reproduces 105.3% of the gated estimate: +0.06320
+          CI[+0.05188,+0.07510] SIG vs the gated +0.06001** (the confirm rule
+          needs same sign and >=50%), PIT 0.4741 -> 0.5064; gp>=20 +0.06147,
+          miss10 8-10 +0.15566, 5-7 +0.02577.
+  The magnitudes differ from the gate's by design: the GATE scored walk-forward
+  per-season tables, PRODUCTION ships the full-corpus fit — the D133 convention,
+  stated here so the 105.3% is not read as noise.
+
+  (14) **SWITCH COMPOSITION — the two ramps subtract from the SAME `proj_min`,
+  so the combined worst case is stated explicitly** (`scripts/ab_switch_compose.py`,
+  scanned over the ENTIRE 116,638-row eval universe): max gp ramp 3.041 + max
+  absence ramp 2.987 = **6.028 if they were independent, but the OBSERVED
+  maximum combined subtraction is 5.003 minutes** (gp[1,2] x miss>=8). The two
+  top buckets CANNOT co-occur: at gp=0 the player has no >=12-min game this
+  season for this team, so his own-set is empty and `games_missed_last10`
+  returns 0 by construction — **1,966 gp=0 rows, 0 of them carry an absence
+  term**, verified rather than argued. Both terms are active on 5,355 rows
+  (4.59%); absence-only 6,174; gp-only 35,704; neither 69,405.
+  **Minimum resulting `proj_min` over the whole universe = 15.003** (from a
+  universe floor of 20.000): **0 rows below 15, 0 rows below the simulator's
+  10-minute truncation floor, 0 rows clipped at the `max(..., 0.0)` guard.**
+  A real rotation player cannot be driven negative or onto the floor.
+  Per-gp-bucket max combined: 3.041 / 5.003 / 3.979 / 3.327 / 2.973 / 2.987.
+
+  (15) **RELATION TO THE CONCURRENT D144, measured not assumed.** D144's
+  availability-depth ARM R targets the same `proj_min` on a ROLE-TRANSITION
+  axis. Overlap on the props universe: **role-active 5,421 rows / absence-active
+  8,836 / BOTH 869, Jaccard 0.065** — the two axes are **largely disjoint**.
+  D144's ARM R was NO-SHIP (it failed its PIT veto in both splits and 57% of its
+  treated rows lost), so it is not in this gate's control and nothing here
+  double-counts it; the disjointness is registered because both terms aim at the
+  same estimator and a future joint gate must not assume they are the same
+  channel. **CONTROL-CHANGE NOTICE:** this ship landed 8 seconds after D144's
+  holdout artifact was written; D144 verified both of its splits used the
+  identical PRE-change control BITWISE, so nothing of D144's is contaminated.
+  **But the props control artifact is now POST-absence-ramp: any props gate
+  registered after this entry must build its same-run control against
+  `PROPS_ABSENCE_RAMP` at its default (ON), or set it to 0 and say so.**
+
+  (16) **WHAT DID NOT SHIP, AND WHY IT IS NOT A REJECTION.** The composition
+  minutes arms (A/B/C), the ORACLE-minutes ceiling, the ROSTER_DAYS widening
+  (ARM R at seven window lengths), and the starout detector fix are all
+  UNSHIPPED and UNGATED. For the comp arms the reason is arithmetic and is
+  stated as a bound, not an opinion: **best-case dLL / MDE80 <= 0.80 in every
+  window, every window length, and including a perfect-minutes oracle** — the
+  sides endpoint at n=6,148 cannot resolve this channel at all. Do NOT re-run
+  these as "NS" gates; they are power-limited by construction, and the only
+  instrument that changes the answer is more seasons (V2 §9.4). The starout fix
+  is a separate pre-registration.
+
+  (17) **OPEN ITEMS, registered not buried.** (a) A0 captures 82.5% — the
+  within-window SHAPE is a minority of this effect and a 2-bucket table may be
+  over-parameterised; a 1-bucket (indicator) variant is the natural parsimony
+  retest on fresh data, NOT on this corpus. (b) `PROPS_ABSENCE_RAMP` corrects
+  POINTS-optimally; D133's open item 3 (October rebound PIT overshoot) applies
+  here too since rebounds scale linearly in minutes and points do not — the
+  rebound/assist channels were disclosed as improved on minutes but were NOT
+  separately gated. (c) The refit-cadence gap of §4 (`ig_refit_cadence.py`) is
+  unregistered and should be measured and registered. (d) `starout.team_context`
+  freshness guard is inoperative on 10,002 rows. (e) 2025-26 is the strongest
+  fold (+0.08299) and the trend is upward; if the 2026-27 one-shot comes in
+  below +0.03 that is a decay signal worth acting on.
+  [scripts/ab_comp_diag.py, ab_comp_design.py, ab_comp_excl.py, ab_comp_stale.py,
+   ab_roster_design.py, ab_power_window.py, ab_starout_diag.py, ab_props_design.py,
+   ab_props_gate.py, ab_v3_battery.py, ab_bh.py, ab_ship_table.py,
+   ab_covid_frame.py, ab_shipconfirm.py, ab_switch_compose.py (all new);
+   data/absence_prereg.md (sha256 c6c7044c...), data/absence_audit_notes.md,
+   data/ab_comp_diag.json, ab_comp_design.json, ab_comp_excl.json,
+   ab_comp_stale.json, ab_roster_design.json, ab_power_window.json,
+   ab_starout_diag.json, ab_props_design.json, ab_props_gate.json,
+   ab_props_gate_rows.npz, ab_v3_battery.json, ab_bh.json, ab_ship_table.json,
+   ab_covid_frame.json, ab_shipconfirm.json, ab_switch_compose.json,
+   data/logs/ab_*.log; code nbapred/engine/props.py (ONLY production file
+   touched), tests/test_absence_ramp.py (5 new tests, suite 96 -> 108 with the
+   concurrent agents' additions, ALL GREEN); FEATURE_LEDGER.md updated]
+- D146 STAR-OUT FRESHNESS GUARD WAS INERT — **T0 CORRECTNESS FIX** (qualifies
+  under GATE_POLICY_V2 §3 T0: the code was demonstrably wrong against its OWN
+  SPEC independent of any OOS delta; the paired delta is measured and
+  registered but is not the shipping criterion).
+  FOUND BY D145's inventory, which measured P(fresh)=1.0000 in EVERY absence
+  bucket — a guard that never fires is not a guard.
+  THE BUG: nbapred/engine/starout.py team_context() computed the star's
+  recency as `max(game_date)` over the player's rows, but player_game_stats
+  carries DNP rows with seconds=0 — **38,311 of them, 17.98% of the whole 002
+  table**. A benched player therefore kept refreshing his own timestamp, so
+  `FRESH_DAYS = 12  # star must have played for this team within 12d` was
+  measuring "appeared on a boxscore", not "played". Corpus-wide, 806 of 2,550
+  player-team pairs have last-row AFTER last-played, by up to **1,710 days**.
+  THE FIX: `max(game_date) FILTER (WHERE m > 0)` + an explicit None branch
+  (never played for this team in the window => not fresh; previously this case
+  could not arise because every row counted).
+  MEASURED FOOTPRINT (as-of 2025-03-01, 2,183 player-team pairs): the guard
+  fired on 450 pairs before and 415 after — **35 stale players (7.8% of
+  firings) no longer count as fresh**. Live effect: star-out redistribution can
+  no longer be triggered by a player who has not actually played in >12 days,
+  which is exactly what the constant was written to prevent.
+  NOT CHANGED, and registered as a separate OPEN question: `trail_min` also
+  averages DNP zeros (same missing filter), which is why D145 measured the
+  detector's recall at 0.789 and P(fire) decaying 0.842 -> 0.705 as a star
+  misses more games — the star de-stars himself. That is NOT obviously a bug:
+  after D133/D145 established that conditioning on played-only games creates
+  absence-blindness, an absence-AWARE trailing mean is defensible. Changing it
+  would materially alter which players are detected as stars, so it needs a
+  pre-registered gate under §8-§11, not a correctness edit. Registered as the
+  natural follow-up to D145.
+  Test: tests/test_starout.py::test_fresh_guard_requires_actually_played —
+  asserts the corpus actually contains the pathology (so the test cannot go
+  vacuous) and that the guard is built on the played date.
+  [nbapred/engine/starout.py; 7/7 starout tests green]
+- D147 THE MARKET-ANCHORED CLV MODEL — **OPEN->CLOSE LINE MOVEMENT IS 17.1%
+  PREDICTABLE OUT OF SAMPLE (R^2 vs the naive "no movement" baseline, tier-A
+  live features only), direction correct 65.0% of all movers and 84.0% in the
+  top bucket, and it selects CLV at +0.054/bet against a permutation placebo of
+  +0.005.** A PARALLEL model: the target is the CLOSING PRICE, not the outcome.
+  We do not need to beat the market's final answer, only its FIRST one, and
+  D121/D126 already showed we do. nbapred/model/*, nbapred/engine/props.py,
+  scripts/bet_engine.py and the frozen registry are UNTOUCHED; read-only on
+  data/nba.duckdb with the 60s retry.
+  ARCHITECTURE. Method mirrors football_exercise/submission/sean_qin_model.py
+  (read-only reference — its ENGINE reproduced, its code not copied): invert each
+  PAST game's devigged price into a team-strength observation and accumulate in a
+  ridge with geometric forgetting. `nbapred/market/anchored.py::PriceRidge` is
+  the NBA margin-space version (x = +1 home / -1 away / +1 home-edge; the ridge
+  term IS the cold-start prior; decay re-injects prior mass). FEATURES: (a) the
+  OPENING price of the game being predicted; (b) PriceRidge over past CLOSES;
+  (c) our proprietary market-blind signals (certified p_us, tank tsd, schedule).
+  TARGET dm = close_margin - open_margin. An outcome-targeted arm is fitted
+  alongside for comparison.
+  (1) **FEATURE TIERS, because "knowable at bet time" is not one thing.** TIER A
+  (LIVE) = open price + ridges + p_us + tank/schedule. TIER B (DIAGNOSTIC, NOT
+  LIVE) = availability/OUT sets and star-out, because the official inactive list
+  lands ~30 min before tip, i.e. AFTER the open. Tier B is reported only as an
+  upper bound and labelled as one. p_us sits in tier A because at D132 certified
+  defaults INACTIVE_OUTS/REPORT_OUTS are UNSET, so production is availability-
+  blind. Tier A R^2 +0.17058, tier B +0.25440 — **the gap is the size of the
+  news-arrival channel.**
+  (2) **THE PIT GUARD WAS WRONG FIRST, AND FAILING IT WAS THE POINT.** The
+  contract is: feature_i may read labels from dates STRICTLY BEFORE date_i. My
+  first version permuted the latest 50% of ROWS and demanded ALL features be
+  identical; it FAILED on resid_close/resid_res — correctly, because rows after
+  the cut legitimately consume closes from earlier rows inside the permuted
+  block. The GUARD was mis-specified, not the model. Correct two-sided form now
+  in anchored.py::assert_pit: (i) FUTURE-BLINDNESS — permute labels over every
+  row with date >= T (T at the 35/60/85th percentile), require every feature on
+  rows with date <= T bit-identical; the `<=` is load-bearing because rows ON the
+  cut date sit inside the permuted block, so a SAME-DAY sideways leak inside a
+  slate shows there and nowhere else; (ii) NON-VACUITY — permuting the WHOLE
+  label history must MOVE the features (D144's fresh-guard lesson: a guard that
+  cannot fail is not a guard). RESULT: violations [], moved-under-full-shuffle
+  ['resid_close','resid_res']. PriceRidge.observe() only STAGES; flush_day()
+  commits, so same-day closes cannot leak sideways.
+  (3) **MDE80, STATED BEFORE SCORING.** n=6,106 frame / 4,882 scored, sd(dm)
+  2.4045 pts. Squared-error delta with the scale set by a WITHIN-DATE PLACEBO
+  (so the power statement uses the null's dispersion, not the effect's):
+  **+0.28080 pts^2**. Per-bet CLV: universe **+0.002581**, at a ~950-bet union
+  **+0.006545**.
+  (4) **THE REFERENCE MODEL'S CENTRAL FINDING DOES NOT TRANSFER — AND THE
+  DIRECTION IS REVERSED.** Same engine, three observation channels, univariate
+  on dm: past CLOSES corr +0.1447 (R^2 0.02093), past OPENS +0.1071 (0.01146),
+  **past RESULTS +0.2092 (0.04376)**. In football, goals/shots were monotonically
+  HARMFUL as strength observations once prices were known; in NBA the box-score
+  channel is the STRONGEST of the three. Mechanism: NBA margin is a ~13-pt-sd
+  continuous reading over 82 games, football's 0-3 goals over 38 is far noisier
+  per match, so the price dominates there and does not here.
+  (5) **THE PRICE RIDGE IS LARGELY REDUNDANT WITH OUR OWN MODEL — the honest
+  headline of the ablation.** Rolling-origin OOS R^2, nested:
+      open price only          -0.00733      p_us ONLY (no ridge)   +0.16545
+      + past-CLOSE ridge       +0.02362      ridges ONLY (no p_us)  +0.05518
+      + past-OPEN ridge        +0.03982
+      + past-RESULT ridge      +0.05518
+      + our p_us               +0.16842   <- the jump
+      + schedule/tank (FULL A) +0.17058
+  The proprietary market-blind model IS the predictor of line movement; the
+  imported football architecture adds +0.005 on top of it. Said plainly because
+  the opposite would have been the more flattering result.
+  (6) **ARTIFACT HUNT, ALL PASSED.** Ridge FROZEN at each season start still
+  +0.15519 (vs +0.17058) — not a label leak. By vendor: SBR +0.130,
+  espn+actionnetwork +0.172, teamrankings +0.202, real-ML rows +0.171 — not a
+  vendor artifact. Restricting to |dm|<=3 gives -0.152 and |dm|<=2 gives -0.455:
+  **the skill is ENTIRELY in the tail** and the model over-predicts on games that
+  barely move (that slice conditions on the label, so it is biased, but the
+  message stands and is stated).
+  (7) **DIRECTION ACCURACY**, the quantity D148 consumes:
+      |pred_dm| 0.00-0.25  n= 666  52.55%   move toward +0.114 pts
+                0.25-0.50  n= 670  58.36%               +0.391
+                0.50-1.00  n=1120  63.84%               +0.752
+                1.00-1.50  n= 714  69.19%               +1.045
+                1.50-2.50  n= 613  77.65%               +1.892
+                2.50+      n= 175  84.00%               +3.241
+      ALL movers          n=3958  65.01%               +0.923
+  (8) **CLV SELECTION — beats the frozen rules at matched volume** (season-
+  clustered CI):
+      ALL_UNIVERSE (side = p_us)  4882 +0.00907 [+0.00797,+0.00989]  (D121 repro)
+      UNION (4 frozen rules)      1318 +0.01833 [+0.01495,+0.02218]
+      MOVEMENT |pred|>0.50        3192 +0.03007 [+0.02283,+0.03729]
+      MOVEMENT |pred|>1.00        1783 +0.03995 [+0.02891,+0.05067]
+      MOVEMENT |pred|>1.50         920 +0.05409 [+0.03929,+0.07184]
+  At a MATCHED bet count the movement rule carries ~3x the frozen union's CLV and
+  ~6x the universe's. **CAVEAT REGISTERED: CLV is a monotone transform of the
+  fitted target, so this table is the R^2 of (5) re-expressed in probability
+  units, NOT an independent confirmation** — the same discipline D142 (8) applied
+  to its own CLV number.
+  (9) **PLACEBO — permutation, not favourite-drift.** D115/D121 established the
+  favourite-drift control is VACUOUS on same-side rules (our side IS the open
+  favourite by construction). Permuting predicted movement WITHIN DATE destroys
+  the information while preserving slate, selection mechanism and price
+  distribution: real +0.02169/+0.03007/+0.03995 vs placebo
+  +0.00291/+0.00421/+0.00533, **p=0.0000 in all three cells.**
+  (10) **MONTHLY BANDS vs D121 (red < -0.0131, good > +0.0200).** Movement
+  |pred|>0.50: 28 months, median 123 bets/month, mean-of-months **+0.02983, 100%
+  of months positive, ZERO red, 23/28 above the good line.** Frozen union on the
+  same frame: +0.01776, 93% positive, 13/28 good.
+  (11) **OUTCOME-TARGETED ARM (the required comparison).** MAE vs realised
+  margin: our arm 10.6055, OPENING line 10.6297, CLOSING line 10.4282, p_us alone
+  10.6590. **We beat the OPEN and lose to the CLOSE** — the ordering an honest
+  model must produce, and the reason the movement target is the one worth having.
+  (12) **V3 SPLIT VERDICT (GATE_POLICY_V2 §8-§11): ERA-CONDITIONAL.** Pooled
+  +0.99793 pts^2 CI(+0.39358,+1.72132) SIG season-clustered; rolling-origin sign
+  3/3 (+0.22209 / +2.10674 / +0.56507); LOSO sign 4/4, spread +0.222..+2.107,
+  independent_folds=1; block bootstrap agrees; era I^2=76% Q=4.17 p=0.039
+  **ERA-UNSTABLE**; **season-mean t at K-1=3 dof CI(-0.30983,+2.30728) ns**; ICC
+  +0.01085, ANOVA design effect 14.24, bootstrap design effect 3.22. Era universe:
+  E4 (2022-23) + E5 (2023-24) + E6 (2024-25, 2025-26); the 2021-22 season is the
+  rolling-origin's first train fold and is never scored. Era availability: every
+  tier-A input exists in all four seasons; tier B's inactive list starts 2022-23,
+  which is one more reason it is diagnostic only. COVID frame: NOT included
+  (frame starts 2021-22, E4 onward).
+  DECISION: **T2 MONITORED, NOT T1 SOLO-SHIP.** The pooled effect is large and
+  the placebo is clean, but the era decomposition is unstable and the K=4
+  cluster-mean t straddles zero, so it does not clear a T1 row. It ships into the
+  October PAPER programme as a second CLV selector alongside the frozen rules,
+  with the D142 (7) re-fire prohibition applying verbatim: a better signal may
+  improve EXECUTION on bets the model already wants and must never qualify new
+  ones. Live expectation must use the most recent fold, not the pooled mean.
+  [nbapred/market/anchored.py (new), scripts/cm_clvmodel.py (new),
+   tests/test_market_anchored.py (7 green), data/cm_clvmodel.json,
+   data/cm_clvmodel_rows.csv.gz, data/clvmodel_notes.md; inputs
+   data/derived/odds_open.csv, data/capstone_pergame.csv, odds_market
+   (read-only)]
+- D148 IS THERE ACTUAL ARBITRAGE? — **YES, A CLOSEABLE ROUND TRIP EXISTS AND
+  LOCKS ON 20-34% OF GAMES, AND TAKING IT DESTROYS EXPECTED VALUE: HEDGING TURNS
+  A +9.51% DIRECTIONAL POSITION INTO A +4.55% ONE.** It is not arbitrage. A true
+  arb is riskless AT INCEPTION; this is a directional bet at the open plus an
+  OPTION to hedge that only exercises when we were already right, and the lock
+  rate IS the option's exercise rate. The one hedged form worth anything is the
+  MIDDLE, which survives the conservative K-1 bound where the naked bet does not.
+  (1) **A PRICING-FRAME CORRECTION THAT CHANGES THE WHOLE DELIVERABLE, AND
+  PARTLY REVISES D142 §5.** D120 measured the SP convention p = sigmoid(m/6.96)
+  as ~1.98pp PESSIMISTIC on our bets; D142 §5 argued the bias is a LEVEL that
+  cancels in any comparison where both policies use the same map. **It is not a
+  level — it is MONOTONE IN THE SIDE:**
+      ML p bucket   p_ML     p_SP     SP-ML        ML p bucket  p_ML   p_SP   SP-ML
+      [0.20,0.30)  0.2560   0.2362   -0.0198       [0.50,0.60) 0.5479 0.5755 +0.0276
+      [0.30,0.40)  0.3523   0.3211   -0.0312       [0.60,0.70) 0.6477 0.6789 +0.0312
+  Pessimistic on favourites, OPTIMISTIC on dogs, crossing at p=0.5; max SP
+  decimal 33.4 vs max REAL 21.0. D120's and D142's cancellation argument holds
+  for their FAVOURITE-HEAVY rule sets and FAILS here, because the D147 movement
+  model picks dogs and favourites ~50/50. **MEASURED CONSEQUENCE: the |pred|>1.5
+  set reads ROI +23.49% on the SP frame vs +9.93% on REAL moneylines.** Every ROI
+  in this entry is quoted on real moneylines as primary. Any future work on a
+  dog-inclusive bet set must not use the SP map for ROI.
+  (2) **THE MOVEMENT DISTRIBUTION.** Full odds_open corpus n=24,382: mean|dm|
+  1.2346 pts, never moves 17.7%, sd(dp) 0.05631, **P(|dp| > 0.04123) = 29.38%**.
+  Model frame 2021-26 n=4,882: mean|dm| 1.6239, never moves 18.9%,
+  **P(|dp| > 0.04123) = 37.14%** — the modern market moves far more than the
+  pooled corpus D119 measured.
+  (3) **THE THRESHOLD, DERIVED.** Bet side S at the open at 1/(p_open_S*1.043),
+  take ~S at the close at 1/(p_close_~S*1.043). The two tickets cost less than
+  they pay iff 1.043*(1 + p_open_S - p_close_S) < 1, i.e. iff **CLV on the entry
+  side > 1 - 1/1.043 = 0.04123**. In points that is ~1.15 at a pick'em, ~1.37 at
+  -6, ~2.25 at -12. Our measured CLV per bet is +0.009 (universe, D121) to +0.054
+  (D147's best rule). **That comparison is the whole of this deliverable**: only
+  the best rule's MEAN clears the threshold, and a mean above a threshold is not
+  the same as clearing it per bet — hence a 20-34% lock rate, not 100%.
+  (4) **THE ROUND TRIP, ON REAL MONEYLINES.**
+      policy                     nML  lock%  prof|lock  ride ROI  arb-or-ride  CI
+      p_us (incumbent)          3682  20.18     4.55%    -2.26%     -3.98%  [-4.71,-3.28] SIG
+      pred_dm (all)             3682  22.57     5.13%    -0.42%     -3.51%  [-9.29,+1.88] ns
+      pred_dm |pred|>1.0        1300  28.31     6.30%    +9.51%     +4.55%  [+3.20,+5.95] SIG
+      pred_dm |pred|>1.5         659  34.29     7.31%    +9.93%     +3.57%  [+1.96,+5.58] SIG
+      ORACLE side (foresight)   3682  32.02     4.63%    +7.71%     +2.37%  [-0.40,+3.92] ns
+  **HEDGING COSTS ~5.0-6.4pp OF ROI.** That is the precise answer to the owner's
+  question: yes there is a lock, and you should not take it.
+  (5) **EXCHANGE-STYLE EXIT — the only cost model under which this is
+  comfortable.** Back at the book's open, LAY on an exchange at the close;
+  commission c on NET WINNINGS only, so the locked rate is b(1-c)/(l-c) - 1;
+  sweep s degrades the lay odds to (1/p_close_S)*(1+s). |pred|>1.5 at the WORST
+  setting tested (5% sweep, 5% commission) still locks 34.02% for +34.08% when it
+  locks, EV +11.6% per game; positive at all four sweep/commission pairs and for
+  every policy. Commission on net winnings is a far cheaper hedge than a second
+  retail overround — which is exactly why the trade lives on an exchange.
+  (6) **THE INTRADAY PATH (the only timestamped source we have).**
+  data/raw/teamrankings/spread_movement.jsonl histories join 2,834/4,882 = 58.0%
+  of the model frame. Exit at the CLOSE locks 28.51% (mean +7.44% when locked);
+  exit at the BEST quote anywhere on the path locks **43.86%** (+8.61%). So
+  roughly a THIRD of the measured "locks" exist only at one moment's quote. That
+  is an UPPER BOUND — it assumes hitting the single best quote of the day on the
+  correct side with no execution risk — and it is precisely the population that
+  stale-line voids apply to.
+  (7) **MIDDLES.** Breakeven P(middle) at -110/-110 is 4.76% (win both +1.8182u,
+  split -0.0909u). EX-POST by window width — spreads: [1.0,1.5) 3.49% short,
+  [2,3) **6.88% CLEARS**, [3,4) **8.68%**, [4,+) **14.43%**; windows >= 1.0 pt are
+  69.3% of games at 6.53%. Totals: [3,5) **7.87%**, [5,+) **12.98%** CLEAR.
+  NBA has no 3/7 key-number spike, so only the WIDTH of the window matters, which
+  is how the table is cut. EX ANTE (the runnable version — bet S at the opening
+  number, buy the other side at the close only if the line moved >= W in S's
+  favour), with the K-1 cluster-mean t interval:
+      side rule            W     n  2nd-leg%  P(mid|2leg)  ROI/entry  cluster-mean t CI
+      p_us (incumbent)   1.0  4849    42.2%      7.28%      -4.71%  [-9.19,-0.17] SIG NEG
+      pred_dm |pred|>1.0 2.0  1771    35.5%     10.33%      +4.62%  [+2.56,+6.65] SIG
+      pred_dm |pred|>1.0 3.0  1771    22.6%     12.97%      +5.21%  [+2.37,+8.11] SIG
+      pred_dm |pred|>1.5 2.0   914    42.3%     11.63%      +6.79%  [+0.88,+12.18] SIG
+      pred_dm |pred|>1.5 3.0   914    29.4%     13.38%      +7.80%  [+1.41,+13.48] SIG
+  Per season (|pred|>1.0, W=2): +3.30 / +5.84 / +5.57 / +3.71 — 4/4 positive.
+  Pushes immaterial (M==open 0.68%, M==close 0.63%).
+  (8) **THE ADJUDICATION, AND IT IS THE OPPOSITE OF THE HEADLINE.** ATS against
+  the OPENING SPREAD — the frame directly comparable to D119's ceiling and D121's
+  52.72%, with no probability map anywhere:
+      rule           n   cover%     ROI   season-cluster boot   cluster-mean t (K-1)
+      |pred|>0.00 4849   51.91%   -0.90%  [-3.79,+3.74] ns     [-8.57,+6.68] ns
+      |pred|>1.00 1771   55.96%   +6.83%  [+2.89,+12.33] SIG   [-2.40,+16.29] **ns**
+      |pred|>1.50  914   57.99%  +10.70%  [+5.47,+18.94] SIG   [-2.83,+23.88] **ns**
+  **EVERY NAKED-ENTRY CELL IS ns UNDER THE K-1 CLUSTER-MEAN t**, which
+  GATE_POLICY_V2 §9.3 makes the bound that counts at K=4. NO PROFIT CLAIM. The
+  ex-ante MIDDLE cells in (7) DO survive it — because the middle cuts season-to-
+  season dispersion by more than it cuts the mean, so **the statistical case
+  strengthens exactly as the economic case weakens.** Both readings are true.
+  (9) **THREE CONSISTENCY CHECKS THAT HAD TO PASS AND DID.** (a) THE CEILING
+  ITSELF MOVED: D119's 54.63% perfect-foresight number is the FULL 2007-26
+  corpus; on this 2021-26 frame the same oracle is **57.48%**, and our rules sit
+  BELOW their own subset's ceiling (|pred|>1.5: oracle 59.46% vs ours 57.67% =
+  75% capture) — so nothing here exceeds a ceiling, which the first reading of
+  the ML numbers appeared to. (b) MAE ordering on |pred|>1.5: OPEN 10.6503 > our
+  predicted close 10.4414 > REAL CLOSE 10.1413. (c) **THE DECISIVE TEST** —
+  regress (realised margin - REAL closing line) on pred_dm: slope +0.3539,
+  **i.i.d. t = +2.17** (which would read as "we beat the close") but
+  **season-clustered t = +1.68, NOT SIGNIFICANT.** That is the exact pattern the
+  sister football project had to retract (GATE_POLICY_V2 §9), and the clustered
+  number is the one that counts. **WE DO NOT BEAT THE CLOSE. WE BEAT THE OPEN.**
+  (10) **WHICH CONSTRAINTS BIND.** $0 BUDGET — **FATAL**: a round trip needs
+  capital on BOTH legs at TWO venues simultaneously, so the lock rate is
+  irrelevant because the first leg cannot be placed. US EXCHANGE ACCESS — BINDS
+  HARD: (5) is where the trade works, Betfair excludes US customers, and the
+  US-legal peer-to-peer venues (Prophet X, Novig, Sporttrade) are live in few
+  states with thin NBA side liquidity at the open and a true full-hedge sweep
+  worse than the 5% modelled. OPENING-LINE LIMITS — BINDS, and exactly where it
+  hurts: D120's standing caveat, biting hardest on the big-predicted-movement
+  games a book prices small and moves fast. BOOKS LIMIT/VOID — BINDS ON
+  PERSISTENCE: opening-number-only bets followed by a hedge is the most
+  recognisable sharp signature there is, and D142's "shop the price" needs
+  several accounts alive at once. PRICE-YOU-SEE != PRICE-YOU-GET — BINDS
+  MEASURABLY, sized by the 28.51% -> 43.86% gap in (6).
+  **VERDICT, PLAINLY.** The movement is REAL and LARGER than we had priced, and
+  it is monetisable IN PRINCIPLE — but not by us and not at retail. At two retail
+  books the round trip clears only on the tail of our own prediction distribution
+  and the naked entry is ns under the K=4 bound. On an EXCHANGE it clears at
+  every cost setting tested, and US exchange access plus a non-zero budget are
+  exactly the two things we do not have. The one form that survives the
+  conservative bound is the EX-ANTE MIDDLE at W>=2 on |pred|>1.0, and per
+  GATE_POLICY_V2 §11 tie-break 4 the live expectation is the MOST RECENT fold
+  (2025-26: +3.71%, not the pooled +4.62%). **RECOMMENDATION UNCHANGED from
+  D121/D126/D142: no capital at open or close; CLV remains the yardstick;
+  transact as early as possible.** The single change is that D147's movement
+  model joins the October PAPER book as a second CLV selector.
+  [scripts/cm_arb.py (new), data/cm_arb.json, data/clvmodel_notes.md; inputs
+   data/cm_clvmodel_rows.csv.gz (D147), data/derived/odds_open.csv,
+   data/raw/teamrankings/spread_movement.jsonl, odds_market (read-only);
+   TRADING_STRATEGY.md updated]
+- D149 SHOULD STAR-OUT'S `trail_min` BE ABSENCE-AWARE? (the D146 registered
+  follow-up) — **NO-SHIP. THE ANSWER IS "NO", AND IT IS A REAL ANSWER, NOT A
+  NULL: the played-only trailing mean fixes the detector exactly as predicted
+  and then LOSES the points endpoint, because the thing it detects more of is
+  precisely the D35-contaminated case.** Only `nbapred/engine/starout.py` was
+  touched, and only to add a gate switch that defaults to the shipped
+  construction (proved a no-op below). DB read_only=True. D132 untouched.
+
+  PRE-REGISTRATION written before any endpoint number existed for any arm:
+  **data/queued_gates_prereg.md sha256
+  b721f4fa0d68a7a27f5bca4d06c757da84b24dd3e69f208f1bc871b829e0cba6** (§1),
+  ONE config per arm, m=1, no sweeps. Five design diagnostics were run and
+  DISCLOSED first (the D133/D145 protocol verbatim), none of them touching an
+  endpoint metric. **CONTROL CONVENTION (D145 §15 honoured): the same-run
+  control is production at defaults — `PROPS_MIN_RAMP` and
+  `PROPS_ABSENCE_RAMP` both unset -> "1", i.e. POST-absence-ramp.**
+
+  (1) **SWITCH NO-OP PROOF FIRST** (`scripts/qg_switch_noop.py`,
+  `data/qg_switch_noop.json`). A gate's control is worthless if adding the
+  switch moved production, so: `STAROUT_TRAIL` unset reproduces the pre-edit
+  SQL on **410 team-dates / 25,748 player cells, 0 mismatches**; `team_context`
+  at defaults still reports `trail_mode=current`, `usage_mode=softmax`,
+  `usage_source=v2_usage.npz`; and `props.simulate_player` is **bitwise
+  identical on 348 real rows across all four channels**. *That check earned its
+  keep: it caught an off-by-one in my own SELECT indexing (the new query has 9
+  columns, not 8) before any gate consumed it.*
+
+  (2) **THE MECHANISM, MEASURED BEFORE AND AFTER** (`qg_starout_design.py`,
+  `qg_starout_design2.py`; 48,423 absent player-games, 6,731 ORACLE star-outs,
+  2021-26). ORACLE STAR fixed before scoring = trailing-10 mean over games
+  actually PLAYED at >=12 min is >= 28, >=5 such games, AND he played >=5 of
+  his team's last 10 (the "still a rotation player" clause), fresh under D146.
+      consecutive games missed   1       2       3      4-5     6-9
+      n (oracle stars out)     3,095   1,424    940   1,082    190
+      oracle trail_min         32.56   32.45   32.47   32.52   32.39
+      **CURRENT trail_min**    31.39   30.55   30.22   29.97   30.00
+      ARM A trail_min          32.25   32.06   32.06   32.08   31.98
+      **P(fire) ctrl**         0.864   0.790   0.750   0.7495  0.7947
+      **P(fire) ARM A**        0.9525  0.9403  0.9426  0.9510  0.9632
+  **The decay is real and ARM A removes it completely — P(fire) becomes FLAT in
+  absence.** Detector recall **0.8121 -> 0.9486**; false fires **353 -> 600**
+  (precision 0.9393 -> 0.9141), and 100% of the false fires fail the ROTATION
+  clause only (mean played10 = 3.2), i.e. they are 28-minute-calibre players who
+  are no longer in the rotation. Firing team-dates **4,324 -> 5,007 (+15.8%)**.
+  D145 CONTINUITY under D145's own definitions (no rotation clause): recall
+  0.8041 vs its registered 0.789, P(fire) 0.8491/0.7766/0.7284/0.7143/0.7063 vs
+  its 0.842/0.760/0.708/0.689/0.705 — the small gap is the D146 freshness fix.
+
+  (3) **ARM B IS A NULL BY ARITHMETIC AND WAS NOT SCORED** (V2 §5.5). Longest
+  002 row in the corpus = **56.52 minutes**, so `trail_min >= 28` over a 10-ROW
+  window forces >= ceil(280/56.52) = **5** played rows — exactly PLAYED_FLOOR.
+  **The floor can NEVER bind on the star side.** On the pool side it can, and
+  does, on **24 of 4,439 star-out team-games (0.54%)**, moving the applied
+  attempts lift by **mean |d| = 3.53e-05** (max 0.01557): 1.034186 -> 1.034221.
+  Running that as a gate would have manufactured a "null" that was a power
+  failure, which §5.5 forbids. Registered with its whole footprint instead.
+  `tests/test_queued_gates.py` pins the arithmetic so a future edit that makes
+  the floor bindable fails loudly rather than silently reviving a dead arm.
+
+  (4) **GATE RESULT** (`scripts/qg_starout_gate.py`; arms produced by the
+  SHIPPED `team_context` / `adjust_player_rates` / `simulate_player` under the
+  env switch they are named after — there is no generative replica to diverge).
+  5 seasons 2021-26, n=32,716 rows / 669 players, 4,000 sims/row, paired by
+  seed, by-player cluster bootstrap 2000x seed 20260801.
+      stratum                          n       points CRPS         attempts LL
+      **PRIMARY (ctrl vs A differ)** 16,599  **-0.00441 SIG HARM**  **+0.00413 SIG BETTER**
+                                             CI[-0.00899,-0.00007] CI[+0.00197,+0.00630]
+      **newly fired (only A)**        4,766  **-0.02355 SIG HARM**  **+0.01900 SIG BETTER**
+                                             CI[-0.03933,-0.00825] CI[+0.01115,+0.02641]
+      both fire                      27,950  +0.00139 SIG BETTER    -0.00079 SIG WORSE
+      ALL scored pooled              32,716  -0.00224 ns            +0.00209 SIG BETTER
+  Rebounds on the primary window +0.00104 SIG BETTER (newly fired +0.00400 SIG).
+  **PIT points on the newly-fired rows 0.5302 -> 0.4953** — the calibration
+  improves markedly on exactly the rows whose CRPS gets worse.
+
+  (5) **THE VERDICT AGAINST THE PRE-REGISTERED RULE.** Co-primary 1 (attempts
+  LL SIG positive) **PASSES**. Co-primary 2 (points CRPS lower bound > -0.002)
+  **FAILS at -0.00899**. VETO V2, the false-firing veto specified *on the
+  endpoint consequence* rather than on the raw count, **FAILS**: the
+  newly-fired stratum is SIG harmed. **NO-SHIP**, and the switch stays default
+  `current`.
+
+  (6) **AND THE FAILURE IS THE D34/D35 SCIENCE, NOT AN IMPLEMENTATION FAULT.**
+  D34 measured that attempts move ~5x more than points; D35/D83 measured that a
+  trailing baseline has already absorbed ~2/3 of a redistribution by game time,
+  and that the absorption is LARGEST when the absence is longest. ARM A's whole
+  gain in coverage is long-absence stars — precisely the rows where the live
+  EWMA baseline has fully re-equilibrated — so re-lifting there is the D83
+  double-count in its purest form: **+0.019 attempts LL and -0.024 points CRPS
+  on the same 4,766 rows.** The DNP dilution in `trail_min` is therefore doing
+  real work as an *implicit absence prior*: it switches the term off at exactly
+  the point where the baseline no longer needs it. **The register's answer to
+  D146's open question is: the current construction is defensible, and the
+  "bug" is load-bearing.** That is why this entry is a decision and not a null.
+
+  (7) **FULL V3 BATTERY, DEV = E5+E6 (2023-24..2025-26), n=10,300**
+  (`scripts/qg_v3_battery.py` -> `nbapred.eval.splits.full_report`, B=2000
+  seed 20260801). *(HOLDOUT E3+E4 NOT OPENED — the dev split fails, and §0 of
+  the pre-registration allows the holdout only on a dev pass. It stays sealed.)*
+      endpoint                pooled                 SEASON-CLUSTER (shipping)   cluster-mean t (2 dof)   block boot   RO sign   era              verdict
+      attempts LL (PRIMARY)   +0.00609 SIG           +0.00609 (+0.00098,+0.01111) SIG   +0.00609 (-0.00710,+0.01834) ns   SIG (DEFF 1.33)   3/3   I2=76% p=0.037   ERA-CONDITIONAL
+      **points CRPS (PRIMARY)** -0.00420 ns          **-0.00420 (-0.00736,-0.00148) SIG NEG**   ns   ns (DEFF 0.96)   **0/3**   I2=0% p=0.534   **NO-PASS**
+      points CRPS (newly fired) -0.01981 SIG NEG     -0.01981 (-0.03667,-0.01413) SIG NEG   ns   SIG NEG   0/3   I2=3% p=0.312   PASS-WEAK (harm side)
+      attempts LL (newly fired) +0.02215 SIG         +0.02215 (+0.00586,+0.03173) SIG   ns   SIG   3/3   I2=73% p=0.051   ERA-CONDITIONAL
+      rebounds CRPS (PRIMARY)  +0.00125 SIG          +0.00125 (+0.00112,+0.00133) SIG   +0.00125 (+0.00097,+0.00151) SIG   SIG   3/3   I2=0% p=0.720   **MULTI-SPLIT PASS**
+  ICC(season) attempts +0.00104 DEFF_anova 4.53 DEFF_boot 1.71; points -0.00020
+  DEFF_anova 0.32 DEFF_boot 0.45. Rolling-origin on points flips sign in 0/3
+  folds — i.e. it is consistently NEGATIVE, which §11 tie-break 3 makes
+  disqualifying on its own. **The rebounds channel is the one clean
+  MULTI-SPLIT PASS in this gate and it is NOT a ship candidate**: rebounds were
+  a pre-registered secondary, the gated endpoints are points and attempts, and
+  promoting a secondary after seeing it win is the §5.2 trap.
+
+  (8) **ERA STATEMENT (§10).** Eval universe by era code: dev = **E5+E6**,
+  sealed legacy confirm = **E3+E4**; the whole scorable corpus is E3-E6.
+  **Era-availability: CLEAN** — every input is a `player_game_stats` box column
+  (`seconds`, shot counts) plus `nba_games` (`game_date`, `season`, `team_id`)
+  and `data/v2_usage.npz`; the arm touches neither `game_inactives` (starts
+  2022-23) nor `injury_reports_pit` (starts 2023-10), so ERAS.md §5 does not
+  apply and no fold is structurally inert. **COVID frame: NOT included** — the
+  scored frame is 2021-26 and the arm has no fitted coefficient at all (it is a
+  construction change), so there is nothing a COVID frame could manufacture.
+  Verdict on the efficacy channel: **ERA-CONDITIONAL** (I2=76%, Q p=0.037) —
+  which is itself a reason not to ship it even if the points veto had passed.
+
+  (9) **BH q=0.10.** Family recounted append-only: `data/bh_family.csv` 110
+  members before this session, **+3 (one per queued gate, added at
+  PRE-REGISTRATION time per §4) = K=113**. Governing p is the §9.1 clustered
+  one (season cluster-mean t, 2 dof): this gate's primary efficacy comparison
+  has **p = 0.0988, rank 38/113, threshold 0.0336 -> does NOT survive.** Moot
+  for the ship decision (the points veto already fails), registered for the
+  denominator.
+
+  (10) **REGISTERED FACTS THAT SURVIVE THE NO-SHIP** — the P(fire)-by-absence
+  curves in (2), the recall 0.8121 -> 0.9486 / precision 0.9393 -> 0.9141
+  trade, the +15.8% firing coverage, the ARM-B arithmetic bound in (3), and the
+  measurement that the star-out term is **+0.019 LL / -0.024 CRPS on the same
+  rows**. The last of these is the cleanest single-stratum demonstration of
+  D34's attempts-vs-points asymmetry anywhere in the register.
+  [scripts/qg_starout_design.py, qg_starout_design2.py, qg_switch_noop.py,
+   qg_starout_gate.py, qg_v3_battery.py, qg_bh.py, qg_starout_shipconfirm.py;
+   data/queued_gates_prereg.md (sha256 b721f4fa...), queued_gates_notes.md,
+   qg_starout_design.json, qg_starout_design2.json, qg_switch_noop.json,
+   qg_starout_gate.json, qg_starout_gate_rows.npz, qg_starout_ctx.pkl,
+   qg_v3_battery_starout.json, qg_bh.json, data/logs/qg_*.log;
+   code nbapred/engine/starout.py (switch `STAROUT_TRAIL`, DEFAULT `current` =
+   shipped behaviour), tests/test_queued_gates.py]
+- D150 null_u vs SOFTMAX — D129'S OPEN QUESTION, GATED AND **ANSWERED IN THE
+  NEGATIVE: THE PLAYER-SPECIFIC USAGE FIT IS LOAD-BEARING. THE LIFT MAGNITUDE
+  IS NOT THE WHOLE SIGNAL, AND `data/v2_usage.npz` STAYS.** D129's in-sample
+  attribution does not survive an out-of-sample gate; the simplification it
+  suggested would have been a loss. No production behaviour changed.
+
+  D129 registered, on post-cut rows with the PIT usage vector (n=9,315, 479
+  players): the softmax lift beats every naive baseline (vs flat-1.020 +0.04457
+  SIG; vs c_mean +0.02594 SIG; vs shuffled-lift +0.05017) but does NOT beat the
+  in-sample-optimal CONSTANT lift (+0.00194 ns) and **LOSES to the
+  pool-arithmetic-only null (null_u lift 1.147): -0.00747
+  CI(-0.01469,-0.00038)**. It declined to act on that and registered it as the
+  pre-registered hypothesis for a proper gate. This is that gate.
+
+  PRE-REGISTRATION: **data/queued_gates_prereg.md sha256 b721f4fa0d68a7a27f5b
+  ca4d06c757da84b24dd3e69f208f1bc871b829e0cba6** (§2). Scored in the SAME run
+  and against the SAME same-run control as D149, so the two gates cannot
+  disagree about the baseline.
+
+  (1) **ARMS.** ctrl = shipped softmax, `w = exp(u)` from `data/v2_usage.npz`,
+  lift `S/(S-w_star)` capped [1.0,1.6], applied at the D83 residual scale
+  `1 + 0.16*(L-1)`. **ARM U (`STAROUT_USAGE=null_u`)** = every player weighs 1,
+  so the lift is `N/(N-1)` over pool+star: **PURE POOL ARITHMETIC, the npz never
+  read**; same cap, same 0.16 scale, same D39 positional tilt at 0.39 (the tilt
+  is positional, not usage-weighted, so leaving it fixed is what isolates the
+  weighting). Pre-registered tie-break for star selection under uniform weights:
+  highest trailing-10 mean ATTEMPTS — a box-score quantity, and the module's own
+  documented fallback ordering. **ARM F (`STAROUT_USAGE=trailatt`)** = that
+  documented fallback itself, DIAGNOSTIC only, measured because production
+  EXECUTES it whenever the npz is unloadable.
+
+  (2) **DISCLOSED BEFORE SCORING** (`scripts/qg_nullu_design.py`): over 4,439
+  star-out team-games, mean pool 6.592 — mean lift **softmax 1.21366 / null_u
+  1.16100 / trailatt 1.25213**; **corr(softmax, null_u) = 0.7069**; the same star
+  is selected **96.33%** of the time; after the D83 residual scaling the applied
+  lifts are **1.034186 vs 1.025760**, mean |difference| **0.010703**, p95
+  0.027338, max 0.056. Stable across all five seasons (mean |applied diff|
+  0.0098-0.0117). D129's null_u lift of 1.147 reproduces at 1.161 on this
+  universe. **The two arms fire on EXACTLY the same 4,324 team-dates** — the
+  usage switch is specified to change only the lift, never the detector, and
+  the harness confirms it does not.
+
+  (3) **GATE RESULT** (n=27,950 rows / 660 players on the ctrl-fires window,
+  4,000 sims/row, paired seeds, by-player cluster bootstrap). Sign convention:
+  POSITIVE = the arm beats the shipped softmax.
+      arm                     points CRPS                    attempts Poisson LL
+      **U (null_u)**   -0.00121 CI[-0.00286,+0.00037] ns   **-0.00753 CI[-0.00845,-0.00665] SIG WORSE**
+      F (trailatt)     -0.00215 CI[-0.00334,-0.00097] SIG WORSE   +0.00304 CI[+0.00249,+0.00362] SIG BETTER
+  Per season, null_u attempts LL: -0.00833 / -0.00913 / -0.00675 / -0.00856 /
+  -0.00464 — **SIG WORSE 5/5, never once positive.**
+
+  (4) **VERDICT AGAINST THE PRE-REGISTERED NON-INFERIORITY RULE.** The rule was
+  written to make a TIE ship the simplification (parsimony: it would delete a
+  fitted artifact, a refit dependency and the entire D107 failure mode — the
+  away-only-fit bug that lived in exactly this file and silently halved every n
+  in the D32-D38 family). Margins fixed in advance: points CRPS -0.002 (the V2
+  T1 pooled floor) and attempts LL -0.005 (one tenth of D83's shipped +0.049).
+  **Points is a genuine tie** (dev season-cluster +0.00010 CI(-0.00173,+0.00235)
+  ns, lower bound inside the margin). **Attempts is not**: dev season-cluster
+  **-0.00667 CI(-0.00856,-0.00464) SIG**, lower bound -0.00856, past the -0.005
+  margin. One co-primary breached => **SOFTMAX IS LOAD-BEARING. NO-SHIP the
+  simplification. D129'S HYPOTHESIS IS REFUTED at the live residual scale.**
+
+  (5) **WHY D129 SAW THE OPPOSITE, stated plainly rather than reconciled away.**
+  D129's attribution was (a) IN-SAMPLE, (b) on ONE stratum of 9,315 post-cut
+  rows, and (c) at FULL D33 magnitude, not at the shipped 0.16 residual scale.
+  This gate is out-of-sample, on 27,950 rows across five seasons, at the live
+  magnitude, and on the same endpoint D33 was gated on. The two are not in
+  conflict about any number; they are in conflict about what an in-sample
+  single-stratum contrast is evidence for. **The register's rule stands
+  reinforced: an in-sample attribution is a hypothesis, never a finding.**
+
+  (6) **AN OPERATIONAL FACT WORTH MORE THAN THE ARM** (ARM F). If
+  `data/v2_usage.npz` ever fails to load, `load_usage_weights` returns None and
+  `team_context` silently switches to trailing-attempt shares. That fallback is
+  **SIG BETTER on attempts (+0.00304, MULTI-SPLIT PASS, season-mean t
+  +0.00267 t=8.18 SIG)** and **SIG WORSE on points (-0.00215, season-cluster
+  CI(-0.00340,+0.00012))**. So the documented degradation is not a degradation
+  on the channel the science is about, and it IS one on the shipped channel.
+  Registered so the failure mode has a measured cost instead of an assumption.
+  Its mean lift 1.25213 also over-shoots softmax's 1.21366, which is the likely
+  mechanism.
+
+  (7) **FULL V3 BATTERY, DEV = E5+E6, n=16,246** (holdout E3+E4 NOT opened —
+  no dev pass, so it stays sealed).
+      endpoint            pooled            SEASON-CLUSTER (shipping)        cluster-mean t (2 dof)          block boot        RO sign   era             verdict
+      points CRPS         +0.00010 ns       +0.00010 (-0.00173,+0.00235) ns  +0.00010 (-0.00502,+0.00524) ns  ns (DEFF 1.13)    1/3      I2=0% p=0.773   NO-PASS
+      **attempts LL**     -0.00667 SIG NEG  **-0.00667 (-0.00856,-0.00464) SIG NEG**  **-0.00667 (-0.01152,-0.00178) SIG NEG**  SIG NEG (DEFF 1.30)  **0/3**  I2=0% p=0.879  PASS-WEAK (harm side)
+      ARM F points        -0.00219 ns       -0.00219 (-0.00340,+0.00012) ns   t=-1.897 ns                      —                 —        I2 n/a          PASS-WEAK
+      ARM F attempts      +0.00267 SIG      +0.00267 (+0.00203,+0.00310) SIG  t=+8.179 SIG                     SIG               3/3      ERA-STABLE      MULTI-SPLIT PASS
+  ICC(season) on the null_u attempts channel +0.00124, DEFF_anova 7.70,
+  DEFF_boot 2.24 — i.e. the i.i.d. CI here was 2.2x too narrow, and the
+  clustered reading is the one quoted. **Rolling-origin is 0/3 for null_u: it
+  is worse in every causal fold, not on average.**
+
+  (8) **ERA STATEMENT (§10).** Dev = **E5+E6**; sealed legacy confirm =
+  **E3+E4**; scorable corpus E3-E6. **Era-availability: CLEAN** — the arm
+  consumes `player_game_stats` box columns, `nba_games`, and (ctrl only)
+  `data/v2_usage.npz`, which is fit on pooled play-by-play across all eras;
+  neither `game_inactives` nor `injury_reports_pit` is touched. **COVID frame:
+  the arm itself has NO fitted coefficient. `v2_usage.npz` (the CONTROL side)
+  is the D129 both-halves refit on 885,185 shots pooled across seasons; that is
+  the shipped artifact and this gate does not re-fit it.** Verdict:
+  **ERA-STABLE** on both co-primaries (I2=0%, Q p=0.773 / 0.879) — the
+  refutation is not an era artefact.
+
+  (9) **BH q=0.10.** K=113 (110 + one member per queued gate at
+  pre-registration time). Clustered p for this gate's primary comparison
+  (season cluster-mean t, 2 dof, t=-5.876): **p = 0.01388, rank 26/113,
+  threshold 0.02301 -> SURVIVES.** The refutation is BH-robust; it is the only
+  one of this session's three family members that is.
+  [scripts/qg_nullu_design.py, qg_starout_gate.py, qg_v3_battery.py, qg_bh.py;
+   data/queued_gates_prereg.md, qg_nullu_design.json, qg_nullu_rows.csv.gz,
+   qg_starout_gate.json, qg_starout_gate_rows.npz, qg_v3_battery_starout.json,
+   qg_bh.json, data/logs/qg_*.log; code nbapred/engine/starout.py (switch
+   `STAROUT_USAGE`, DEFAULT `softmax` = shipped), tests/test_queued_gates.py]
+- D151 PER-CHANNEL PROPS RAMP (D133 open item 3 / D145 open item 17b) —
+  **NO-SHIP, AND H3 IS REFUTED RATHER THAN NULL: both arms SIG HARM the primary
+  endpoint. The premise reproduces exactly; the fix fails for a reason that
+  generalises past this arm.** Only `nbapred/engine/props.py` was touched, and
+  only to add a switch that defaults OFF and is proved a bitwise no-op there.
+  DB read_only=True. D132 untouched (`prod_by_season.py` does not import props
+  — the D133/D145 precedent).
+
+  PRE-REGISTRATION: **data/queued_gates_prereg.md sha256 b721f4fa0d68a7a27f5b
+  ca4d06c757da84b24dd3e69f208f1bc871b829e0cba6** (§3), 2 arms, ONE config each,
+  m=1, no sweeps; the channel-mean design diagnostic run and DISCLOSED first.
+  **MDE80 STATED BEFORE SCORING: rebounds 0.00315, assists 0.00214** at
+  n=23,323, derived from D133's own disclosed non-gated-channel SEs, against
+  predicted effects of +0.00173 / +0.00210 (ratios 1.82 / 1.02, inside §5.5's
+  3x ceiling). Realized: rebounds MDE80 0.00074, assists 0.00075 — the design
+  was over-conservative by 4x, so this is a genuine refutation and not a
+  power failure.
+
+  (1) **A STRUCTURAL FACT, established before scoring, that makes the points
+  veto BITWISE instead of statistical.** `points` and `threes` are read off the
+  SAME zone-attempt draws in `simulate_player`, so a channel-specific minutes
+  exposure for either necessarily moves the other: they are **NOT separable**
+  and both arms hold them fixed. Only rebounds and assists are separable, and
+  for assists the exposure is a SCALAR so arms A and B coincide there up to the
+  [10,44] clip. Measured over all 25,910 scored rows: **max|dCRPS_points| = 0.0,
+  max|d sum(points)| = 0.0, max|d sum(threes)| = 0.0** for both arms;
+  ramp-inactive rows bitwise 0.0. The pre-registered veto passes by
+  construction, which is the strongest form it can take.
+
+  (2) **THE PREMISE REPRODUCES.** D133 registered "October REBOUND PIT
+  overshoots 0.4833 -> 0.5229". On the post-D145 control (`PROPS_MIN_RAMP` and
+  `PROPS_ABSENCE_RAMP` both at shipped defaults, per D145 §15) October
+  ramp-active rebound PIT is **0.5209** — D133's number, confirmed four
+  entries later. **But it is OCTOBER-LOCAL**: November 0.4878, the whole
+  ramp-active window **0.4991**, all scored rows 0.4989. Per-season October:
+  0.5309 / 0.5105 / 0.5347 / 0.5256 / 0.5091.
+
+  (3) **AND THE FIX FAILS, SIG, IN THE WRONG DIRECTION.** n=25,910 rows / 669
+  players / **19,630 ramp-active**, 4,000 sims/row, by-player cluster bootstrap.
+      stratum                  ARM A rebounds CRPS                    ARM B
+      **PRIMARY (delta>0)**  **-0.00263 CI[-0.00313,-0.00210] SIG HARM**  -0.00347 CI[-0.00400,-0.00293] SIG HARM
+      delta>=2 (concentr.)   -0.00653 CI[-0.00816,-0.00493] SIG HARM      -0.00833 SIG HARM
+      Oct-Nov                -0.00204 SIG HARM                            -0.00277 SIG HARM
+      Dec-Jun                -0.00358 SIG HARM                            -0.00463 SIG HARM
+      ALL pooled             -0.00199 SIG HARM                            -0.00263 SIG HARM
+  Per season 2021-26: -0.00017 ns / -0.00553 / -0.00125 / -0.00206 / -0.00409 —
+  **SIG HARMFUL in 4/5 and positive in none.** The pre-registered rule needs the
+  rebounds CI to exclude zero on the POSITIVE side. **NO-SHIP.**
+
+  (4) **WHY IT FAILS — THE FINDING WORTH MORE THAN THE ARM.** `lam_c` was fit
+  walk-forward by the closed-form first-moment condition
+  `E[rate_c*(m0 - lam_c*D)] = E[y_c]` on the ANALYTIC prediction
+  `rate * proj_min`. That moment says the post-ramp rebound mean is **0.031
+  LOW**, hence lam_reb < 1 (walk-forward 0.9770 / 0.7509 / 0.8955 / 0.8512 /
+  0.8282 — **below 1 in 5/5 cutoffs**, a perfectly stable coefficient). But the
+  SHIPPED generative model does not predict `rate * proj_min`:
+  `simulate_player` draws minutes from the player's empirical histogram
+  recentred on `proj_min`, adds N(0,2) jitter, and **CLIPS to [0,48]** — and
+  that truncation already supplies the missing mass. Measured on the gate's own
+  rows: simulated mean rebounds **4.7760 vs realized 4.7777** (bias -0.0017,
+  ALREADY UNBIASED); ARM A moves it to **4.8065**, a +0.029 OVERSHOOT, and CRPS
+  punishes it. **RULE, added to the hall of shame: a coefficient fitted on a
+  closed-form moment of a model you do not score is not a correction to the
+  model you do score. Fit the correction on the GENERATIVE output, or gate the
+  analytic model instead.** This is D141's lesson ("a switch named after a
+  hypothesis is not evidence it implements it") moved one level down, into the
+  estimand itself — and unlike D141 it was caught by the gate rather than by a
+  reviewer.
+
+  (5) **ARM B IS WORSE THAN ARM A AT EVERY STRATUM** (-0.00347 vs -0.00263
+  primary; -0.00833 vs -0.00653 at delta>=2). ARM B is mean-matched to ARM A
+  per row BY CONSTRUCTION and differs only in the dispersion of the Poisson
+  mixture. **D133's "the props minutes defect is LOCATION, not spread"
+  replicates at the per-channel level.**
+
+  (6) **THE ASSISTS SIDE WENT THE OTHER WAY AND IS DELIBERATELY NOT SHIPPED.**
+  Pooled assists +0.00009 ns, but SIG POSITIVE in **4/4 seasons whose lam_ast
+  was fit outside the COVID frame** (+0.00279 / +0.00301 / +0.00308 / +0.00217)
+  and SIG HARMFUL only in 2021-22 (**-0.01002**), whose lam_ast = 0.532 is the
+  COVID-only outlier **the pre-registration flagged IN ADVANCE** (fit on
+  2019-20 + 2020-21, n=5,206, vs 1.135-1.189 at every later cutoff). Dev V3
+  battery on assists alone: **MULTI-SPLIT PASS (with notes)** — season-cluster
+  +0.00274 CI(+0.00217,+0.00308) SIG, cluster-mean t at 2 dof +0.00274
+  CI(+0.00150,+0.00401) SIG, rolling-origin 2/2, **ERA-STABLE I2=0% Q p=0.504**.
+  **IT DOES NOT SHIP**: the pre-registered arm bundles rebounds and assists and
+  its primary is rebounds; splitting the bundle after seeing which half won is
+  the §5.2 post-hoc-subgroup trap, and the assists mean is still over-predicted
+  (2.9885 -> 2.9839 vs realized 2.9346) so the same generative-vs-analytic
+  mismatch of (4) is present there too. Registered as a candidate for a FRESH
+  pre-registration with lam_reb pinned at 1, lam_ast fit outside the COVID
+  frame, and the moment condition taken on SIMULATED output. Exploratory
+  magnitude, labelled exploratory: **+0.00275 CI[+0.00240,+0.00313]** on the
+  15,538 rows of the four non-COVID-fit seasons.
+
+  (7) **FULL V3 BATTERY, DEV = E5+E6, n=11,635** (holdout E3+E4 NOT opened —
+  no dev pass; it stays sealed).
+      arm / endpoint        pooled            SEASON-CLUSTER (shipping)         cluster-mean t (2 dof)   block boot        RO sign  era                verdict
+      **A rebounds (PRIM)** -0.00252 SIG NEG  **-0.00252 (-0.00409,-0.00125) SIG NEG**  ns              SIG NEG (DEFF 1.34)  **0/2**  I2=89% p=0.003    ERA-CONDITIONAL, wrong sign
+      B rebounds (PRIM)     -0.00333 SIG NEG  -0.00333 (-0.00500,-0.00170) SIG NEG      ns              SIG NEG (DEFF 1.51)  0/2      I2=93% p=0.000    ERA-CONDITIONAL, wrong sign
+      A rebounds delta>=2   -0.00611 SIG NEG  -0.00611 (-0.00861,-0.00209) SIG NEG      ns              SIG NEG (DEFF 1.97)  0/2      I2=90% p=0.002    ERA-CONDITIONAL, wrong sign
+      A assists             +0.00274 SIG      +0.00274 (+0.00217,+0.00308) SIG          +0.00274 SIG    SIG (DEFF 1.39)      2/2      I2=0% p=0.504     MULTI-SPLIT PASS (notes)
+      B assists             +0.00275 SIG      +0.00275 (+0.00216,+0.00309) SIG          +0.00275 SIG    SIG                  2/2      I2=0% p=0.481     MULTI-SPLIT PASS (notes)
+  ICC(season) rebounds +0.00191 DEFF_anova 8.38 DEFF_boot 2.36; assists
+  +0.00034 DEFF_anova 2.31 DEFF_boot 1.26.
+  A HARNESS DETAIL WORTH RECORDING because it looks like an inconsistency and
+  is not: arms A and B are the SAME Poisson for assists (scalar exposure) yet
+  their draws differ, because `rng.poisson` consumes a lambda-dependent amount
+  of randomness in the REBOUND call that precedes them. That is why the assists
+  deltas agree to 1e-5 (+0.00009 vs +0.00010) rather than exactly. Points and
+  threes are drawn BEFORE the channel block and are bitwise identical, which is
+  what makes the veto in (1) structural.
+
+  (8) **ERA STATEMENT (§10).** Dev = **E5+E6**; sealed legacy confirm =
+  **E3+E4**; scorable corpus E3-E6, with E0/E1/E2 used as lam FIT FUEL ONLY and
+  never scored. **Era-availability: CLEAN** — the arm consumes only
+  `player_game_stats` box columns and `nba_games`; it touches neither
+  `game_inactives` nor `injury_reports_pit`. **COVID-frame check (§10.4):
+  MATERIAL, and it is disclosed rather than buried.** The walk-forward lam for
+  2021-22 is fit on E0/E1/E2 alone and is the outlier that drives the only
+  SIG-harmful assists season (lam_ast 0.532 vs 1.135-1.189; lam_reb 0.977 vs
+  0.751-0.896). Rebounds verdict: **ERA-UNSTABLE** (I2=89-93%, Q p<=0.003) —
+  a second, independent reason not to ship it. Assists: ERA-STABLE.
+
+  (9) **BH q=0.10.** K=113. Clustered p for the primary (season cluster-mean t,
+  2 dof, t=-2.915): **p = 0.05015, rank 31/113, threshold 0.02743 -> does NOT
+  survive.** Moot (the sign is wrong), registered for the denominator.
+
+  (10) **WHAT THIS CLOSES AND WHAT IT LEAVES OPEN.** CLOSED: D133 open item 3
+  and D145 open item 17(b) — a per-channel ramp keyed on the analytic moment is
+  a measured LOSER, and the October rebound PIT overshoot is confirmed real,
+  confirmed October-local, and confirmed NOT fixable this way. OPEN: (a) the
+  assists variant of (6), on fresh data only; (b) whether ANY correction fitted
+  on simulated output can move the October rebound PIT without the mean
+  over-shoot — the honest prior after this gate is that the overshoot is a
+  DISTRIBUTIONAL artefact of the empirical-minutes branch's October histogram,
+  not a location error, and that a location knob therefore cannot reach it.
+  [scripts/qg_channel_design.py, qg_channel_gate.py, qg_v3_battery.py,
+   qg_switch_noop.py, qg_bh.py; data/queued_gates_prereg.md (sha256
+   b721f4fa...), queued_gates_notes.md, qg_channel_design.json,
+   qg_channel_rows.csv.gz, qg_channel_gate.json, qg_channel_gate_rows.npz,
+   qg_v3_battery_channel.json, qg_bh.json, data/logs/qg_*.log;
+   code nbapred/engine/props.py (switch `PROPS_CHANNEL_RAMP`, DEFAULT "0" =
+   OFF; `ramp_delta` exported from `player_rates_from_stats`),
+   tests/test_queued_gates.py]
+- D152 HISTORICAL BACKFILL — HOW FAR BACK THE DATA ACTUALLY GOES, AND **FOUR
+  NEW SCORABLE SEASONS**. Brief: pull game data back as far as possible; odds
+  already reach 2007-08 and DARKO 2003-04 (both VERIFIED), so boxscore/PBP was
+  the binding constraint. **EVAL CORPUS UNCHANGED — this entry moves DATA, not
+  the eval universe.** Every registered gate stays denominated in the 5-season
+  2021-22..2025-26 / 6,148-game corpus and D132 remains the certified baseline.
+  (1) **SOURCE DEPTH, PROBED NOT ASSUMED — 36 seasons, live**
+  (`scripts/backfill_history.py probe`; `data/source_depth_probe*.json`).
+  LeagueGameFinder is clean to at least 1983-84 (1 call, ~1-2 s/season; 002
+  counts track expansion exactly: 943 / 1025 / 1107 / 1189 / 1230).
+  `boxscoretraditionalv3` returns `ok` in every probed season to 1983-84.
+  **`playbyplayv3` is a HARD FLOOR at 1996-97**: 1996-97 gives 459 actions /
+  151 shots / `shotDistance` 100% non-null, and **1995-96 and every season
+  below it return HTTP 200 with ZERO actions** (14 distinct games, 1995-96 →
+  1983-84). Cost measured: **1.70 s/game** for box+PBP (throttle-bound), so a
+  1,230-game season = 2,461 calls ≈ **35 min** on one worker.
+  (2) **WHAT DEGRADES AND FROM WHEN — and why the floor is a REFUSAL, not a
+  budget.** Zone features (`rima/mida/thra`, shooting fouls) come from PBP, and
+  `four_factors` eFG consumes `thrm/thra`. Below 1996-97 the boxscore STILL
+  LOADS, so a naive pull lands `player_game_stats` with every zone count 0 —
+  and `possessions.py`'s guard does not catch it (it defers a game only when the
+  PBP FILE is missing; an empty-but-present PBP passes). eFG would silently
+  become fgm/fga. **Pre-1996-97 is therefore refused, not deferred.**
+  `plusMinusPoints` is also 0.0 in every season 1995-96 and below. Further
+  floors if anyone ever tries: no 3PT before 1979-80, no STL/BLK/TOV before
+  1973-74. **GameRotation is partial at ALL depths — not a season cutoff** — and
+  costs a MEASURED **31 s per absent game** (server hangs, then empty body), so
+  it is excluded from backfills and `lineup_stints` gains nothing here.
+  (3) **LANDED, each verified 0-missing and 0-zone-dead**
+  (`backfill_history.py verify`): **2010-11** 1230/1230 29,475 rows;
+  **2011-12** 990/990 (lockout) 25,455; **2012-13** 1229/1229 31,347;
+  **2015-16** 1230/1230 31,423; **2016-17** 1230/1230 31,564; **2017-18**
+  1230/1230 30,980; **2018-19** 1230/1230 30,801. Plus the **2019-20 hole
+  CLOSED**: 971 → **1059 games**, 24,281 → **26,538 rows**. The hole was
+  exactly `0021901231`..`0021901318` — the **88 bubble seeding games (E1)**,
+  which had no cached artifact of any kind, so E1 had NEVER had player-level
+  data. **7 new seasons + the 2019-20 fill = ~8,500 games pulled, 0 endpoint
+  failures.** `nba_games` now spans **2010-11..2025-26** continuously except
+  2013-14/2014-15, which were still in flight with 2009-10 ... 1996-97 at
+  write time (chains run unattended; they stop at 1996-97 by construction).
+  (4) **SCORABILITY — THE HEADLINE. D131 SAID 2019-20 WAS UNSCORABLE
+  "STRUCTURALLY"; IT WAS A MISSING-DATA PROBLEM AND IT IS NOW FIXED.**
+  New probe `scripts/scorability_probe.py` (D123 pattern: call
+  `fit_production(con,S,before=<S opening night>)` and see if it raises).
+  Baseline at 06:50 reproduced D131 exactly — 2019-20 raised
+  `RuntimeError: FourFactors not ready ... no carry rows from 2018-19`.
+  After the backfill:
+      season    prior 002  prior pgs rows   scorable
+      2010-11         0             0       NO  (needs 2009-10, in flight)
+      2011-12     1,230        29,475       YES  <- NEW
+      2012-13       990        25,455       YES  <- NEW
+      2015-16         0             0       NO  (needs 2014-15, in flight)
+      2016-17     1,230        31,423       YES  <- NEW
+      2017-18     1,230        31,564       YES  <- NEW
+      2018-19     1,230        30,980       YES  <- NEW
+      2019-20     1,230        30,801       YES  <- NEW
+      2020-21..2025-26                      yes  (unchanged)
+  **+6 scorable seasons (2011-12, 2012-13, 2016-17, 2017-18, 2018-19, 2019-20);
+  12 scorable seasons now exist, up from 6.** Each season pulled unlocks exactly
+  the next one forward, so the chain is self-extending — every further season
+  the running chains land adds one more.
+  (5) **NEWLY SCORABLE != ADMISSIBLE (task 4 held).** D139's regime evidence
+  stands and is now stronger: the new seasons are a DIFFERENT regime on the
+  measures the corpus is sensitive to. **Home margin runs +2.68..+3.23 in EVERY
+  landed pre-2019 season (2010-11 +3.167, 2012-13 +3.226, 2016-17 +3.149)
+  against +1.69..+2.50 for the entire current corpus** — the new seasons are,
+  without exception, above the corpus range. 3PA share **.222 (2010-11) / .226
+  (2011-12) / .243 (2012-13)** vs **.384 (2019-20)**; pace trough **93.89
+  poss** (2011-12) vs ~101. 2011-12 is the most schedule-distorted season we
+  hold — b2b **.310**, 3-in-4 **.463**, mean rest **1.88 d** — worse than
+  2020-21 on every load channel. Coded **E-3** (≤2010-11), **E-2**
+  (2011-12→2013-14) and **E-1** (2014-15→2018-19) in docs/ERAS.md
+  §1/§2 with full signature rows, plus a new **§7** mapping the real regime
+  boundaries below E-2: PBP floor 1996-97, zone defense legalised 2001-02,
+  hand-check ban 2004-05, lockouts 1998-99 (725 games) and 2011-12 (990),
+  29→30 teams 2004-05, and the 3PT ramp as a CONTINUOUS ramp, not a step.
+  Widening the corpus remains a separate owner decision.
+  (6) **TWO WRITE-PATH BUGS FOUND AND FIXED, both load-bearing.**
+  (a) `possessions.load_corpus` used `con.executemany(INSERT OR REPLACE ...)`,
+  which duckdb runs ONCE PER ROW with a PRIMARY-KEY probe each time. Measured:
+  **60,000 rows > 600 s**; the first real 2018-19 build **held the write lock 45
+  min** before being killed. New `possessions._write_rows` registers the batch
+  and does one `INSERT..SELECT`: **60,000 rows in 0.82 s (>700x)**, NULLs
+  preserved; the same build then ran **1,499 games / 37,838 rows in 119 s**.
+  This is not cosmetic — on this DuckDB build **a held write lock blocks READERS
+  too**, so the old path stalled every other job on the box, and a full-corpus
+  rebuild (~340k rows) would have been HOURS of held lock.
+  (b) `nbapred.db.connect()` gave readers AND writers a 120 s deadline while
+  gate scripts routinely hold the lock 10-20 min. That had ALREADY cost
+  `load_odds` 4 runs, `load_darko` 3 and `scrape_2k` 1 (pre-dating this work).
+  Writer default raised to **600 s** — the shortest cron `timeout` on a writer
+  job, so the wait can never outlive the job's own budget. Readers unchanged.
+  (7) **ERA-MEASUREMENT BUG: a franchise missing from `arenas.csv` silently
+  scores travel 0.** `era_measure.py` sums `st["travel_km"]` WITHOUT checking
+  `travel_valid`. 2012-13 measured **802.7** km/team-game before NOH was added
+  and **863.4** after — a 60.7 km artefact from one team's 82 games. Added 7
+  historical franchises (NOH, NJN, SEA, NOK, VAN, CHH, WSB); no season now has
+  a missing arena. Separately, a controlled re-run with the PRE-D152
+  `arenas.csv` shows **2024-25 / 2025-26 travel in the registered D139 table are
+  STALE** (844.4 / 848.3, not 850.9 / 855.1) — pre-existing drift, NOT caused by
+  the new rows. Flagged in ERAS.md; D139's values left in place for whoever
+  re-registers them.
+  (8) **DATA-QUALITY: 2012-13 legitimately has 1,229 games.** `0021201214`
+  (BOS @ IND, 2013-04-16) was cancelled after the Boston Marathon bombing and
+  never made up — verified in-data (1214 is the only gap in the id sequence;
+  exactly BOS and IND have 81 GP). Encoded in `backfill_history.EXPECTED` so no
+  future run reports it as a hole.
+  (9) **CRON HEALTH VERIFIED LIVE (task 6).** Both writers run by hand WHILE two
+  backfill workers were mid-season: `pull_nba_daily.py` RC=0 (5,103 players,
+  2,805 team-game rows, 0 games needing artifacts); `build_features.py` clean
+  (pgs 693 games, stints 41 games, schedule_features 2,460 — `schedule.build` is
+  single-season by design so it does not blow up as the corpus deepens). The
+  backfill yields correctly: `bf_2012-13.log` shows 17 consecutive
+  "write lock held by PID ...; yielding 60s" lines, then it acquired and wrote.
+  No cron job was starved. `pull` was also reordered so the 35-min network phase
+  runs BEFORE the DB write, and `yielding_connect()` polls at 60 s instead of
+  failing at 120 s.
+  (10) **ONE REGISTERED TRIPWIRE FIRED, AND IT IS LEFT FIRING ON PURPOSE.**
+  Full suite after this work: **128 passed, 1 failed (286 s)**. The failure is
+  `tests/test_october_bridge.py::test_corpus_widening_bounded`, whose own
+  docstring says "if a future ingest moves this materially, the F6 one-shot
+  owner must re-register before the opener". It moved: the UNCAPPED bridge
+  construction now shows **9 of 53 week-1 games moved (bound 8), max |dcm_ps|
+  1.2086 (bound 1.0), mean 0.1165 (bound 0.10)** — because OctoberBridge's
+  trailing-minutes leg is season-AGNOSTIC and the backfill widened it.
+  **THE SHIPPED PATH IS UNAFFECTED, MEASURED, NOT ASSUMED:** `fit_production`
+  builds the bridge with `trail_seasons=2` (`OCT_BRIDGE_TRAIL` default "2",
+  frozen by D105/D122), and at that cap the identical measurement is **0 of 53
+  moved, max 0.0000** — a 2-season trailing window cannot reach a season older
+  than the corpus the gate table was built on. That is precisely what makes
+  this backfill safe to land against a frozen pre-registration.
+  **The bounds were NOT widened.** The assertions stand so the owner sees them;
+  their messages now carry the D152 numbers and the "live UNAFFECTED" fact so a
+  later agent cannot misread the tripwire as drift to be silenced. A new test
+  `test_shipped_bridge_immune_to_corpus_widening` pins the capped path at
+  exactly zero drift and PASSES. **OWNER ACTION: re-register the F6 one-shot,
+  or pin the corpus, before the 2026-27 opener.**
+  (11) **OPEN / NOT DONE.** `lineup_stints` gains no history (GameRotation).
+  Playoffs (004) and preseason (001) for 2019-20..2021-22 remain unpulled — the
+  corpus is 002-only and `factor_game_rows`/`continuity_map` filter to 002, so
+  this is deliberate, not an oversight. Chains below 2011-12 were still running;
+  they stop at **1996-97** by construction.
+  [code scripts/backfill_history.py (probe|pull|verify, EXPECTED),
+   scripts/backfill_chain.sh, scripts/scorability_probe.py,
+   nbapred/features/possessions.py (_write_rows), nbapred/db.py (writer
+   deadline), nbapred/ingest/nba_stats.py (cached_endpoint attempts=),
+   data/arenas.csv (+7 historical franchises);
+   docs/ERAS.md §1/§2/§3/§7, docs/STAT_INVENTORY.md;
+   data/backfill_notes.md, data/scorability.json, data/era_signatures.json,
+   data/source_depth_probe.json, data/source_depth_probe_old.json;
+   tests/test_october_bridge.py (tripwire message + new
+   test_shipped_bridge_immune_to_corpus_widening);
+   data/logs/probe.log, probe_old.log, bf_*.log, backfill_chain.log,
+   pgs_build*.log, era_measure_d149.log, pytest_d152.log]
+- D153 THE 15-YEAR OUT-OF-SAMPLE TEST — the certified stack scored on EVERY
+  scorable season, every shipped sides term ablated per era, and the killed
+  home/travel family re-measured. **THE STACK HOLDS UP. IT DOES NOT BLOW OUT IN
+  THE OLD ERA — the normalized gap is +15.41% on 6 seasons no gate ever saw
+  against +11.17% on the corpus everything was built on, with overlapping
+  season-clustered CIs — and the best normalized season the CERTIFIED stack has
+  ever scored is 2016-17 at +3.43%, nine years before the stack existed
+  (previous best 5.08% on 2024-25 at D132; the superseded LATE_STATE=1 build
+  reached 4.14% on 2024-25, D112).** The one
+  significant SIGN FLIP found is NOT an era effect: it is our own DARKO feed
+  thinning out. **DIAGNOSTIC ONLY — no default flipped, no ship, eval corpus
+  UNCHANGED at the D132 5-season / 6,148-game denomination, DB read_only=True.**
+  Era universe scored: **E-3, E-2, E-1, E0, E2, E3, E4, E5, E6** (era codes per
+  docs/ERAS.md; E-1/E-2/E-3 encoded into `nbapred/eval/splits.py::ERAS` by this
+  entry, 18/18 test_splits green).
+  (0) **THE SCORABLE SET, RESOLVED AT RUN TIME — AND A SCORABILITY-PROBE BUG.**
+  `scripts/history_scorable.py` (new) resolves on DATA SUFFICIENCY: prior season
+  >= 20,000 `player_game_stats` rows AND own-season box coverage >= 99% AND
+  odds present. **14 scorable seasons at run time: 11 POOLABLE** (2010-11,
+  2012-13, 2015-16, 2016-17, 2017-18, 2018-19, 2021-22..2025-26) **+ 3 SEPARATE
+  STRATA** (2011-12 lockout, 2019-20 E0+bubble, 2020-21 no-crowd). Excluded:
+  2013-14 (own box 27/1230, in flight), 2014-15 and 2009-10 (carry starved by
+  it), everything <= 2008-09. **`scripts/scorability_probe.py` REPORTS 2007-08
+  AND 2008-09 AS SCORABLE AND THEY ARE NOT** — the D123 fail-loud guard only
+  checks that carry rows EXIST, and 24 placeholder rows in the prior season
+  satisfy it. Scorability must be judged on sufficiency, not on whether
+  `fit_production` returns.
+  (1) **PER-SEASON, at the D132 environment** (`env -u LATE_STATE -u TANK_TERM
+  -u ORACLE_MINUTES -u INACTIVE_OUTS -u REPORT_OUTS -u TANK_SEASON_FLOOR
+  -u OCT_BRIDGE -u COVID_GUARD -u FF_LUCK`, `OCT_BRIDGE_TRAIL` at its "2" code
+  default). `scripts/history_eval.py` runs the LITERAL `fit_production`
+  predictor and, in the same pass, the ablation arms anchored to it —
+  **anchor max|dp| <= 1.2e-14 on all 14 seasons.**
+      season    era    n     ll_us    ll_mkt      raw    norm
+      2010-11   E-3  1068  0.60472  0.57576  +0.02895  24.67%   NEW
+      2011-12   E-2   859  0.61120  0.58449  +0.02671  24.58%   NEW, stratum
+      2012-13   E-2  1146  0.59794  0.58042  +0.01753  15.55%   NEW
+      2015-16   E-1  1230  0.58388  0.57288  +0.01100   9.14%   NEW
+      2016-17   E-1  1230  0.61448  0.61169  +0.00279   3.43%   NEW  <- best ever
+      2017-18   E-1  1230  0.61346  0.59383  +0.01962  19.76%   NEW
+      2018-19   E-1  1230  0.61322  0.59464  +0.01858  18.86%   NEW
+      2019-20   E0   1058  0.61675  0.61173  +0.00502   6.17%   NEW, stratum
+      2020-21   E2   1080  0.63437  0.61794  +0.01643  21.84%   stratum
+      2021-22   E3   1228  0.62005  0.60429  +0.01576  17.74%
+      2022-23   E4   1230  0.63210  0.62437  +0.00772  11.23%
+      2023-24   E5   1230  0.59503  0.58086  +0.01417  12.62%
+      2024-25   E6   1230  0.58735  0.58155  +0.00580   5.20%
+      2025-26   E6   1230  0.58393  0.57114  +0.01278  10.48%
+      CERTIFIED 5    6148  0.60369  0.59244  +0.01125  11.17%
+      HISTORICAL 6   7134  0.60469  0.58858  +0.01611  15.41%
+      ALL POOLABLE  13282  0.60423  0.59037  +0.01386  13.49%
+  Season-clustered CIs on the raw gap: certified (+0.00786,+0.01449),
+  historical (+0.00952,+0.02210), all (+0.00993,+0.01789) — **they overlap, so
+  the 4.2pp widening is NOT established.** MARKET COVERAGE is thin on the three
+  oldest seasons and the loss is not random: games dropped for no close 2010-11
+  **162**, 2011-12 **131**, 2012-13 **83**, everything from 2015-16 on <= 2.
+  Read the 2010-11 / 2011-12 rows knowing they are ~87% of the schedule.
+  (2) **THE D132 CERTIFIED TABLE NO LONGER REPRODUCES, AND THE CAUSE IS 100%
+  THE BACKFILL — D131's STALENESS MECHANISM, REPEATING.** At today's defaults
+  the certified corpus scores 0.62005 / 0.63211 / **0.59503** / 0.58735 /
+  **0.58393** (pooled 0.60369, norm 11.17%) against D132's 0.62001 / 0.63211 /
+  0.59548 / 0.58722 / 0.58343 (pooled 0.60364, 11.13%). **35.28% of the 6,148
+  games moved, max|dp| 0.04116, and the moved games are concentrated in
+  February-March** — the D73 tank window. Cause identified and CONFIRMED BY A
+  PINNED CONTROL: `tanking.season_floor()` is derived from box coverage and has
+  gone **2020-21 -> 2014-15** now that a contiguous run of complete seasons
+  reaches back that far. Re-running with `TANK_SEASON_FLOOR=2020-21`
+  **reproduces the whole D132 table to five decimals** (0.62001 / 0.63211 /
+  0.59548 / 0.58722 / 0.58343, pooled 0.60364, 11.13%) — so the tank floor
+  accounts for essentially all of it. NOT bitwise, and the residue is named:
+  with the floor pinned, **1.97% of games still move, max|dp| 0.0034**,
+  concentrated in 2021-22 (6.3% of its games) and in October-November, with 26
+  of the moved games having the October bridge fire. That is the D91 bridge's
+  2-season trailing window now reaching the 88 bubble games D152 backfilled
+  into 2019-20 — a SECOND, smaller backfill channel into the certified corpus,
+  and one the D152 §10 tripwire analysis did not cover because it only checked
+  week-1 construction. Also note `TANK_SEASON_FLOOR=2021-22` does
+  NOT reproduce D132 (0.62130 on 2021-22) — **D132 ran at floor 2020-21, and
+  tanking.py's docstring claiming "the current corpus resolves to 2021-22" is
+  stale.** COST OF THE DRIFT: pooled norm 11.13% -> 11.17%, i.e. +0.04pp.
+  **OWNER ACTION: either re-certify at the current floor or pin
+  TANK_SEASON_FLOOR, before the next gate takes a control against
+  data/capstone_pergame.csv.** The certified artifact was NOT touched by this
+  entry (copied aside first, md5 dc256d0b85a072c0083f074083194283; all
+  historical output goes to data/history_*).
+  (3) **WHAT DRIVES THE GAP — AND THE BRIEF'S LEADING HYPOTHESIS IS REFUTED.**
+  Season-level correlations of the normalized gap (n=14) against the measured
+  era signatures: **home margin r = +0.027** (nothing), 3PA share −0.447, pace
+  −0.457, b2b rate +0.518, travel +0.189, core-DNP −0.148, chronology −0.446;
+  market's own ll −0.111 vs the normalized gap and −0.399 vs the raw gap (the
+  normalization is doing its job). **The old era's much larger home advantage
+  (+2.68..+3.23 vs +1.69..+2.50) does NOT explain our deficit.** The three
+  |r| ~ 0.45 features are mutually collinear proxies for "how modern is this
+  season", and so is the variable that actually explains the most:
+  (4) **THE REAL FINDING: A FEATURE-AVAILABILITY RAMP INSIDE OUR OWN STACK,
+  MEASURED FOR THE FIRST TIME.** `darko_history` MINUTE coverage of the players
+  who actually played: **11.3% (2010-11) / 12.7 / 18.6 / 36.9 / 44.1 / 50.5 /
+  62.1 / 73.1 / 81.3 / 88.8 / 97.0 / 100 (2023-24 on)**.
+  `CompositionModel` sets `talent = darko.get(pid, 0.0)`, so an unrated player
+  is silently scored league-average — on 2010-11 that is 89% of the minutes,
+  and the rated 11% is a biased (star-heavy) subset. Consequences, all
+  measured: corr(coverage, D19 composition-leg effect) **+0.793**;
+  corr(coverage, D21 four-factors-leg effect) **−0.605**; corr(coverage, norm
+  gap) −0.391. COUNTERFACTUAL from the ablation arms — the normalized gap of
+  the arm that does NOT consume DARKO (`no_comp`) is **12.88% on 2010-11 vs the
+  shipped 24.67%**, and 11.77% vs 15.55% on 2012-13: **roughly half the
+  oldest-season deficit is our own starved talent feed, not the era.** This is
+  the docs/ERAS.md §5 availability trap (and the D110 §1a cold-estimator error)
+  at corpus scale, and it is now a registered ERAS.md row.
+  (5) **PER-TERM ABLATION ACROSS ERAS** (`scripts/history_eval.py` arms +
+  `scripts/history_analyze.py`; positive = the term HELPS; V3 harness, B=2000
+  seed 20260801, 11 poolable seasons, n=13,282).
+    **D46 SCHEDULE LAYER — THE STRONGEST RESULT IN THE PROJECT'S HISTORY.**
+      pooled **+0.00415 CI(+0.00248,+0.00587) SIG**, season-cluster SIG,
+      **cluster-mean t at 10 dof SIG**, I2=42% Q p=0.112 **ERA-STABLE**,
+      **rolling-origin 10/10 folds positive**, zero adjudication flags.
+      Per era −0.68 / +0.03 / **+3.80\*** / **+9.45\*** / +2.41 / **+9.34\*** /
+      **+4.50\*** (millinats). Historical-only +0.00252 SIG. D139 called it "the
+      only term that survives everything" on 5 seasons; it now survives 11
+      seasons and 15 calendar years. The E-3 point estimate is negative
+      (−0.00068) but nowhere near significant on n=1,068.
+    **D73 TANK — FIRST OUT-OF-ERA CONFIRMATION IT HAS EVER HAD.** pooled
+      +0.00234 CI(+0.00139,+0.00327) SIG, season-cluster SIG, cluster-mean t
+      SIG, I2=49% Q p=0.096 -> **ERA-CONDITIONAL**, RO 9/10, drift
+      +0.00058/season. **E-1 +0.00154 SIG on 4 seasons no gate ever saw** —
+      against D112's UNCONFIRMED and D139's "value concentrated in the most
+      recent season". E-3/E-2 are exactly 0.00000 because
+      `tanking.season_floor()`=2014-15 makes the term structurally INACTIVE
+      there: UNTESTABLE, not failed. Live expectation still the most recent
+      fold (2025-26 +0.00782), per §11.4.
+    **D62 CARRY — ALIVE IN EXACTLY ONE ERA, THE OLDEST.** pooled +0.00042
+      CI(+0.00001,+0.00084) SIG i.i.d. but **season-cluster ns and cluster-mean
+      t ns**, RO 7/10, block bootstrap does not sustain it, season design
+      effect 1.25. Per era: **E-3 +0.00278 SIG**, every other era |effect| <
+      0.001. Historical-only +0.00068 (I2=58%, ERA-CONDITIONAL). Reading: D139's
+      NO-PASS stands on the modern corpus; the term does what it was designed to
+      do (bridge a thin prior season) precisely where the prior season is
+      thinnest. Not a re-gate — a mechanism confirmation.
+    **D21 FOUR-FACTORS LEG — ERA-SPECIFIC** +0.00260 SIG, **I2=88% Q p=0.000**,
+      RO 5/10 (sign flips in half the folds): **+12.97\* (E-3) / +7.31\* (E-2)
+      / +1.34 / −1.53 / −2.81 / +0.96 / +4.04\* (E6)**.
+    **D19 COMPOSITION LEG — THE ONE SIGNIFICANT SIGN FLIP, AND IT IS AN
+      AVAILABILITY ARTEFACT.** +0.00599 SIG, **I2=89% Q p=0.000**:
+      **E-3 −0.01384 SIG (the leg HURTS)**, E-2 −0.00426 ns, then
+      **+0.00614\* / +0.01221\* / +0.01135\* / +0.01543\* / +0.00859\***. Read
+      with (4): the flip is the DARKO ramp, not the sport. **DO NOT record this
+      as "the composition breakthrough is era-specific".** The four-factors leg
+      is its mirror image — it carries the load while the talent input is
+      starved — which is why D21 and D19 have opposite era profiles.
+    **D91 OCTOBER BRIDGE** +0.00043 CI(−0.00026,+0.00112) ns pooled (confirms
+      D139), but **historical-only +0.00071 season-cluster SIG** and E-1
+      +0.00108 SIG. No re-gate; noted.
+    **D16 COLD-START PRIOR — IDENTICALLY ZERO ON ALL 13,282 GAMES.** `ff.ready`
+      is true at every refit in every era, so the ratings leg the prior modifies
+      is never consulted. Structurally inert, corpus-wide, confirmed at 15-year
+      depth.
+    **D90 LATE-STATE (add-back diagnostic) — THE D112 REVERT IS CONFIRMED
+      OUT-OF-ERA.** Adding it back scores −0.00092 CI(−0.00181,−0.00005) i.i.d.
+      SIG worse, historical-only −0.00102 SIG worse, **E-1 −0.00148 SIG** and
+      **E6 −0.00287 SIG**, RO sign flips in 6/10. Third independent conviction.
+  (6) **KILLED FEATURES — DO ANY COME ALIVE?** (`scripts/history_killed.py`,
+  data/history_killed.json). COVERAGE FIRST: **`travel_valid` = 1.0000 on every
+  historical season** — D152's 7 added franchises close the hole completely; the
+  only invalid rows corpus-wide are 2024-25/2025-26 at 0.9894 (the D140
+  unknown-venue neutrals). So the historical travel numbers mean something.
+    **TEAM HOME (D20/D70/D137) — D137 UPHELD ON NINE MORE SEASONS.** d_t
+      cross-season persistence: lag-1 **+0.0839** (n=359 team-pairs), lag-2
+      −0.0779; **historical block +0.1098 vs modern +0.0264**. At sd(d) ~ 3.3
+      pts, r=+0.110 is a next-season forecast SD of **0.36 pts**. Within-season
+      signal share is EPISODIC with no era pattern (11.0/38.3/26.8/0.0/0.0/6.9/
+      34.6% historically vs 23.1/41.2/53.0/15.0/0.0% modern).
+    **ALTITUDE (D96) — NO REVIVAL, AND ITS ONLY t>2 IS A MODERN SEASON.**
+      Visitor's climb, pts/km: E-3 +0.411 (t=+0.56), E-2 +0.702 (+1.19),
+      E-1 +0.522 (+1.30), E0 +0.433, E2 +1.410, **E3 +2.983 (t=+3.29)**,
+      E4 −0.456, E5 +0.098, E6 −0.321. DEN's own home deviation swings
+      +5.65/+0.89/+1.45/+1.88/+0.97/−3.63/**+8.73**/+5.26/−1.42 across E-3..E6.
+    **TRAVEL / CIRCADIAN (D136) — WEAKER HISTORICALLY, NOT STRONGER, DESPITE
+      E-1 CARRYING THE MOST TRAVEL EVER MEASURED (868-904 km/team-game).**
+      dtrav_kkm: historical **+0.0067 t=+0.05** (wrong sign, dead) vs certified
+      −0.2269 t=−1.28 vs ALL −0.0793 t=−0.79. dtz_east sign-flips by era and its
+      only significant coefficient (**E6 −0.7337 t=−2.41**) has the WRONG
+      pre-registered sign.
+    **DENSITY d3in4 IS THE ONE SURVIVOR.** Correct sign in 7 of 9 era frames,
+      **ALL n=16,544 −0.5156 t=−2.44 SIG**, **E-1 −0.8804 t=−2.35 SIG**,
+      E4 −1.8074 t=−2.32 SIG. This is the first time a travel-family term has
+      been significant on a frame no gate selected. It still moves margin by
+      rms ~0.33 pts against D136's measured break-even of ~1.1-1.5, so the
+      log-loss endpoint is unchanged (see (7)) — the finding is about the
+      MECHANISM being real, not about the endpoint.
+  (7) **"IF IT WORKED 10 YEARS AGO AND NOT TODAY, CAN WE JUST CARRY IT AND LET
+  IT SHRINK TO ZERO?" — MEASURED, AND THE ANSWER IS A QUALIFIED YES WITH ONE
+  HONEST CATCH** (`scripts/history_shrink.py`, data/history_shrink.json). Every
+  arm is fitted INSIDE the shipped walk-forward shrinkage machinery
+  (`fit_schedule_layer_ext`: new regressors shrunk toward 0 by w = n/(n+600),
+  weekly refit, trailing 730 d, D46 b2b terms + the fit-only wpct control in the
+  design matrix, jointly refit at apply time so nothing double-counts).
+  TEAMHOME adds 30 per-team home deviations under an explicit **ridge = 200** —
+  the `team_home_ridge` pattern from team_ratings.py — then the same w shrink.
+      arm        COST on certified 5            BENEFIT on historical 6
+      TRAV       +0.000236 seas(−0.000085,      −0.000076 seas(−0.000234,
+                 +0.000625) ns MDE80 0.000622   +0.000161) ns
+      ALT        −0.000048 seas(−0.000155,      +0.000377 seas(−0.000106,
+                 +0.000111) ns MDE80 0.000995   +0.000894) ns
+      TEAMHOME   −0.000613 seas(−0.001439,      **+0.002081 iid(+0.001238,
+                 +0.000327) ns MDE80 0.001477   +0.002897) SIG, seas(+0.001109,
+                                                +0.003053) SIG, t(5 dof) SIG,
+                                                6/6 seasons positive**
+      ALL3       −0.000542 seas(−0.001181,      **+0.002243 SIG both ways**
+                 +0.000055) ns
+    **VERDICT IN HIS TERMS: all three are FREE TO CARRY within our resolution
+    today, and only TEAMHOME buys anything historically.** TWO THINGS MUST BE
+    SAID NEXT TO THAT.
+    (a) **The point estimate today is NEGATIVE for TEAMHOME and TRENDING
+    WORSE**: 2021-22 −0.00093 / 2022-23 +0.00095 / 2023-24 −0.00029 /
+    2024-25 −0.00082 / **2025-26 −0.00200**. Four of five modern seasons
+    negative, the most recent the worst. Under §11 tie-break 4 the honest live
+    expectation is **≈ −0.002, not zero**. A CI straddling zero means we CANNOT
+    RESOLVE the cost, not that the cost is zero — MDE80 0.00148 is the number
+    that makes the null interpretable.
+    (b) **The historical gain is MODEL-ERROR ABSORPTION, not a revival of D20.**
+    corr(DARKO minute coverage, TEAMHOME benefit) = **−0.774**, corr(season
+    year, benefit) = **−0.795**: the per-team intercept pays exactly where the
+    talent input is starved. And (6) shows team home advantage has no more
+    cross-season memory in the old era than today. So the option a per-team
+    ridge block buys is **insurance against our own talent feed degrading** —
+    a real live risk, since DARKO is a free third-party feed — and NOT the
+    "the era turns back" case. That is a different and more defensible reason
+    to carry it, and it would need its own pre-registration.
+    **METHODOLOGICAL POINT FOR THE REGISTER (the part that generalises).**
+    D70 (team home), D96 (altitude) and D136 (travel) were all tested as FIXED
+    ADDITIONS behind a pass/fail gate. Under a shrinkage estimator that is the
+    wrong question. The right one is a bias-variance trade — cost = the variance
+    an extra fitted parameter injects where its true effect is zero (it is
+    estimated as 0 ± se, not as 0); benefit = option value where the effect is
+    live — and the verdict is free / cheap / costs X, not pass / fail.
+    Shrinkage DAMPS the cost; it does not eliminate it. **Future gates for
+    era-specific terms should ask the cost-vs-option-value question and state
+    MDE80 so the null is interpretable.** GATE_POLICY_V2 §5.5's
+    "underpowered-NS is not a rejection" is the same idea one step earlier.
+  (8) **WHAT THIS ENTRY DOES NOT DO.** No default flipped, nothing shipped, the
+  eval corpus is still the D132 5-season / 6,148-game denomination, and every
+  registered gate keeps its meaning. `nbapred/eval/splits.py` gained the E-1 /
+  E-2 / E-3 era codes and an `ERA_ORDER` list (SCORABLE_SEASONS unchanged;
+  18/18 tests green) — that widens what the HARNESS can decompose, not what the
+  corpus contains. `data/capstone_pergame.csv` is bit-identical to the copy
+  taken before this task started. FULL SUITE: **128 passed, 1 failed (232 s)**
+  — the identical state D152 left, the one failure being
+  `test_october_bridge.py::test_corpus_widening_bounded`, the tripwire D152
+  deliberately left firing for the owner. No new failure.
+  (9) **OPEN.** (a) re-certify or pin the tank floor per (2) — this is the only
+  action item and it is live; (b) 2013-14 and 2008-09 are still in flight, and
+  landing them makes 2009-10, 2013-14 and 2014-15 scorable and moves the tank
+  floor again — every script here re-derives the set at run time;
+  (c) the DARKO ramp in (4) bounds how much of the historical deficit is even
+  attributable to the model, and a fair historical readout would need a
+  talent-free arm as its control; (d) d3in4's out-of-era significance in (6) is
+  the only travel-family thread worth a future pre-registration; (e) the D91
+  bridge channel found in (2) — a 2-season trailing window is season-agnostic
+  and WILL keep reaching new data as the backfill deepens, so the F6 one-shot
+  re-registration D152 §10 asked for should cover the bridge's effect on
+  CERTIFIED PREDICTIONS, not only its week-1 construction.
+  [code scripts/history_scorable.py, history_eval.py, history_analyze.py,
+   history_killed.py, history_shrink.py, make_history_charts.py (all NEW);
+   nbapred/eval/splits.py (E-1/E-2/E-3 + ERA_ORDER);
+   data/history_pergame.csv, history_pergame_floor2021.csv,
+   history_pergame_floor2122.csv, history_by_season*.json,
+   history_analysis.json, history_killed.json, history_shrink.json,
+   history_shrink_pergame.csv, history_scorable.json, history_eval_notes.md;
+   charts/history_logloss_by_season.png, history_normalized_gap.png,
+   history_feature_by_era.png; docs/ERAS.md §2b/§5]
+- D154 "IF NO SUBSTANTIAL NEGATIVE HARM, WOULD BE GOOD TO KEEP ALL" — THE
+  CARRY-ALL COST LADDER, AND HOW FAST WE CAN UPDATE THROUGH ERAS. **CARRYING
+  EVERYTHING IS NOT FREE: parameter noise compounds LINEARLY at -1.0e-4 per
+  coefficient, and the real rejected pile costs 5x MORE than the same number
+  of pure-noise columns. The full class-(i) pile is -0.00571
+  CI(-0.00886,-0.00313) = 51% of the entire remaining gap to the closing line;
+  with the D70 team-home block (45 coefficients) it is -0.01803
+  CI(-0.01962,-0.01640) = 161% of the gap. A defensible SIX-term subset IS
+  free (-0.00012, ns, cheaper than six noise columns) and is worth nothing.**
+  Second question answered too: **the era parameter is a slow LINEAR DRIFT
+  plus ONE STEP, not a random walk — its detrended season-to-season innovation
+  variance is ZERO — so the optimal era memory is INFINITE up to the drift and
+  all three pre-registered adaptation configs are NO-SHIP.** DIAGNOSTIC ONLY:
+  DB read_only, `nbapred/` untouched, no default flipped, no diff written
+  (§10's condition "if a config wins cleanly" was not met). D132 undisturbed.
+  PRE-REGISTRATION written and hashed BEFORE any arm produced a log-loss
+  number: **data/carryall_prereg.md sha256 9a4a414db294ba44908b4a4ee5f0bd490
+  e0b2d0094293eb0f2103a101459bd9b** — frozen term ORDER, frozen ladder rungs,
+  the cost THEORY with a numeric prediction, MDE80 per rung, the free/cheap/
+  costly decision rule, and the three adaptation configs with their
+  hypotheses. Concurrent with D153 (sibling agent); disjoint filenames
+  (`carryall_*` / `ca_*.py`), ERAS.md not touched, and D153's run-time
+  `data/history_scorable.json` REUSED rather than re-derived.
+  (1) **THE REFRAME, AND WHY THE PREMISE FAILS.** The owner's argument is that
+  under a shrinkage estimator a dead coefficient shrinks toward zero and
+  contributes little, so carrying a rejected term is nearly free and retains
+  option value. That is a property of a PER-TERM shrinkage estimator.
+  `fit_schedule_layer`'s `w = n/(n+600)` is not one — it is keyed on the TOTAL
+  row count, so it applies **the same 0.798 to every coefficient in the
+  matrix** regardless of the information that column carries. Measured over 45
+  refit dates with all 15 terms fitted jointly (data/carryall_shrinkdiag.json),
+  |t| vs the empirical-Bayes weight `t^2/(1+t^2)` it should get:
+      intercept |t| 4.05 -> w_EB 0.942     form_d_late 3.65 -> 0.930
+      dead_h    1.66 -> 0.734              alt_home_km 1.64 -> 0.728
+      urg_d     1.14 -> 0.565              lock_d      0.87 -> 0.432
+      d5in7     0.76 -> 0.364              dtrav_kkm   0.71 -> 0.338
+      drest     0.71 -> 0.333              quit_d      0.70 -> 0.326
+  **The layer over-carries most of the pile by 1.8x-2.5x**, and applies a
+  -3.04-point dead-team coefficient estimated from ~105 of 2,780 rows at
+  |t|=1.66. THE SHRINKAGE DOES NOT PROTECT YOU. That, not the term count, is
+  the reason carrying is not free — and it is a constructive finding, because
+  a per-term EB shrinkage would plausibly make carrying nearly free. That is a
+  HYPERPARAMETER and was deliberately NOT tuned here (the directive forbids
+  hand-tuning it); it is registered as the pre-registerable next step.
+  (2) **INVENTORY — 27 channels** (the 25 registered sides channels of
+  data/nsport_meta.json = D138 §9's register, plus the sides rows of
+  FEATURE_LEDGER.md). **(i) CARRYABLE as an additive margin term: 11 channels
+  / 15 columns** — D47 dead-team FE (2), D136 ARM A travel (1) / B circadian
+  (1) / C road-trip (2) / D density (2), D17/D48 rest advantage (1), D96
+  altitude (2), D130 ARM A urgency (1) / B clinch letdown (1) / C quit-x-urgent
+  (1, PROXY: dead flag for the tank score, disclosed), D71 F1 late-gated form
+  (1). **(ii) STRUCTURAL ONLY, not carryable: 14** — D85 rookie prior, D92
+  team-DLM, D127 possession-def, D80 trade-arrival, **D70/D20 team-home**,
+  D124 F2 event-recency, D131 COVID fit guard, D74 (a,b) calibration, D135
+  closing residual, D112 W49 variance inflation, D86/D94 talent ensemble, D141
+  M1 3P-luck, M2/D22 blend weight, recency-weighted ratings. **(iii) DEAD BY
+  CONSTRUCTION (moves 0 games): 2** — the continuity prior (D138 §3(b)) and
+  the D16/D55 cold-start prior (D110).
+  **D70 WAS RECLASSIFIED (i)->(ii) BY MEASUREMENT and it is a finding in its
+  own right.** As a schedule-layer dummy block it is NOT the D70 feature: the
+  layer has no opponent-adjustment columns, so a home-team dummy estimates
+  `(team strength - mean) + (home adv - mean)` and is dominated by STRENGTH —
+  fitted deviations have rms **2.63 pts** against ~1.1 if they were noise and
+  ~0.5-1.0 of true between-team home advantage. Production's margin is already
+  `0.5*ff + 0.5*comp`, both of which price strength, so carrying it adds the
+  HOME team's strength a second time, asymmetrically: **-0.01253**. The real
+  D70 channel is identified only inside `team_ratings`, where it already lives
+  at `team_home_ridge=200`. Hall-of-shame #15 (identity), applied to a
+  REJECTION rather than to a ship.
+  (3) **THE COST LADDER — THE HEADLINE.** Control `data/capstone_pergame.csv`
+  (D132), n=6,148, exact by construction: every arm is a purely additive
+  schedule-layer change, so `p_arm = sigmoid((SCALE*logit(p_us)+dm)/SCALE)` and
+  the control-hash rule is satisfied at max|dp| = 0.0 trivially. Season-
+  clustered CI is the shipping statistic (§9).
+      arm                    cols  rms(dm)     delta   season-cluster CI   MDE80
+      noise k=1                 1    0.141  -0.00024 (-0.00048,-0.00005) 0.00031
+      noise k=3                 3    0.314  -0.00059 (-0.00085,-0.00033) 0.00071
+      noise k=10               10    0.868  -0.00101 (-0.00185,-0.00037) 0.00198
+      noise k=15               15    1.057  -0.00084 (-0.00246,+0.00075) 0.00239
+      noise k=45               45    1.600  -0.00361 (-0.00491,-0.00239) 0.00363
+      REAL k=1 (dead_h)         1    1.248  -0.00231 (-0.00450,-0.00045) 0.00265
+      REAL k=2 (+dead_a)        2    1.476  -0.00365 (-0.00461,-0.00232) 0.00297
+      REAL k=5                  5    1.532  -0.00362 (-0.00471,-0.00213) 0.00307
+      REAL k=10                10    1.684  -0.00417 (-0.00532,-0.00305) 0.00346
+      REAL k=15 = ALL15        15    2.170  **-0.00571 (-0.00886,-0.00313)** 0.00452
+      REAL ALL15+TEAMHOME      45    3.440  **-0.01803 (-0.01962,-0.01640)** 0.00737
+      REAL DENSE6               6    0.638  **-0.00012 (-0.00086,+0.00086)** 0.00144
+  **THE PRE-REGISTERED THEORY IS CONFIRMED.** Predicted null cost of parameter
+  count `0.5*E[p(1-p)]*k*w^2*sigma^2/(n_fit*SCALE^2)` = **9.3e-5 per column,
+  LINEAR in k**; measured on the 11-season history the per-column noise cost is
+  **1.0e-4** (1.2 / 0.94 / 1.0 / 1.0 / 0.83 e-4 at k = 1/5/10/15/45).
+  RETROSPECTIVE CONSEQUENCE, and it is not small: **D136's registered ABCD
+  portfolio (-0.00066 on 6 columns) was, all along, its own parameter-noise
+  cost** — theory says -0.00056 for 6 pure-noise columns, and D136's own
+  rms(dm) 0.6092 matches `0.216*sqrt(6)=0.53`. The "negative point estimate =
+  adding a noisy coefficient of the right sign but over-estimated size"
+  language in FEATURE_LEDGER is now quantified: it is the cost of the
+  PARAMETERS, not of the terms.
+  **BUT THE REAL PILE IS 5.0x WORSE THAN NOISE AT 45 COLUMNS AND 6.8x AT 15.**
+  A truly-zero coefficient should cost EXACTLY the noise benchmark; costing
+  more means the fitted coefficient is large, badly identified, and applied
+  anyway — see (1).
+  (4) **WHICH TERMS ARE FREE, AND THE STRUCTURAL DISCRIMINATOR.** Nine of the
+  fifteen cost < 0.00025 carried ALONE (dtrav_kkm +0.00023, delev_km +0.00011,
+  alt_home_km +0.00001, drest -0.00001, hret_h -0.00004, dtz_east -0.00008,
+  d3in4 -0.00010, d5in7 -0.00011, urg_d -0.00016). Four are not
+  (dead_a -0.00240, dead_h -0.00231, form_d_late -0.00101, lock_d -0.00069),
+  plus TEAMHOME -0.01253. The discriminator is COLUMN SUPPORT and it is
+  definable WITHOUT looking at any cost: the six terms supported on >=30% of
+  fit rows that carry a genuine continuous schedule quantity (`DENSE6` =
+  dtrav_kkm, dtz_east, rlen_extra_a, d3in4, drest, delev_km) cost **-0.00012
+  CI(-0.00086,+0.00086) ns, LESS than six pure-noise columns**, I2=0%
+  ERA-STABLE, and -0.00034 CI(-0.00072,+0.00014) on the 11-season history.
+  The expensive ones are SPARSE INDICATORS (dead 3-5% of rows, lock_d/quit_d
+  1.7-3.9%) and IDENTITY PROXIES (alt_home_km has 4 distinct values; TEAMHOME
+  is 30 team dummies). DENSE6 is disclosed as a decomposition added AFTER the
+  pre-registered k-ladder was scored; it is selected on a structural property,
+  not on its cost, and it is not proposed for ship.
+  (5) **WHAT THE PILE BUYS ON THE HISTORICAL SEASONS — AND THE OPTION-VALUE
+  ANSWER.** `scripts/ca_hist.py`, control = same-run `fit_production`
+  walk-forward at D132 env defaults, scorable set re-derived at run time from
+  D153's `data/history_scorable.json`: 11 POOLABLE seasons **n=13,529** plus
+  strata 2011-12 / 2019-20 / 2020-21.
+      REAL DENSE6          -0.00034 (-0.00072,+0.00014)  I2  0%  ERA-STABLE
+      REAL DENSE13         -0.00001 (-0.00235,+0.00234)  I2 58%
+      REAL ALL15           **-0.00162 (-0.00460,+0.00137)**  I2 70%
+      REAL ALL15+TEAMHOME  -0.00705 (-0.01343,-0.00054)  I2 86%
+      noise k=15           -0.00151 (-0.00251,-0.00043)  I2 33%
+  **ON THE FULL HISTORY THE 15-TERM PILE COSTS THE SAME AS 15 NOISE COLUMNS**
+  (-0.00162 vs -0.00151): the pile carries NO net signal — D138 §9's
+  +0.000012 conclusion reproduced by a completely different route on 2.2x the
+  games. **AND THE OWNER'S OPTION VALUE IS REAL IN SIGN AND POINTS THE WRONG
+  WAY.** ALL15 per season: +0.00160 / +0.00601 / -0.00214 / -0.00222 /
+  +0.00501 / +0.00242 (**pre-2019 mean +0.00178**) then -0.00623 / -0.01166 /
+  -0.00553 / -0.00205 / -0.00302 (**2021-26 mean -0.00570**). Same shape for
+  TEAMHOME (pre-2019 +0.00088 vs 2021-26 **-0.01249**) and form_d_late
+  (+0.00265 vs -0.00101). On the
+  **2011-12 lockout stratum** — the most schedule-distorted season we hold
+  (b2b .310, 3-in-4 .463, D152) — TEAMHOME is **+0.01138 CI(+0.00306,+0.02001)
+  SIG** and form_d_late **+0.00386 CI(+0.00111,+0.00661) SIG**. So the option
+  value EXISTS and is MEASURABLE; it was live in an era we no longer play in.
+  I2 70-86% ERA-UNSTABLE, and §11's "the most recent fold is the live
+  forecast" makes the live verdict negative.
+  (6) **PART B, MEASURED FIRST (margins only, no endpoint).** The league home
+  edge is a **slow LINEAR DRIFT plus ONE STEP, not a random walk**: weighted
+  trend 1996-2026 excl 2020-21 (K=28) **-0.0531 +/- 0.0100 pts/season
+  t=-5.34**; 2010-2026 (K=15) **-0.0932 +/- 0.0203 t=-4.59**. **Detrended, the
+  season-to-season innovation variance is ZERO** — residual sd about the trend
+  **0.3993** against a pure-sampling sd of **0.3959**, and var(first
+  difference) 0.23727 sits BELOW the sampling floor 0.31353, so the point
+  estimate of q^2 is NEGATIVE (95% upper bound **q <= 0.230 pts/season**). The
+  one real break is COVID: 2019-20 +2.130 -> 2020-21 +0.944 (-1.187 = 2.6
+  season-SE) -> 2021-22 +1.723 (+0.779 = 1.7 season-SE).
+  **THEREFORE THE OPTIMAL ERA MEMORY IS INFINITE UP TO THE DRIFT** (Kalman
+  gain `K=(sqrt(l^4+4l^2)-l^2)/2` with `l = q/SE ~ 0`), and shortening the
+  window is STRICTLY HARMFUL in normal times. **THIS DIFFERS FROM D143 AND THE
+  PREREGISTRATION SAID SO BEFORE SCORING:** D143's ~21-game team memory is
+  finite because team strength genuinely random-walks on ~82 noisy
+  observations a season; the era parameter is pooled over 30 teams (1,230
+  obs/season, SE 0.39) and has zero measurable innovation. The two `lambda`s
+  differ by orders of magnitude and the optima do not and should not coincide.
+  (7) **THE MEASURED TRACKING LAG, AND WHAT IT COST** (`ca_era.py`, 384 weekly
+  refits 2010-11..2025-26, `data/carryall_era.json`). Mean |tracking error|
+  **0.387 pts**, mean signed bias **-0.097**; over 2010-19 the bias is
+  **-0.271**, i.e. the frozen `SCHED_PRIOR[0] = 2.3` holds 19.6% of the applied
+  home edge forever and its bias SIGN FLIPS across the corpus (pulls DOWN in
+  the high-home-edge era, UP in the current one).
+  **COVID STEP DOWN: error +1.295 pts at the 2020-21 opener and STILL +0.753
+  at the end of that season; fitted tracking-error half-life 219.5 DAYS —
+  longer than an NBA season; mean |error| 0.975 pts.** COVID STEP UP: error at
+  the 2021-22 opener only -0.051, mean |error| 0.213 — the 730-day window
+  straddled 2019-20 (high) and 2020-21 (low) and they cancelled, so the step
+  back up cost us essentially nothing BY LUCK, not by design.
+  WHAT THE LAG COST, oracle upper bound via `0.5*E[p(1-p)]*E[dm^2]/SCALE^2`:
+  **2020-21 +0.00194 / 2021-22-to-Jan +0.00008 / 2010-19 +0.00040 / all 16
+  seasons +0.00044.** An oracle that knew the truth exactly could not have
+  earned more than that.
+  **THE INFORMATION FLOOR — the real answer to "how fast can we update".**
+  Per-game margin sd is ~15 points and the era parameter moves by ~1 point.
+  Detecting the COVID step (1.187 pts) at 2.5 sigma needs **1,025 games = 123
+  calendar days**; at 2 sigma, 656 games = 79 days. The step BACK UP (0.779)
+  needs **2,380 games = 287 days** at 2.5 sigma. **You cannot update through an
+  era faster than roughly one full season, and no estimator design changes
+  that** — it is the signal-to-noise ratio of the data, not the window length.
+  (8) **THE THREE PRE-REGISTERED CONFIGS, GATED ON THE FULL SCORABLE HISTORY
+  WITH THE V3 BATTERY. ALL THREE NO-SHIP** (`ca_cfg.py`,
+  `data/carryall_cfg.json`; controls exact — capstone for 2021-26, the ca_hist
+  same-run walk-forward elsewhere).
+      cfg   universe       rms(dm)    delta    season-cluster CI      cluster-t   RO
+      C1    POOLABLE         0.444  -0.00049 (-0.00083,-0.00019) SIG  SIG NEG   1/10
+      C1    W3 2010-19       0.323  -0.00071 (-0.00122,-0.00036) SIG  SIG NEG    0/5
+      C1    stratum 2020-21  0.664  +0.00065
+      C2    POOLABLE         0.099  +0.00005 (-0.00003,+0.00013) ns            7/10
+      C3    POOLABLE         0.234  -0.00010 (-0.00024,+0.00000) ns            4/10
+      C2+C3 POOLABLE         0.230  -0.00002 (-0.00015,+0.00009) ns            6/10
+    (pinned TANK_SEASON_FLOOR=2020-21; every verdict identical to the unpinned
+    run to within 1e-5, exactly as the rms(dm) scaling predicts)
+    **C1 trend-aware (local-linear): SIG HARMFUL**, and 0/5 rolling-origin on
+    the very drift window it was designed for. It removes the lag bias and
+    pays more than that in variance: its COVID-step half-life is 5x better
+    (41.8 d vs 219.5 d) yet its mean |tracking error| is WORSE than the
+    incumbent's (0.405 vs 0.387). Registered as a clean refutation of "track
+    the drift", not a power failure.
+    **C2 data-driven shrinkage target: the only config positive everywhere**
+    (+0.00005 on POOLABLE, CERTIFIED-5 and W3; RO 7/10) and far too small to
+    ship. It does exactly what theory said — rms(dm) 0.071 pts on the
+    certified corpus against a prediction of `(1-w)*(2.3-1.94) = 0.070` — and
+    0.07 points of home edge is worth ~1e-5 of log loss. MDE80 0.00015.
+    **C3 change-point: fired ONCE in 16 seasons and that once was a FALSE
+    ALARM** (2022-12-14, recent-45-day mean 3.684 vs window 1.671, z=2.77, in
+    D139's registered home-advantage OUTLIER season). It is EXACTLY ZERO on
+    2010-19 and on all three strata **including 2020-21, the break it was
+    built for**, because a 1.19-pt step over 45 days is only 1.5 sigma against
+    a 2.5-sigma trigger. Cost on the certified corpus -0.00022.
+  (9) **THREE LIVE CONSTRUCTION FINDINGS, found while proving replica
+  identity** (`scripts/ca_verify.py` matches `fit_schedule_layer` at 15 refit
+  dates 2012-01-15..2026-03-01, worst |dbeta| **8.3e-14**).
+    (a) **THE dead/wpct COLUMNS ARE WINDOW-TRUNCATED.** `fit_schedule_layer`
+    rebuilds `gp`/`wins` from a **760-day** query keyed by (season, team), so
+    any season in the fit frame that began before that cutoff is scored on a
+    PARTIAL win-loss record. Measured: up to **3.4 points** on the fitted dead
+    coefficients and up to **0.12 points** leaking into the APPLIED home-edge
+    and b2b terms. It costs nothing today ONLY because `dead_h`/`dead_a` are
+    never applied — i.e. exactly the term this entry was asked to start
+    applying. hall-of-shame #8, live, in the one term production already fits.
+    (b) **The wpct control enters a team's FIRST game of a season at 0.000,
+    not 0.500** (`wins/max(gp,1)`; the documented `else 0.5` fallback cannot
+    fire for a row inside the fit frame).
+    (c) **DATA QUALITY: 10 games carry `is_home = false` on BOTH rows** (5 in
+    2024-25, 5 in 2025-26, including the 2025-26 NBA Cup knockout games
+    0022501229 / 0022501230). `fit_schedule_layer` silently DROPS them from
+    the fit frame while `prod_by_season` resolves the host from `matchup` and
+    SCORES them. Both behaviours are reproduced here rather than reconciled.
+  ALSO OBSERVED, for whoever re-certifies: a same-run `fit_production` at
+  today's defaults no longer reproduces D132 exactly — per-season ll differs by
+  up to **0.00050** (2021-22 0.61972 vs 0.62001; 2023-24 0.59503 vs 0.59548),
+  consistent with `tanking.season_floor` moving 2020-21 -> 2014-15 as D152's
+  backfill landed, which D152 §5 predicted. This entry is immune by
+  construction (its control IS the certified artifact).
+  (10) **VERDICT, IN THE OWNER'S OWN FRAME**, against the rule fixed in the
+  prereg (FREE < 0.0002 with the CI excluding worse than 0.0005; CHEAP
+  0.0002-0.0011; COSTLY > 0.0011, denominated against D132's +0.01120 gap):
+    * **the 6 dense continuous schedule terms — FREE TO CARRY** (-0.00012
+      certified / -0.00034 history, both ns, I2=0% ERA-STABLE, cheaper than 6
+      noise columns) **and worth nothing.** "Free to carry" is not a reason to
+      carry: a zero-valued term does not ship under the T1 rules.
+    * **all 15 class-(i) terms — COSTS 0.0057**, 51% of the entire remaining
+      gap to the closing line, on the live corpus.
+    * **everything, including the D70 block (45 coefficients) — COSTS 0.0180**,
+      161% of the gap: carrying it all would cost more than the whole distance
+      between us and the market.
+    * **the null cost of parameter count itself is -1.0e-4 per coefficient and
+      it is LINEAR**, matching a theory value written down before scoring.
+  **NOTHING WAS CHANGED. No `data/carryall_ship.diff` was written**, because
+  §10's condition ("if a config wins cleanly under §§8-11") was not met — C1 is
+  SIG harmful, C2 and C3 are nulls, and the oracle bound says no era-tracking
+  config could have been worth more than +0.00044 pooled / +0.00008 on the
+  current corpus. **Adaptation speed is not where the remaining gap is.**
+  (12) **CONTROL DISCIPLINE UNDER THE D153 TANK-FLOOR DRIFT — CHECKED, NOT
+  ASSUMED. PIN FOR REPRODUCIBILITY: `TANK_SEASON_FLOOR=2020-21`.** D153 found
+  that `tanking.season_floor()` derives 2014-15 today (was 2020-21) because of
+  D152's backfill, moving 35.28% of the certified games. **(a) The §3 ladder is
+  IMMUNE BY CONSTRUCTION** — it never calls `fit_production`; its control IS
+  `capstone_pergame.csv` with `m = SCALE*logit(p_us)`, so the D134 hash is
+  **max|dp| = 0.0, 0 of 6,148 moved** trivially. Because a trivially-exact
+  control cannot catch a replica bug, the compensating check is
+  `scripts/ca_verify.py` at **8.3e-14**. **(b) §5 and §8 DO call
+  `fit_production` and were RE-RUN pinned; THE PIN MOVES THEM, and the pinned
+  run is the authoritative one throughout this entry.**
+  **AN ERROR OF MINE, DISCLOSED because the register is worth more than the
+  appearance of cleanliness:** my first pinned-vs-unpinned check reported
+  "every number unchanged". It had read `carryall_hist.json` BEFORE the pinned
+  run finished writing it, i.e. it compared the unpinned file with its own
+  backup. Re-done correctly, per-season control ll shifts by up to **+0.004387**
+  (2017-18; 2020-21 +0.00138, 2016-17 +0.00093, 2023-24 +0.00045, 2025-26
+  -0.00050, while 2021-22 and 2022-23 move <1.2e-5), and the arm deltas shift:
+      pile:ALL15 -0.00177 -> **-0.00162**   ALL15+TEAMHOME -0.00725 -> **-0.00705**
+      DENSE13 -0.00010 -> -0.00001          solo:TEAMHOME -0.00535 -> -0.00520
+      DENSE6 -0.00034 -> -0.00034 (unmoved)
+      noise k=5/15/45 unmoved to 1e-5
+  **The signature is itself diagnostic:** the seeded NOISE arms are unmoved
+  while the REAL arms shift by up to +0.00020, which is exactly right — a noise
+  column is uncorrelated with the tank channel, the real terms share the
+  standings columns with it. The unpinned run OVERSTATED the pile's cost by
+  ~10% and no verdict changes direction. **The pin was verified to BITE rather
+  than assumed**: `season_floor` returns 2014-15 unset / 2020-21 pinned, and
+  game-level `p_home` moves under it (2022-23 up to 0.0072, 2023-24 up to
+  0.0112). Residual: even pinned, 2021-22 sits at 0.61972 vs D132's 0.62001 —
+  that is D153's SECOND channel (D91's bridge window now reaching the
+  backfilled bubble games), not the tank floor. The backfill is still running
+  and the derived floor may move again.
+  (13) **RECONCILIATION WITH D153 — AND IT IS THE MOST INFORMATIVE RESULT
+  HERE.** D153 measured the D70 team-home block at **-0.000613 ns**; this entry
+  measured **-0.01253 SIG**. Both are correct: D153 carried it under an
+  explicit **ridge 200** (the shipped `team_ratings.team_home_ridge` pattern),
+  this entry under the layer's global `n/(n+600)` alone. Re-run INSIDE THIS
+  HARNESS so the comparison is internal — same corpus, same control, same
+  layer, only the penalty changing (`data/carryall_ridge_reconcile.json`):
+      penalty on the D70 block   coef rms   rms(dm)     delta            CI
+      ridge 200 (shipped/D153)    0.653 pt    0.658   -0.00066 (-0.00151,+0.00024) ns
+      ridge 50                    1.488 pt    1.501   -0.00392 (-0.00553,-0.00228) SIG
+      UNPENALISED (global w)      2.630 pt    2.654   -0.01253 (-0.01493,-0.01029) SIG
+  **-0.00066 reproduces D153's -0.000613 to within 8% across two independently
+  built harnesses**, and the cost swings **19x on the shrinkage alone**. This
+  is §1's diagnostic promoted to a direct manipulation: the shrinkage is the
+  decision variable, and the schedule layer does not currently have one that
+  adapts per term.
+  ALSO RECONCILED: D153's other two arms match this entry's solos —
+  TRAV +0.000236 vs **+0.00023**; ALT -0.000048 vs **+0.00001**.
+  (14) **d3in4, D153's OUT-OF-ERA SURVIVOR — CARRIED HERE, AND THE TWO
+  HARNESSES AGREE AT THE MARGIN SCALE WHILE BOTH NULL AT THE ENDPOINT.** D153:
+  ALL n=16,544 **-0.5156 pts t=-2.44 SIG**, E-1 -0.8804 t=-2.35 SIG. This entry
+  fits d3in4 jointly with all 15 terms on 730-day windows at **-0.492 pts, SE
+  0.537 per window**; scaled to D153's pooled n the implied |t| is
+  0.492/(0.537*sqrt(2400/16544)) = **2.40** — same coefficient, same
+  significance, different construction. **It still converts to nothing at the
+  win-probability endpoint**: carried alone **-0.00010 CI(-0.00062,+0.00037) ns**
+  certified and **-0.00011 CI(-0.00038,+0.00013) ns** on the 11-season history.
+  Hall-of-shame #13 in its purest form — a real, stationary, era-stable margin
+  mechanism sitting below endpoint resolution. d3in4 is a member of the FREE
+  `DENSE6` set, so it costs nothing to carry and pays nothing either. D136's
+  ARM D null is not overturned; it is EXPLAINED (the arm bundled d3in4 with
+  d5in7 and paid two columns of parameter noise for it).
+  (15) **THE OPTION-VALUE VERDICT, AFTER D153's DARKO CAUTION — AND IT
+  CHANGES THE READING** (`data/carryall_darkocov.json`). Correlation between a
+  season's DARKO player-coverage and the per-season benefit of carrying:
+  **ALL15 -0.697 (R2 0.49), TEAMHOME -0.841 (R2 0.71)** (D153 independently got
+  -0.774 on its own profile), **form_d_late -0.610**, **DENSE6 +0.128
+  (R2 0.02)**. Coverage runs 0.088 (2010-11) -> 1.000 (2024-26).
+  **So 49-71% of the apparent historical option value is our own TALENT FEED
+  being starved on the old seasons, not a real recurring era effect.** The
+  distinction the register should keep: option value against a REAL recurring
+  effect is worth insuring; option value that is merely INSURANCE AGAINST OUR
+  OWN DATA DEGRADING is not a reason to carry a term in production, because it
+  would be re-earned automatically if the feed ever broke, and the cheaper fix
+  is to keep the feed healthy. The only clean candidate for the former is the
+  **2011-12 lockout stratum** (TEAMHOME +0.01138 SIG, form_d_late +0.00386 SIG)
+  — one compressed-schedule season in sixteen, itself at 0.09 DARKO coverage.
+  **DENSE6 is exempt from the caution** (corr +0.128, I2 = 0%, ERA-STABLE), so
+  its "free" verdict is genuine rather than a coverage artifact.
+  (16) **OPEN / REGISTERED NEXT STEP.** The one constructive lead is §1: a
+  **PER-TERM empirical-Bayes shrinkage** `w_j = t_j^2/(1+t_j^2)` in place of
+  the global `n/(n+600)`. It would cut the applied magnitude of the low-|t|
+  pile by 1.8x-2.5x and could plausibly make carrying genuinely free — but it
+  is a HYPERPARAMETER, this directive forbids hand-tuning it, and it must be
+  pre-registered and gated on its own. Not attempted here.
+  [scripts/ca_bank.py, ca_verify.py, ca_ladder.py, ca_hist.py, ca_era.py,
+   ca_cfg.py, ca_charts.py (all new, none under nbapred/);
+   data/carryall_prereg.md (sha256 9a4a414d…59bd9b), carryall_notes.md,
+   carryall_ladder.json, carryall_ladder_rows.npz, carryall_hist.json,
+   carryall_hist_rows.npz, carryall_era.json, carryall_cfg.json,
+   carryall_shrinkdiag.json, carryall_ridge_reconcile.json,
+   carryall_darkocov.json, carryall_bank.npz;
+   data/logs/ca_hist.log, ca_hist_pinned.log, ca_cfg.log, ca_cfg_pinned.log;
+   charts/carryall_cost_ladder.png, charts/carryall_era_tracking.png]
+- D155 THE FAVOURITE-LONGSHOT BIAS, AND THE SISTER FOOTBALL PROJECT'S THREE
+  INEFFICIENCIES, TESTED ON OUR MARKET — **NO FLB WORTH THE NAME (slope
+  +0.0020 CI[-0.0190,+0.0205] on 47,538 sides / 23,769 games / 19 seasons;
+  favourites lose -4.02% and dogs lose -4.01%, a 0.01pp difference), 0 OF 38
+  PROBABILITY BINS CLEAR BREAKEVEN, AND — THE ANSWER TO THE QUESTION THAT WAS
+  ACTUALLY ASKED — NONE OF OUR RULES' EDGE IS A LONGSHOT TAILWIND: THE
+  FAVOURITE SIDE IS A -4% HEADWIND AND OUR MODEL CLAWS +4.5 TO +5.5pp OF IT
+  BACK.** D148's "optimistic on dogs by 3.1pp" turns out to be OUR SYNTHETIC
+  MAP, not the market. Read-only on data/nba.duckdb; nbapred/, bet_engine.py
+  and the frozen registry untouched; all machinery that touches registered bet
+  sets is IMPORTED VERBATIM from bo_openbacktest.py (the D126/D142 precedent).
+  (0) **DATA + THE PRICE WE PAY.** odds_open is the unified panel and its
+  `close_ml_*` agrees with `odds_market.ml_*` **to the digit on 100% of the
+  18,494 overlapping games** (odds_market carries no ML at all for
+  2023-24..2025-26, so odds_open is strictly richer). Usable real CLOSING
+  moneylines **23,769 games / 47,538 sides / 19 seasons (2007-08..2025-26)**;
+  real OPENING moneylines 3,954 games / 3 seasons. D120's sanity filter
+  verbatim (raw implied sum in (1.00,1.25)). **OVERROUND: close 1.0384 =
+  3.84%, open 1.0431 = 4.31% (re-validating D121's 1.043); SBR era 1.0375,
+  modern era 1.0433.** The football reference book is **2.82%** — so we pay
+  **1.0-1.5pp MORE than their sharp-book class, and the modern seasons are the
+  expensive ones.** (Not strictly like-for-like: theirs is 3-outcome.)
+  (1) **A STRUCTURAL POINT THAT GOVERNS THE WHOLE TEST, AND THAT THE 3-OUTCOME
+  SOURCE PROJECT NEVER HAD TO MAKE.** Under ANY normalised devig
+  `p_home + p_away = 1` EXACTLY, so the p<0.5 half of the calibration curve is
+  the arithmetic MIRROR IMAGE of the p>0.5 half **on the same games** (verified:
+  err -0.0192 at [0.00,0.05) and +0.0192 at [0.95,1.00)). A 20-bin NBA curve
+  carries **10 bins of independent content**, and "longshots lose more than
+  priced" and "favourites win more than priced" are ONE statement here, not
+  two. Every family-wise count below is quoted both ways.
+  (2) **THE DEVIG IS PART OF THE TEST, AND IT DECIDES IT.** Six conventions run
+  on identical rows: proportional, additive, power, odds-ratio (Cheung), SHIN,
+  and goto_conversion (shift every outcome by the same number of its own
+  standard errors sqrt((1-r)/r), so longshots are cut hardest). `lin_b` = OLS
+  slope of (realised-implied) on (implied-0.5), **>0 = FLB**; `logit_b` = b in
+  `y ~ sigmoid(a+b*logit p)`, **>1 = under-confident = FLB**. Season-clustered,
+  K=19:
+      devig            lin_b [95% clustered]        logit_b [95%]
+      PROPORTIONAL     +0.0020 [-0.0190,+0.0205]    1.0057 [0.9752,1.0331]
+      additive         -0.0349 [-0.0553,-0.0169]    0.9505 [0.9213,0.9766]
+      power            -0.0552 [-0.0753,-0.0373]    0.9178 [0.8886,0.9439]
+      odds-ratio       -0.0380 [-0.0584,-0.0200]    0.9452 [0.9159,0.9715]
+      Shin             -0.0349 [-0.0553,-0.0169]    0.9505 [0.9213,0.9766]
+      goto_conversion  -0.0707 [-0.0906,-0.0531]    0.8935 [0.8648,0.9193]
+  **Under proportional devig the closing moneyline is calibrated to the point
+  of boredom (slope +0.002, logit slope 1.006). EVERY FLB-AWARE method comes
+  back SIGNIFICANTLY NEGATIVE — having assumed the bias and corrected for it,
+  the corrected prices are now over-confident. The correction over-corrects,
+  which is the same sentence as "there was nothing to correct."** Opens agree
+  (prop +0.0214 [-0.0233,+0.0629]; goto -0.0651 [-0.1109,-0.0257]).
+  **NOT ONE of the 20 close bins has a season-clustered calibration CI
+  excluding zero.** Largest |err| is 1.9pp on n=85 (4.5 sides/season). The only
+  suggestive band, [0.15,0.20)/[0.80,0.85), points the WRONG WAY for FLB.
+  (3) **WHERE THE BIAS IS REAL: MONEY, IN THE EXTREME TAILS ONLY** (real
+  closing MLs, season-clustered; "excess" = ROI minus what a perfectly
+  calibrated price at that overround would pay):
+      strategy               n sides   hit     be     ROI [95%]           excess
+      every favourite         23,979  68.31  71.11  -4.02 [-4.59,-3.48]   -0.31%
+      every dog               23,559  31.36  32.39  -4.01 [-5.74,-2.08]   -0.32%
+      p<0.25                   7,215  16.69  17.64  -6.75 [-10.69,-1.98]  -3.03%
+      p<0.10                     930   6.45   7.82  -19.84 [-36.37,-4.00] -16.54%
+      p>0.75                   7,215  83.31  86.23  -3.40 [-4.29,-2.59]   +0.33%
+      p>0.90                     930  93.55  95.60  -2.15 [-3.56,-0.71]   +1.14%
+      every home side         23,769  58.04  60.49  -4.24 [-5.38,-2.99]   -0.54%
+      every away side         23,769  41.96  43.35  -3.79 [-5.26,-2.24]   -0.10%
+  **Favourites and dogs lose IDENTICALLY.** In a textbook-FLB market the dog
+  loses 2-3x the favourite; here the gap is 0.01pp. The FLB exists ONLY outside
+  |p-0.5|>0.40 — 17.7pp of spread between the two tails — and those tails are
+  the SAME 930 games seen from opposite sides, i.e. ONE finding on 49 games a
+  season whose PROFITABLE end still returns **-2.15%**.
+  (4) **TASK 2 — EXPLOITABILITY. NOTHING CLEARS THE VIG. 0 of 38 bin cells
+  (19 independent) have an ROI CI entirely above zero, at the open or the
+  close.** Under a global "every bin is exactly breakeven" null ~1.0 of the 19
+  independent cells would clear by chance; **observed 0 — BELOW the free-lunch
+  rate**, the same reading D121 gave its 9-vs-14.4. 15 of 38 are significant
+  NEGATIVE, which is what a book charging 3.84% is supposed to produce. Best
+  point estimates anywhere: close [0.15,0.20) +2.13% CI[-6.14,+10.82] and open
+  [0.15,0.20) +8.46% CI[-7.57,+22.26] — same band, both ns, and its mirror
+  (the same games) is -5.11% SIG NEGATIVE.
+  (5) **TASK 3a — THE MATCHED CONTROL, AND IT IS THE MOST IMPORTANT NUMBER IN
+  THIS ENTRY.** Control = bet the MARKET FAVOURITE (side chosen by the price,
+  not by us) from the same (season x implied-prob bin) strata as our rules'
+  bets, reweighted to their own bin distribution, transacting at the REAL
+  moneyline. All four frozen rules are **100% favourite-side** (D121 (2)
+  confirmed); the union sits at p 0.501-0.949, median 0.679.
+      arm    set                 n  ruleROI  ctrl(4y)  ctrl(19y)  alpha  K-1 t CI on alpha
+      CLOSE  R4_LOWT           430   -0.57%   -3.77%    -3.95%   +3.20% [-30.76,+35.17] ns
+      CLOSE  T20_D03_10_W      191   +0.09%   -2.99%    -3.55%   +3.08% [-10.92,+16.61] ns
+      CLOSE  T20_D03_10        549   +1.32%   -4.33%    -3.68%   +5.65% [+2.95,+9.83] SIG
+      CLOSE  STAR_FAV_SHARPER 1171   +0.87%   -5.80%    -4.09%   +6.67% [-3.78,+18.56] ns
+      CLOSE  UNION            1466   +0.48%   -6.03%    -4.02%   +6.51% [-6.23,+20.96] ns
+      OPEN   R4_LOWT           485   +5.95%   -4.97%    -3.95%  +10.92% [-9.27,+30.11] ns
+      OPEN   T20_D03_10_W      215   +4.75%   -3.74%    -3.54%   +8.49% [-5.90,+21.55] ns
+      OPEN   T20_D03_10        554   +3.52%   -5.19%    -3.66%   +8.71% [-3.93,+20.76] ns
+      OPEN   STAR_FAV_SHARPER 1009   +0.51%   -5.46%    -4.07%   +5.98% [-6.77,+17.72] ns
+      OPEN   UNION            1378   +1.48%   -6.74%    -3.99%   +8.22% [+2.77,+12.96] SIG
+  DEV (2023-24+2024-25, where the rules were CHOSEN) vs NONDEV (2022-23+
+  2025-26) — the control removes FAVOURITE EXPOSURE, it does NOT remove
+  HYPOTHESIS SELECTION (D111): close UNION DEV +0.22/-4.90/**+5.12** and NONDEV
+  +0.80/-7.55/**+8.35**; open UNION DEV +1.03/-6.33/**+7.36** and NONDEV
+  +2.27/-7.21/**+9.48**.
+  **ANSWER: NONE OF IT. The favourite side is a HEADWIND of ~-4%, not a
+  tailwind.** A bettor copying only our price distribution and taking the
+  favourite loses 4.0% (19-season control) to 6.0-6.7% (contemporaneous). Our
+  rules land at +0.5%/+1.5%. Their whole measured performance is model
+  selection working against that headwind, worth **+4.50pp (close) / +5.47pp
+  (open) vs the 19-season control**, and it buys BREAKEVEN, NOT PROFIT — the
+  same verdict D117/D121/D126 reached from every other direction, now with the
+  one control that had never been run. Alpha is positive in 10/10 cells and in
+  both DEV and NONDEV, but survives the K-1 cluster-mean bound in only 2/10.
+  (6) **TASK 3b — D148's +23.49% vs +9.93% GAP IS SOLVED, AND IT IS OURS.**
+  D148 reproduces to the digit (ROI_SP all rows |pred|>1.5 **+23.49%**,
+  |pred|>1.0 +16.38%; ROI_ML +9.93% / +9.51%). Decomposed by entry side:
+      set          side   n   p_SP   p_ML  dec_SP dec_ML   ROI_SP   ROI_ML     gap
+      |pred|>1.5   FAV  365  0.731  0.728  1.383  1.354   +6.09%   +4.63%  +1.46pp
+      |pred|>1.5   DOG  294  0.302  0.344  4.359  3.370  +50.94%  +16.51% +34.43pp
+      |pred|>1.0   FAV  709  0.725  0.716  1.390  1.376   +5.00%   +5.47%  -0.47pp
+      |pred|>1.0   DOG  591  0.301  0.336  4.111  3.420  +36.48%  +14.35% +22.13pp
+  **The entire gap is the DOG side; on favourites the two frames agree to
+  1.5pp.** The synthetic frame pays a mean decimal of 4.36 on dogs where the
+  real market pays 3.37 — a 29% overpayment our own map invents.
+  **AND IT IS THE MAP, NOT THE MARKET**, established against OUTCOMES rather
+  than against the ML: calibrating `sigmoid(margin/6.96)` on the same 19
+  seasons gives err **-0.0389 [-0.0559,-0.0173] SIG at [0.05,0.10)**, -0.0223
+  SIG at [0.10,0.15), **+0.0378 SIG at [0.35,0.40)**, -0.0378 SIG at
+  [0.60,0.65), **+0.0389 SIG at [0.90,0.95)**; SP-map slope **lin_b = -0.0144**
+  against the real ML's +0.0020. Log loss: SP at 6.96 **0.58945**, at its own
+  best scale 7.02 **0.58944** (THE SCALE IS RIGHT), real-ML prop devig
+  **0.58803**. Swapping the logistic link for a NORMAL cdf `Phi(margin/11.5)`
+  recovers a quarter of it (0.58909; worst-bin |err| 0.0389 -> 0.0342; slope
+  -0.0144 -> -0.0095) — **the bend is LINK SHAPE, not scale**, and a residual
+  bend survives the link fix. So D148's ban on the SP map for dog-inclusive ROI
+  stands and now has its mechanism; the register should stop describing it as a
+  possible market bias.
+  (7) **TASK 3c — CLV DOES NOT INHERIT A DEVIG BIAS. Measured, all eight ways,
+  same bets, same games** (2023-24..2025-26, real open AND close MLs):
+      set                 n     prop     shin     goto    power       SP   POINTS
+      R4_LOWT           485  +0.01961 +0.02038 +0.02119 +0.02089 +0.01708  +0.758
+      T20_D03_10_W      215  +0.01358 +0.01404 +0.01451 +0.01443 +0.01354  +0.766
+      T20_D03_10        554  +0.01785 +0.01859 +0.01936 +0.01912 +0.01959  +0.881
+      STAR_FAV_SHARPER 1009  +0.01215 +0.01264 +0.01314 +0.01292 +0.00918  +0.370
+      UNION            1378  +0.01590 +0.01657 +0.01726 +0.01698 +0.01407  +0.586
+      ALL_UNIVERSE     3682  +0.00769 +0.00799 +0.00829 +0.00815 +0.00937  +0.348
+  Full spread across all eight conventions on the union **+0.01407..+0.01726**
+  = 20% of the level, **sign and significance identical in every one**, and the
+  FLB-aware conventions give the LARGEST CLV, not the smallest. In raw units,
+  where no devig exists at all, the union is **+0.586 points of line**.
+  **D121/D126/D147's CLV programme is unaffected.**
+  (8) **TASK 4 — THE FOOTBALL PROJECT'S OWN THREE TESTS. WHICH EVEN HAVE AN NBA
+  ANALOGUE, STATED FIRST.** Smoothing: YES, direct. Sharpening: YES, direct.
+  Bookmaker margin: YES, direct. **"The market is 2-D": NO, not cleanly** — a
+  2-outcome moneyline is EXACTLY 1-D (one number fixes the book) and their
+  second dimension is the first-moment parameter of a THIRD OUTCOME we do not
+  have; the nearest NBA candidates (the TOTAL, and spread-vs-ML consistency)
+  are tested and labelled as analogues, not equivalents. Tempo-beyond-P(draw)
+  and team draw-proneness: NO ANALOGUE, no draw. (Their goals/SOT-as-strength
+  null was already answered with the OPPOSITE sign at D147 (4).)
+  (8a) **SHARPEN — a HARDER null than theirs.** `p_s = sigmoid(s*logit p)`:
+  proportional devig best **s = 1.01**, delta **-4e-7** CI[-0.00004,+0.00005],
+  K-1 t CI[-0.00005,+0.00006], and **LOSO-selected it is +0.00004, i.e. it
+  HURTS**. (Shin best s=0.95 -0.00021 ns; goto best s=0.89 -0.00105 SIG — the
+  over-correction of (2) restated in log loss.) BY ERA: SBR 2008-2023 (K=16)
+  best s = **1.00**, delta 0.00000; modern 2024-2026 (K=3) best s = **1.06**,
+  delta -0.00023 CI[-0.00049,+0.00009] **ns** — which is football's own
+  s=1.08 / -0.0006 / ns, reproduced independently on three seasons.
+  (8b) **SMOOTH ACROSS A SEASON — their exact test is null here too, and the
+  one construction that is NOT null is an ORACLE.** Per-season ridge on
+  logit(p_close) over [30 team strengths + home edge], exact leave-one-GAME-out:
+      construction                                  dLL      95% clustered        K-1 t CI        seasons
+      pure REPLACEMENT lam=0.1 (THEIR FORM)     +0.00153  [-0.00169,+0.00496] [-0.00291,+0.00501] 10/19
+      pure replacement lam=16                   +0.00597  [+0.00299,+0.00915] [+0.00176,+0.00922]  4/19
+      45/55 BLEND, ORACLE                       -0.00480  [-0.00602,-0.00352] [-0.00654,-0.00346] 18/19
+      45/55 blend, ORACLE, LOSO-selected w      -0.00466  [-0.00596,-0.00327] [-0.00650,-0.00323] 17/19
+      WALK-FORWARD blend (past only), w=0.05    -0.00010  [-0.00024,+0.00005] [-0.00029,+0.00005] 12/19
+      walk-forward blend, LOSO-selected w       +0.00003  [-0.00019,+0.00028] [-0.00026,+0.00027] 12/19
+      best pure RESCALE (control)              -0.0000004 [-0.00004,+0.00005]                     11/19
+      blend + rescale jointly, ORACLE           -0.00579  [-0.00732,-0.00420] [-0.00780,-0.00415] 18/19
+  ECONOMIC TEST, betting the disagreement at the REAL closing moneyline:
+  ORACLE blend thr=0.00 n=15,750 **+8.22% [+5.69,+11.02]**, t-CI[+5.44,+12.21],
+  17/19 seasons; thr=0.05 n=9,299 **+12.61% [+8.16,+17.39]**, 18/19 — and the
+  **WALK-FORWARD blend thr=0.00 n=1,358 is -4.45% [-15.47,+8.32], 7/19**.
+  Control (the market bet against its own price) -4.82%, i.e. the vig.
+  WHERE the oracle gain lives, by quintile of games already played: Q1
+  **-0.01289**, Q2 -0.00767, Q3 -0.00585, Q4 -0.00120, Q5 **+0.00358 (HARMFUL)**
+  — a COLD-START phenomenon that INVERTS by season's end, the same shape the
+  football project measured from the other side. **READING: the oracle number
+  is a CEILING on what a season's prices know collectively that any single
+  price does not; it is NOT an edge, and the like-for-like comparison to
+  football is "+0.0015 ns vs their -0.0031 ns", both null, ours harder.** The
+  register must not later quote the -0.0048 without the word ORACLE.
+  (8c) **IS THE NBA MARKET 2-D?** (A) THE TOTAL: corr(|closing margin|,
+  season-standardised total) = **+0.080**, so **99.4% of the total's variation
+  is independent of the strength axis** (football's draw parameter: 70%) —
+  structurally MORE orthogonal. The mechanism is real but tiny (residual margin
+  sd by total tercile **12.438 / 12.474 / 12.619**). Does it add to the
+  moneyline? coef(total) **+0.0024 t=+0.15**, interaction -0.0011 t=-0.06,
+  dLL **-5e-7** CI[-1.3e-5,+1.4e-5] — **NOTHING**, and realised win rate by
+  (price band x total tercile) moves NON-MONOTONICALLY across all five bands,
+  literally their tempo result's signature. **POWER STATEMENT (required,
+  because a null needs one): the mechanism-implied effect at a 6-point
+  favourite is ~0.25pp against a per-cell se of ~1.1pp — THIS TEST COULD NOT
+  HAVE DETECTED THE TRUE EFFECT.** The honest verdict is "no detectable
+  effect, and none was detectable". (B) SPREAD-vs-ML: corr(logit p_ml,
+  margin/6.96) **0.9892**, disagreement sd 0.145 logits; recalibrated log loss
+  **ML 0.58801 vs spread-derived 0.58944** (the ML is the better instrument by
+  0.00143, consistent with (6)); does the disagreement predict outcomes beyond
+  the ML? coef -0.047 **t=-0.40**, dLL -3.4e-6 CI[-2.8e-5,+2.0e-5]. **No.**
+  (9) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe = **every era in
+  the odds corpus, E0 through E6** (2007-08..2025-26, 19 seasons), because this
+  is a MARKET-PROPERTY measurement and not a model gate — the price and the
+  outcome are the only inputs and both exist in every era. ERA-AVAILABILITY:
+  real closing MLs exist in all 19 seasons; real OPENING MLs exist only in
+  2023-24..2025-26, so every open-price cell is a 3-season reading and is
+  labelled. ERA-STABILITY of the headline: **ERA-STABLE** — SBR era (K=16)
+  lin_b -0.0018 / best s 1.00, modern era (K=3) lin_b +0.0430 / best s 1.06,
+  both nulls, same sign of "no usable bias"; the only era difference that
+  matters is PRICE (overround 3.75% -> 4.33%, i.e. it got MORE expensive).
+  COVID FRAME: E0/E1/E2 (2019-20 bubble, 2020-21) ARE included; excluded, the
+  headline slope is unchanged to the third decimal because the test is a
+  price-vs-outcome calibration with no fitted feature that the bubble could
+  corrupt (contrast D136, where including the COVID era MANUFACTURED two
+  coefficients). CLUSTERING: season, K=19 on the close arm, K=3-4 on the open
+  and rule arms; every CI above is season-clustered and the K-1 cluster-mean t
+  is reported wherever K<20.
+  (10) **VERDICT, PLAINLY.** (a) **There is no favourite-longshot bias in our
+  NBA moneyline market.** (b) **The one place a real price-axis bias lives is
+  |p-0.5|>0.40, and it is a real phenomenon and a useless one** — the
+  profitable end of a 17.7pp spread still returns -2.15% against a 3.84%
+  overround, on 49 games a season. A calibration bias that does not clear the
+  vig is worth naming and worth nothing. (c) **This market is not less
+  efficient than the football one — on the same three tests it is slightly
+  harder** (their smoothing null -0.0031 vs our +0.0015; their sharpen null
+  -0.0006 at s=1.08 vs our -4e-7 at s=1.01 and harmful out of sample; their
+  second market dimension carried real information, our nearest analogue
+  carries none that is detectable). **The only axis on which we are worse off
+  is PRICE: 3.84%/4.31% against their 2.82%.** Similar efficiency, worse terms
+  — which is exactly why D142's "shop the price, never shop for more bets" is
+  the highest-value instruction in the register. (d) **NOTHING HERE IS
+  ACTIONABLE AT $0 / RETAIL / 2-BOOK ACCESS.** No new bet, no new rule, no
+  change to any frozen artifact. (e) The one thing that DOES change is a
+  correction to our own tooling: the SP map's LINK is wrong (6), and any future
+  dog-inclusive work should either use real moneylines or a data-calibrated
+  margin->probability curve, not `sigmoid(m/6.96)`.
+  (11) **OPEN / REGISTERED NEXT STEPS.** (i) Fit and freeze a data-calibrated
+  margin->P(win) curve to replace `sigmoid(m/6.96)` in DIAGNOSTIC use (a
+  normal-cdf link at sd 11.5 already recovers a quarter of the deficit; the
+  residual +-0.034 bend near p=0.4/0.6 is unexplained and is the interesting
+  part). NOT a production change: p_mkt in the certified stack is built
+  elsewhere and is out of scope here. (ii) The ORACLE smoothing gain is
+  concentrated in the season's first quintile (-0.01289); D147's market-anchored
+  model is the walk-forward version of that idea and already ships as a T2 CLV
+  selector — the open question is whether an OCTOBER-ONLY variant is worth
+  anything, given the walk-forward blend is null POOLED but was never tested
+  October-only. (iii) The [0.15,0.20)/[0.80,0.85) band is the only non-flat
+  cell in the calibration table and it is anti-FLB; it is ns and should be
+  treated as noise unless a fresh season reproduces it.
+  [scripts/lb_longshot.py, lb_exploit.py, lb_football_analogues.py,
+   lb_smooth.py, lb_chart.py (all new, none under nbapred/);
+   data/lb_longshot.json, lb_exploit.json, lb_football_analogues.json,
+   lb_smooth.json, data/longshot_notes.md; charts/longshot_bias.png;
+   inputs odds_open + odds_market (read-only), data/ds_rt1_pergame.csv,
+   data/cm_clvmodel_rows.csv.gz (D147); reference
+   /hdd/steveqin/sean_dev/football_exercise (read-only, unmodified)]
+- D156 THE BIGPLAYER CEILING — A PAID INJURY WIRE, BOUGHT MINUTES, A TRACKING
+  FEED, A 5-8 BOOK SHOP AND AN EXCHANGE ACCOUNT, ALL AT ONCE, ON OUR MODEL.
+  **ANSWER: NO. A FULLY-EQUIPPED, FULLY-CAPITALISED PROFESSIONAL RUNNING THIS
+  MODEL DOES NOT CLEAR THE VIG.** Everything money can buy closes **32.4%** of
+  the accuracy gap (T5-T0 **+0.00604** season-clustered CI[+0.00507,+0.00876]
+  SIG, cluster-mean t CI[+0.00188,+0.01138] SIG) and leaves **+0.01259 raw /
+  11.56% normalized STILL BEHIND the close**; the best execution cell reaches
+  **+2.69% ROI** and **NOT ONE positive cell in the entire 2x6x7 execution grid
+  survives the K-1 cluster-mean t bound**. The joint number D154 said had to be
+  MEASURED rather than summed is now measured. Pre-registered
+  data/bigplayer_prereg.md sha256
+  fbcea42eafa263892c4c9b1874eb4ed4d21d2d7059311ba909541982dc89642c, written
+  before any endpoint. Read-only on data/nba.duckdb; nbapred/, bet_engine.py and
+  the frozen registry untouched; all bet machinery IMPORTED VERBATIM from
+  bo_openbacktest.py (the D126/D142/D155 precedent); no production default
+  changed; TANK_SEASON_FLOOR PINNED to "2020-21" in the environment.
+  (0) **THE STRUCTURAL CORRECTION THAT REORGANISES THE WHOLE TASK, AND IT IS
+  ABOUT OUR OWN BASELINE. THE D132 CERTIFIED STACK IS NOT AVAILABILITY-BLIND —
+  ITS DEFAULT OUT-SET CONSTRUCTION IS THE PLAYED-SET ORACLE, i.e. exactly what
+  docs/LEAKAGE.md calls leakage ("who plays >0 minutes ... NEVER inputs").**
+  In scripts/prod_by_season.py, with INACTIVE_OUTS and REPORT_OUTS both unset —
+  which IS the D132 certified environment — the else branch is
+  `outs[t] = {p in rotation if p not in played.get((gid,t))}`, and `played`
+  comes from `player_game_stats` FOR THE GAME BEING PREDICTED. This is disclosed
+  in docs/PAID_ORACLES.md ("THE HEADLINE CAPSTONE ... IS the bought-availability
+  tier already (oracle outs are its default)") and in the script's own
+  docstring; what is STALE is D142's parenthetical that "at D132 certified
+  defaults INACTIVE_OUTS/REPORT_OUTS are UNSET, so production is
+  availability-blind". **Unset does not mean blind, it means ORACLE.**
+  CONSEQUENCE: the briefed ladder (T0 = D132, then ADD the injury report) is
+  INVERTED at the bottom — handing a real participant the 5PM report is a
+  DOWNGRADE from the certified artifact. The ladder is therefore rebuilt off an
+  honest floor, **T0 = availability-BLIND (outs = {} both teams, everything else
+  the D132 construction bitwise)**, and the certified construction is carried as
+  **C1** in PART C where it belongs. Every number below that involves T0 is
+  measured against a baseline the register has never scored before.
+  (0a) **CONTROL-HASH FIELD (D134 rule).** The C1 arm IS the D132 construction:
+  against data/capstone_pergame.csv, **2,889/2,889 games joined, 2,860
+  bit-identical (|dp| <= 1e-9), 29 drifted, max|dp| 3.385e-03**, p_mkt identical
+  on 0.0e+00, and the per-season log loss reproduces the certified digits
+  exactly (2023-24 **0.59548** vs D132's 0.59548; 2024-25 **0.58722** vs
+  0.58722). The 29 movers are corpus growth since the 2026-08-01 certification
+  (a backfill is still writing) — the D130/D132 drift signature.
+  (1) **THE LEAKAGE LINE, PER TIER, WITH THE TABLE AND THE COLUMN.** Owner's
+  policy: pregame-PUBLIC or PURCHASABLE is legitimate, outcome-derived is not.
+    T0 outs = {} — rotation from CompositionModel built with game_date < refit
+       date, so only completed prior games. LEGITIMATE.
+    T1 `injury_reports_pit` (report_date, game_date, team, player, status),
+       `status='Out' AND report_date = game_date`. Published 5:00pm ET, hours
+       before tip. Join to player_id via nba_players, construction VERBATIM from
+       prod_by_season.report_out_map. LEGITIMATE.
+    T2 `game_inactives` (game_id, player_id, team_id), UNIONed with T1. Filed
+       with the scorer ~30 min before tip and public at that moment; stored
+       inside the box-score payload for archival reasons only. LEGITIMATE.
+    T3 SIMULATED purchase: proj_min = clip(realised + N(0,sigma), 0, 48),
+       sigma = MAE/0.79788, over T2's surviving rotation. NOT a real feed —
+       see (3). LEGITIMATE AS A PRICED SIMULATION, labelled everywhere.
+    T4 D36/D72 on-ball rating from the **PREVIOUS** season's
+       `leagueseasonmatchups` aggregate, team-aggregated by minutes over the
+       team's last 10 games strictly before game_date. The prior season is
+       complete before the current season's first tip. LEGITIMATE.
+    T5 `darko_history.dpm` at date <= game_date-1 and
+       `epm_history_daily.tot_epm` at asof_date <= game_date-1, latest per
+       player, 50/50 in z-space rescaled to the DARKO scale. Both are daily
+       published products; yesterday's publication is strictly pregame.
+       LEGITIMATE, and a genuine upgrade on production twice over (DAILY vs
+       weekly refit, ENSEMBLE vs DARKO alone).
+    NEVER INPUTS anywhere in PART A: tonight's player_game_stats, realised
+    minutes, the final score, same-season tracking aggregates.
+  (1a) **DATA REALITY vs THE BRIEF, stated because it bounds the answer.**
+  `injury_reports_pit` holds **ONE** edition, `05PM` — **there is no T-30 report
+  tier in this DB**; T2 uses the inactive list for that signal, which is the
+  better instrument anyway. Report coverage is 2023-10-24..**2025-12-22**, so
+  2025-26 is a PARTIAL season (62 game dates, 429 scorable games). There is **no
+  per-game player-track cache on disk** — `hustle` is 2 season-level files,
+  `ptstats` is season-level — so the only tracking surface is the season-level
+  `matchups` cache, which exists for 2023-24 onward ONLY, making **T4
+  structurally inert on 2023-24** (§10.2, the D110 cold-estimator trap).
+  LADDER FRAME = report-covered games in 2023-24 + 2024-25 + 2025-26p =
+  **2,889 games, K = 3 season clusters**. §9.3's small-K warning is live in every
+  cell below and the K-1 = 2 dof t interval is the conservative bound throughout.
+  (2) **PART A — THE JOINT INFORMATION LADDER.** Every tier is computed in ONE
+  walk-forward pass per season, so all tiers share the identical weekly
+  fit_production / CompositionModel fits and differ ONLY in prediction-time
+  information; nothing here is confounded with refit jitter.
+      tier                       ll      raw     norm    INCREMENT   season-clustered CI      t(2dof) CI            MDE80    moved
+      T0  availability-BLIND  0.60284  +0.01863  17.11%       —              —                      —                 —        —
+      T1  + 5PM report        0.59968  +0.01547  14.20%   +0.00316  [+0.00243,+0.00390] SIG  [+0.00105,+0.00496] SIG  0.00265  74.1%
+      T2  + inactives (T-30)  0.59799  +0.01378  12.65%   +0.00169  [+0.00016,+0.00337] SIG  [-0.00300,+0.00571] ns   0.00196  40.8%
+      T3  + bought minutes    0.59761  +0.01340  12.30%   +0.00038  [-0.00172,+0.00229] ns   [-0.00456,+0.00557] ns   0.00278  93.8%
+      T4  + prior-season trk  0.59711  +0.01290  11.84%   +0.00051  [+0.00000,+0.00130] ns   [-0.00094,+0.00230] ns   0.00090  55.1%
+      T5  + DARKO+EPM D-1     0.59680  +0.01259  11.56%   +0.00030  [-0.00066,+0.00392] ns   [-0.00506,+0.00724] ns   0.00168  93.8%
+      market close            0.58421      —        0
+  **T5 - T0 = +0.00604, season-cluster CI[+0.00507,+0.00876] SIG, cluster-mean
+  t CI[+0.00188,+0.01138] SIG, positive 3/3 seasons (+0.00606/+0.00507/+0.00876),
+  rolling-origin 2/2 folds positive, i.i.d. CI[+0.00254,+0.00959], 7-day BLOCK
+  bootstrap CI[+0.00283,+0.00958] SIG, ICC -0.00086, DEFF_anova 0.24 /
+  DEFF_boot(season) 0.43** — season clustering makes the CI NARROWER here (the
+  D138 pattern, not the D133 one) **but the TEMPORAL design effect is 2.22, so
+  the i.i.d. bootstrap understates the SE by 2.2x against week blocks** and that
+  flag is carried verbatim into the §11 row. Per-season norm gap at T5:
+  14.76% / 7.18% / 15.62%.
+  **HEADLINE: T5 DOES NOT CLOSE THE 0.01120 GAP. It closes 32.4% of the honest
+  gap and stops at +0.01259 raw / 11.56% normalized — which is, to two decimal
+  places, where D132 already sits (11.13%), because D132 was already buying the
+  availability channel by cheating.**
+  (2a) **WHERE THE MONEY GOES, AND IT IS ALL IN ONE PLACE.** **T0->T2 is
+  +0.00485 of the +0.00604 = 80.3%**, and T0->T1 alone is 52%. **T2->T5 —
+  purchased minutes, tracking and best-available talent COMBINED — is +0.00119,
+  CI[-0.00098,+0.00618] ns.** Three purchases, one null. Only T0->T1 clears its
+  own MDE80; T1->T2 (+0.00169 vs MDE80 0.00196) and everything above it are
+  BELOW this corpus's resolution and are reported as such, exactly as §9.4 says
+  they must be. NOTE: the realised MDE80s (0.0009-0.0028) came in ~2x TIGHTER
+  than the prereg's conservative 0.00491 global-footprint figure, because tier
+  swaps move p by far less than a D46-class layer change; the prereg number was
+  wrong in the safe direction and is corrected here.
+  (2b) **THE BUYABLE STACK IS STATISTICALLY INDISTINGUISHABLE FROM CLAIRVOYANCE
+  ON AVAILABILITY. T5 -> C1 = +0.00124, CI[-0.00394,+0.00234] ns.** The buyable
+  rungs recover **83%** of T0->C1 (+0.00604 of +0.00728). So D95's "availability
+  wire +0.0037, WOULD-BUY at $5-20k" is mostly the difference between NO
+  availability data and PUBLIC availability data — **the official 5PM report and
+  the official inactive list are free, and they buy nearly the whole channel.**
+  (3) **THE MINUTES-ORACLE ACCURACY ASSUMPTION, ANCHORED ON A MEASURED NUMBER
+  RATHER THAN ASSERTED** (design diagnostic, minutes level, run and DISCLOSED
+  before the pre-registration; endpoint never touched). The model's OWN free
+  minutes input (`trail_min`, the trailing-10 mean over games >=12 min) scores
+  **MAE 6.99 min with a +3.25 min OVER-projection bias** over 69,780 rostered
+  non-inactive rotation player-games (6.839/7.089/7.035 by season). A purchased
+  product must beat that, so the purchase is modelled at **MAE 4.0 unbiased
+  (primary)** with **3.0 / 5.0** sensitivity, and every T3+ number is an UPPER
+  bound at its MAE because the simulated projection is centred on truth while a
+  real product is also biased.
+      MAE   T3 norm gap   T3 increment over T2            T5 norm gap
+      3.0     12.05%      +0.00065 [-0.00145,+0.00248] ns    11.31%
+      4.0     12.30%      +0.00038 [-0.00172,+0.00229] ns    11.56%
+      5.0     12.55%      +0.00011 [-0.00203,+0.00212] ns    11.81%
+  **Monotone and negligible: halving the projection error from 6.99 to 3.0 buys
+  +0.00065.** PART C explains why (see (6)): at MAE 0 it is worth LESS THAN
+  NOTHING. **PAID_RETROSPECTIVE's "oracle-minutes <= 0.003" should be revised to
+  ~0; D95's SKIP on projection services is upheld by a stronger argument than
+  the one it was given.**
+  (4) **PARAMETER COST (D154's warning, declared BEFORE scoring).** T1/T2/T3/T5
+  add **ZERO** parameters — they populate the existing out_home/out_away slot,
+  the existing trail_min factor, and the existing talent factor. T4 adds **ONE**
+  (k, walk-forward OLS shrunk with 600-game prior mass). AIC-style charge at
+  n=2,889 is **0.000346**; T4's increment is **+0.000505**, so it survives its
+  own cost — on a CI whose lower bound is +0.00000. That is not a result to lean
+  on and the entry does not lean on it.
+  (5) **TRACKING: D72 REPRODUCES, AND ONLY IN ITS CLAIRVOYANT FORM. THIS IS THE
+  CLEANEST NEGATIVE IN THE ENTRY.**
+      pocket                      n     T3->T4 PRIOR-season      T3->C4 SAME-season
+      heavy fav |p_mkt-.5|>0.35   362   -0.00070 [-0.00251,+0.00000] ns  **+0.00268 [+0.00044,+0.00486] SIG**
+      mid       |p_mkt-.5|<=0.35 2527   +0.00068 [+0.00000,+0.00175] ns  -0.00079 [-0.00098,-0.00000] SIG NEG
+  The same-season aggregate delivers D72's registered effect in exactly D72's
+  registered pocket (D72: +0.0059, n=519, all 3 seasons positive). The
+  PRIOR-season aggregate — the only version a customer can actually have before
+  tip — delivers **-0.00070** in that same pocket. **The tracking edge does not
+  survive the one change that makes it purchasable: being a season out of date.**
+  A live vendor feed is as-of-daily rather than a season stale, so the truth sits
+  between -0.0007 and +0.0027 and cannot be resolved on this corpus; but
+  PAID_ORACLES #7's "$300k+, CONDITIONAL" must now carry the caveat that its
+  measured value is a within-season quantity that has never been shown to
+  transfer. Separately, the whole buyable stack does NOTHING on heavy favourites
+  (T0->T5 +0.00025 ns) and everything in the mid-distribution (+0.00687 SIG) —
+  the mirror image of D72/D97, and exactly what one expects if availability is
+  the channel that matters, since a star scratch is what moves a toss-up.
+  (6) **PART C — THE CLAIRVOYANT BOUND. UNATTAINABLE. REPORTED SEPARATELY AND
+  NEVER MIXED INTO THE BUYABLE STACK.**
+      arm                                      ll      raw     norm   increment  season-clustered CI       t(2dof)
+      C1 = T2 + who actually played         0.59556 +0.01135 10.42%  +0.00243  [+0.00136,+0.00358] SIG  [-0.00039,+0.00517] ns
+      C2 = C1 + realised minutes            0.59659 +0.01238 11.36%  **-0.00103** [-0.00202,+0.00077] ns  [-0.00410,+0.00283] ns
+      C3 = C2 + perfect talent (D97)        0.59250 +0.00829  7.61%  +0.00409  [+0.00404,+0.00414] SIG  [+0.00394,+0.00422] SIG
+      C4 = T3 + SAME-season tracking        0.59796 +0.01375 12.62%  -0.00035  [-0.00069,+0.00051] ns   ns
+      T0 -> C3, the WHOLE clairvoyant stack: **+0.01034 [+0.00953,+0.01141] SIG,
+      t[+0.00756,+0.01281] SIG**
+  Three things this settles.
+  (a) **PERFECT INFORMATION DOES NOT CLOSE THE GAP EITHER.** A participant who
+  knows tonight's inactives, tonight's minutes AND next month's talent is still
+  **+0.00829 raw / 7.61% normalized behind the close**. **44% of the residual is
+  not an information problem at all** — it is model form plus irreducible market
+  aggregation, and no purchase, legal or otherwise, touches it. This is the
+  hardest bound the program has ever put on itself.
+  (b) **C2 INDEPENDENTLY REPRODUCES D97**: perfect talent **+0.00409** here vs
+  D97's registered **+0.00400 CI(+0.00339,+0.00463)**, on a different frame,
+  a different baseline and a different harness. D97 is confirmed.
+  (c) **PERFECT MINUTES ARE WORTH LESS THAN NOTHING (-0.00103) once availability
+  is already perfect.** Minutes information is very largely a RESTATEMENT of
+  availability information in this model; the residual is where a linear
+  talent x minutes sum mis-specifies rotation effects, and knowing the minutes
+  exactly makes that mis-specification bite harder. This is the mechanism behind
+  T3's null at every MAE.
+  (7) **PART B — THE EXECUTION CEILING. Model held FIXED at T0 and at T5; only
+  the transacted price varies. Registered-rule UNION, bet at the OPEN.** D142
+  shop factors applied as f_N = 73.03/(73.03 - dBE_N): N=2 **1.01346**
+  (MEASURED, the only clean one), N=4 1.02383 (mixes two vendor snapshots), N=5
+  **1.02729** and N=8 **1.03369** (**EXTRAPOLATIONS — CEILINGS, NOT FORECASTS**,
+  and D142 said so first).
+      execution tier                 T0 ROI    T5 ROI   T5 season-clustered CI   T5 cluster-mean t(2dof)
+      E0  our access (1-2 retail)    -1.61%   -0.95%   [-3.40,+1.87] ns         [-8.45,+5.68] ns
+      E1  N=2  MEASURED              -0.29%   +0.39%   [-2.10,+3.24] ns         [-7.21,+7.10] ns
+      E1  N=5  CEILING               +1.08%   +1.76%   [-0.77,+4.65] ns         [-5.95,+8.57] ns
+      E1  N=8  CEILING               +1.71%   +2.39%   [-0.15,+5.30] ns         [-5.36,+9.24] ns
+      E2  exchange c=2%              +2.04%   **+2.69%** [+0.19,+5.62] SIG      **[-5.16,+9.59] ns**
+      E2  exchange c=5%              +1.09%   +1.71%   [-0.76,+4.62] ns         [-6.10,+8.55] ns
+      E3  E2 + ex-ante MIDDLE W=2    +1.81%   +2.30%   [-5.33,+4.45] ns         [-12.38,+13.68] ns
+  **HEADLINE (PART B): the fully-equipped, fully-capitalised participant returns
+  +2.69% ROI per unit staked. The season-clustered CI excludes zero; the K-1
+  cluster-mean t interval does not, and NOT ONE positive cell in the entire
+  2 x 6 x 7 grid survives that bound.** ALL_UNIVERSE (bet every game our side
+  likes) is NEGATIVE at every execution tier at both model tiers (T5@open -3.71%
+  at E0 through -0.15% at E2c2) and SIG-NEGATIVE on the t bound at E0: **capital
+  does not make a losing book win, it makes a marginal book marginally less bad.**
+  (7a) **THE MEASURED PRICE OF EVERYTHING — the most useful table in PART B**
+  (UNION at T5, n=981, mean fair prob 0.6836; D121 established all four rules are
+  100% favourite-side, which is what makes this asymmetry bite):
+      execution              mean transacted decimal   cost over the fair devigged price
+      E0  our retail books           1.4414            **2.997 pp**  (realised overround **1.0434**)
+      E1  N=2  MEASURED              1.4608              2.049 pp
+      E1  N=5  CEILING               1.4807              1.101 pp
+      E1  N=8  CEILING               1.4899              0.671 pp
+      **E2 exchange c=2%**           **1.4933**        **0.410 pp**
+      E2  exchange c=5%              1.4782              1.035 pp
+  The realised overround **1.0434** reproduces D155's measured 4.31% open **to
+  the digit** on an independently built frame. **STRUCTURAL FINDING: a 2%
+  exchange commission on NET WINNINGS costs 0.41pp of breakeven on this bet
+  population against 3.00pp at our retail books — a 7.3x reduction, and CHEAPER
+  THAN THE EXTRAPOLATED CEILING OF AN EIGHT-BOOK SHOP (0.671pp). A 5% exchange
+  (1.035pp) is worth about the same as a five-book shop.** The mechanism is
+  structural, not empirical: an overround is levied on the STAKE while
+  commission is levied on (d-1), so on a 68%-favourite book the exchange pays
+  c(d-1)/d = 0.02 x 0.44/1.44. **FOR A FAVOURITE-SIDE BOOK, ONE EXCHANGE ACCOUNT
+  BEATS EIGHT SPORTSBOOK ACCOUNTS.** CAVEAT, stated not buried: E2 assumes
+  transacting at exactly the devigged retail price; a real exchange has its own
+  bid-ask and finite NBA-sides liquidity, so 0.41pp is a FLOOR and +2.69% is
+  correspondingly an upper estimate.
+  (7b) **EXECUTION MOVES ROI FOUR TIMES MORE THAN INFORMATION DOES.** On the
+  IDENTICAL bet set, price alone is worth **+3.64pp** (E0 -> E2 c=2%) at both
+  model tiers; upgrading the MODEL from T0 to T5 is worth **+0.66pp**. That is
+  the answer to "money or information", in one line — **but see (7c) before
+  spending anything on it.**
+  (7c) **THE SELECTION CAUTION THAT GOVERNS EVERY POSITIVE NUMBER IN PART B.**
+  Two of this frame's three seasons (2023-24, 2024-25) are the D115 DEV window
+  in which every registered rule was CHOSEN; 2025-26p is the only NONDEV season
+  and carries 144 union bets. T5/E2c2 per season: **+0.18% / +5.62% / +0.83%**.
+  The entire positive result is ONE season, and on the one season nobody could
+  have selected on it is **+0.83% on 144 bets**, i.e. noise. D111 governs:
+  "pre-registration protected our PARAMETER choices, never our HYPOTHESIS
+  choices", and no re-pricing of a fixed bet set can undo that.
+  (7d) **E3 DOES NOT RESCUE IT.** The ex-ante middle (D148 §7 construction
+  verbatim) on OUR side selection at W=2 returns +2.30% [-5.33,+4.45] ns at T5,
+  per season **+4.45 / +2.83 / -5.33** — negative in the only NONDEV season. The
+  one spectacular cell (T20_D03_10_W +17.76% at exchange 2%) is n=141 with a
+  cluster-mean t of [-27.8,+63.4]: a §9.3 artefact, not a finding. D148's own
+  verdict is untouched — hedging a directional position destroys EV, and the
+  middle was the only survivor, but it does not survive on OUR selection.
+  (8) **PRE-REGISTRATION SCORECARD** (the point of writing predictions down):
+  P1 "T5 does not close the gap" **RIGHT**, but the magnitudes were wrong in the
+  optimistic direction — predicted T5-T0 +0.0035..+0.0055 (actual **+0.00604**,
+  slightly better) and predicted residual 6-9% normalized (actual **11.56%**,
+  materially WORSE, because the T0 gap was bigger than predicted: +0.01863 vs a
+  predicted +0.013..+0.015). P2 "T2 is the largest single rung" **WRONG** — T1,
+  the 5PM report, is; the paired sub-prediction "T1->T2 < T0->T1" was RIGHT.
+  P3 "T4 fails its parameter cost" **WRONG** (+0.000505 vs 0.000346, barely).
+  P4 "T5 ~ T4, |inc| < 0.0005" **RIGHT** (+0.00030). P5 "T5 < C1" **RIGHT** in
+  point estimate, but the gap is NOT significant, which is a better result for
+  the buyer than predicted. P6 "no rule ROI CI entirely above zero at E0/E1;
+  E2 c=2% first positive point estimate; E3 model-insensitive" **RIGHT on all
+  three**. P7 "binding constraint = execution, but NEITHER is sufficient"
+  **RIGHT**.
+  (9) **ERA STATEMENT (GATE_POLICY_V2 §10).** ERA CODES: eval universe is
+  **E5 + E6** (2023-24 = E5; 2024-25 and 2025-26p = E6). This is the ONLY
+  universe on which the test can be run: T1 requires `injury_reports_pit`
+  (starts 2023-10-24) and T2 requires `game_inactives` (starts 2022-23), so on
+  E3/E4 the buyable rungs are STRUCTURALLY INERT and scoring them there would
+  be the D110 §1a cold-estimator category error. ERA-AVAILABILITY: within
+  E5+E6, T1 is missing after 2025-12-22 (frame truncated accordingly, 429 games
+  in 2025-26) and **T4 is inert on E5 entirely** (no 2022-23 matchups cache) —
+  both stated at every T4 cell. ERA-STABILITY of the headline (T5-T0): per-era
+  estimates **E5 +0.006058 (n=1230), E6 +0.006027 (n=1659)**, between-era
+  variance share 2.6e-08, I2 = 0%, tau = 0 -> **ERA-STABLE** — **with the
+  mandatory caveat that Q has ZERO dof on two eras, so this test CANNOT PROVE
+  stability, only fail to reject it** (splits.era_decomposition returns
+  heterogeneity_underpowered = True and the entry quotes it rather than hiding
+  it). Sign positive in 3/3 seasons and 2/2 rolling-origin folds. PART B is **ERA-CONDITIONAL at best and
+  is not shipped**: its positive cells live in E5/E6-dev and vanish in the
+  NONDEV season (7c). COVID FRAME: **vacuous** — E0/E1/E2 are not in the frame
+  and cannot be, so no COVID-frame contamination of the D136 kind is possible
+  here. CLUSTERING: season, **K = 3**; every CI above is season-clustered and
+  the K-1 = 2 dof cluster-mean t is quoted next to it, per §9.3, which warns the
+  K=3 cluster bootstrap is unreliable in BOTH directions — and it was: the E2
+  c=2% cell is SIG on the bootstrap and ns on the t interval, which is exactly
+  the failure mode §9.3 describes. **The t interval is the shipping read.**
+  (10) **§11 ADJUDICATION.** T0->T5 (the whole buyable stack): pooled clustered
+  CI excludes 0, rolling-origin 2/2 positive, ERA-STABLE, block bootstrap agrees
+  (SIG), cluster-mean t SIG -> **MULTI-SPLIT PASS (WITH NOTES)** as a
+  MEASUREMENT, the note being the flag `temporal design effect 2.22 — iid
+  bootstrap understates the SE`, quoted here verbatim as §11 requires. It is not
+  a ship: T5 is not a production candidate, because T3/T4/T5 are individually
+  null, T4 costs a parameter for +0.0005, and the two rungs that carry it (T1,
+  T2) are FREE PUBLIC DATA, not purchases. Every individual rung above T2 is
+  **NO-PASS under multi-split**. PART B: **NO-PASS** everywhere on the t bound.
+  (11) **VERDICT, PLAINLY, BECAUSE THIS IS THE PROJECT'S CENTRAL QUESTION.**
+  **(a) EVEN FULLY EQUIPPED AND FULLY CAPITALISED, THIS MODEL DOES NOT CLEAR THE
+  VIG.** The best honest cell in the whole exercise is +2.69% ROI on 981 bets
+  over 2.5 seasons, two-thirds of them in the window the rules were chosen in,
+  with a conservative interval of [-5.16,+9.59] that contains both a good
+  business and a ruinous one. Anyone sizing a bankroll off that number is sizing
+  off noise.
+  **(b) THE BINDING CONSTRAINT IS NEITHER MONEY NOR INFORMATION — IT IS THE
+  MODEL.** Information is bounded: perfect, illegal, unbuyable information stops
+  7.61% short of the close, so **44% of our gap is not purchasable at any price.**
+  Execution is bounded: the entire retail-to-exchange journey is worth 2.59pp of
+  breakeven and the model's own edge over the close is worth less than that.
+  Between them they leave the answer where D97, D117, D121, D126 and D155 each
+  left it from a different direction: **the sides model is the constraint, and
+  it has been the constraint since D97 said "sides-model improvement is now
+  bounded".** This entry converts that from a talent-channel statement into a
+  total-information statement.
+  **(c) THE ONE ACTIONABLE FINDING IS FREE.** The 5PM injury report and the
+  official inactive list are PUBLIC, they carry 80% of everything money can buy
+  (+0.00485 of +0.00604), and production currently consumes NEITHER — it
+  consumes an oracle instead (0). **Wiring T2 into production is the single
+  highest-value change available, it costs $0, and it is the change that makes
+  the certified number honest.** Until it is made, the register's headline
+  11.13% is an availability-oracle number and the live-legitimate number is
+  **12.65%** on this frame.
+  **(d) THE ONE ACTIONABLE FINDING THAT COSTS MONEY IS AN EXCHANGE ACCOUNT, NOT
+  A DATA FEED.** 0.41pp vs 3.00pp, beating an eight-book shop, on structural
+  grounds that do not depend on any estimate. It buys nothing if the model has
+  no edge — see (a) — but it is the cheapest pp in the program.
+  **(e) THREE REGISTER CORRECTIONS FALL OUT OF THIS.** (i) D142's
+  "production is availability-blind" is wrong; production is
+  availability-ORACLE (0). (ii) PAID_RETROSPECTIVE's oracle-minutes "<= 0.003"
+  should read **~0, and negative on top of perfect availability** (6c).
+  (iii) PAID_ORACLES #7's tracking row is a WITHIN-SEASON measurement that does
+  not transfer across seasons (5); its purchase case is weaker than the register
+  currently states.
+  (12) **REGISTERED NEXT STEPS.** (i) Ship T2 (report + inactives OUT sets) as
+  the production availability construction and re-certify — a $0 change that
+  makes the headline honest; the D132 number will get WORSE by ~+0.0024 and that
+  is the correct direction. (ii) The 2025-26 injury-report backfill stops at
+  2025-12-22; completing it turns the only NONDEV season in this frame from 429
+  games into 1,230 and is the single cheapest way to strengthen every number
+  above. (iii) A daily as-of tracking feed is the only untested point between
+  D72's +0.0027 same-season and this entry's -0.0007 prior-season; it cannot be
+  resolved on the caches we hold and should not be bought on D72's number alone.
+  [scripts/bp_ladder.py, bp_battery.py, bp_exec.py, bp_chart.py (all new, none
+   under nbapred/); data/bigplayer_prereg.md (sha256 fbcea42e...),
+   data/bigplayer_notes.md, data/bp_ladder_pergame.csv, data/bp_ladder_diag.json,
+   data/bp_battery.json, data/bp_exec.json; data/logs/bp_battery.log,
+   data/logs/bp_exec.log; charts/bigplayer_ladder.png;
+   inputs data/nba.duckdb (read-only: injury_reports_pit, game_inactives,
+   player_game_stats, nba_games, odds_market, darko_history, epm_history_daily),
+   data/derived/odds_open.csv, data/raw/nba_api/matchups;
+   control data/capstone_pergame.csv (D132 certified)]
+- D157 PCA / LOW-RANK COMPRESSION OF THE REJECTED PILE — the first
+  dimensionality-reduction test in the register's history (a grep of all 156
+  entries and FEATURE_LEDGER.md returns ZERO prior hits for PCA / principal
+  component / SVD / low-rank / eigenvalue). **THE PILE IS NOT LOW-RANK AND SO
+  COMPRESSION BUYS ESSENTIALLY NOTHING: the 15 columns need 10/12/14 components
+  for 80/90/95% of their variance, the top component holds only 13.6%, and PCA
+  at the pre-registered 90% rule moves D154's carry-all cost from -0.00571 to
+  -0.00552 — a paired +0.00019 CI(-0.00009,+0.00051) ns. THE 30 TEAM-HOME
+  DUMMIES ARE EXACTLY INCOMPRESSIBLE (29 eigenvalues of 1.035 and one zero),
+  and PCA on that block moves -0.01803 to -0.01639, paired +0.00164 ns. THE
+  LEVER IS THE PENALTY, NOT THE BASIS: the SAME 15 terms under a plain ridge on
+  the same effective degrees of freedom go to -0.00120 ns at edf 5.9 and
+  -0.00009 CI(-0.00089,+0.00069) ns — FREE — at edf 2.2, i.e. 2.8x cheaper than
+  PCA at matched df and the full 0.0057 recovered. But NOTHING IS EVER POSITIVE
+  on either family, so "keep everything" can be made free only by making it
+  INERT — exactly what D138's +0.000012 null predicts.** ALL THREE
+  PRE-REGISTERED ARMS NO-SHIP. DIAGNOSTIC ONLY: DB read_only (never opened —
+  the cached bank supplied every column), `nbapred/` untouched, no default
+  flipped, `data/pca_ship.diff` NOT written (the prereg's stop clause was not
+  met). D132 undisturbed. PRE-REGISTRATION hashed BEFORE any log loss existed:
+  **data/pca_prereg.md sha256 0c3720ba99b668ff769b147d23aa45fa507eecd7b038a5e
+  35bfdff44e1b63938** — the null expected up front, three theory predictions
+  with numbers, three arms with one config each, MDE80 per arm, the leakage
+  battery, and the FREE/CHEAP/COSTLY bands taken verbatim from D154.
+  Concurrent with D156 (sibling agent); disjoint filenames (`pca_*` / `pc_*.py`).
+  (1) **THE STRUCTURE, WHICH IS A REGISTERED FINDING ON ITS OWN**
+  (`scripts/pc_spectrum.py`, `data/pca_spectrum.json`). Correlation-matrix PCA
+  on exactly the rows `ca_bank.Layer.fit` uses (fit_ok, trailing 730 days,
+  strictly prior); reference window ends 2026-03-01, n=2460.
+      PILE15 eigenvalues 2.037 1.648 1.401 1.351 1.327 1.160 1.045 0.937
+                         0.863 0.645 0.614 0.591 0.536 0.510 0.335
+      var%               13.6 11.0 9.3 9.0 8.8 7.7 7.0 6.2 5.8 4.3 4.1 3.9 3.6 3.4 2.2
+      r(80/90/95%) = 10 / 12 / 14 of 15;  effective rank (exp entropy) 13.46
+      PILE13 (the block actually rotated) r = 9 / 11 / 12 of 13, eff rank 11.93
+      TEAMHOME 1.036 1.036 1.035 ... 1.033, 0.000 — FLAT.  r = 24/27/28 of 30,
+        effective rank 29.00 of 30, ZERO eigenvalues above the MP edge
+      JOINT43 r = 30 / 35 / 37 of 43
+  Marchenko-Pastur null support for 15 independent columns at n=2460 is
+  [0.850, 1.162]: **5 eigenvalues above it and 6 below**, so the correlation
+  structure is real and statistically obvious — it is simply SPREAD, not
+  concentrated. **THE RANK RULE IS A CONSTANT, NOT A FITTED QUANTITY:** r90 on
+  PILE13 = 11 at every one of the 125 certified-era weekly refit dates and at
+  every 1-March window from 2000 to 2026 (r80 = 9, r95 = 12 likewise).
+  (2) **WHAT THE AXES ARE, IN PLAIN LANGUAGE — "we have been testing 15 things
+  that are really N things", and N is 11-13, not 3.** Loadings |.|>=0.25:
+    * **PC1 (13.6%) MOTIVATION / TANKING DIFFERENTIAL** — quit_d -0.56,
+      form_d_late +0.48, urg_d +0.45, dead_h -0.37, dead_a +0.32. One signed
+      axis: the home team has nothing to play for and is playing badly, versus
+      the away team does. **D130 ARM A/B/C, D47 and D71 are ONE THING.**
+    * **PC2 (11.0%) SCHEDULE CONGESTION vs REST** — d3in4 +0.54, drest -0.53,
+      dtrav_kkm -0.39, d5in7 +0.38, hret_h -0.30. **D136 ARM D and D17/D48 are
+      ONE THING.**
+    * **PC3 (9.3%) ACUTE ELEVATION CHANGE vs VENUE ALTITUDE** — delev_km +0.49,
+      alt_home_km -0.47, hret_h -0.38, dtrav_kkm -0.32 (the two D96 columns
+      correlate -0.355: one axis seen from two sides).
+    * **PC4 (9.0%) TRAVEL LOAD** — the COMMON mode of PC3's contrast.
+    * **PC5 (8.9%) CLINCH / LETDOWN** — lock_d +0.64, urg_d -0.41.
+    * **PC6 (7.7%) BOTH TEAMS DEAD** — the COMMON mode of PC1's contrast.
+  So there are **three substantive families** — standings-motivation, schedule
+  congestion, travel/altitude — but each needs TWO components because each
+  encodes both a DIFFERENTIAL and a COMMON mode, plus 4-6 genuinely independent
+  singletons (dtz_east, rlen_extra_a, the low-variance tail). Strongest raw
+  pairs: urg_d/quit_d -0.500, d3in4/drest -0.423, dtrav_kkm/hret_h +0.415,
+  dead_h/quit_d +0.356, alt_home_km/delev_km -0.355, dead_a/form_d_late +0.321.
+  **The redundancy is WITHIN families and essentially absent BETWEEN them,
+  which is exactly why a global rotation cannot help.**
+  (3) **LEAKAGE DISCIPLINE — the single most likely way this analysis goes
+  wrong, so it was proved rather than asserted** (`scripts/pc_leaktest.py`,
+  `data/pca_leaktest.json`). (a) `Rotation.fit` ASSERTS at every refit of every
+  arm that the frame's max date is strictly < the refit date. (b) **PERMUTATION
+  PROOF:** at 10 refit dates spanning 2021-10-19..2026-03-01, every column of
+  every row dated >= `before` (X, Z, margin, y, hb2b, ab2b, qd, home, away —
+  335 to 6,150 future rows) was permuted and resampled, the rotation refit, and
+  **max|d eigenvalue| = max|d eigenvector| = max|d mu| = max|d sd| = 0.000e+00
+  at all 10 dates with r unchanged**, for both blocks. (c) **THE TEST WAS SHOWN
+  TO HAVE POWER:** a deliberately leaky FULL-CORPUS rotation put through the
+  same scramble moves by **max|d eigenvalue| = 0.5153**. (d) eigenvector signs
+  pinned deterministically so `eigh`'s arbitrary sign cannot silently swap a
+  carried component between refits.
+  (4) **HARNESS REUSE AND THE IDENTITY CHECKS.** D154's `ca_bank.Layer` is
+  reused UNMODIFIED for arms A/B: components are computed walk-forward and
+  written into reserved extra columns of the bank's design matrix, so `fit` and
+  `sched_value` need no change. Arm C needs a per-COLUMN weight, which the
+  parent cannot express, so `EBLayer` subclasses it — and
+  **`EBLayer(eb=False) == Layer` at 10 dates x 3 designs, worst |dbeta| =
+  0.000e+00.**
+      T1 rotation invariance  PCA(r=13)+dead2 vs raw ALL15     2.69e-13  OK
+      T1z ridge(lambda=0) vs raw ALL15                         2.92e-13  OK
+      D154 REPRODUCTION vs data/carryall_ladder_rows.npz:
+        raw ALL15 / ALL15+TEAMHOME / DENSE13   **0.0 EXACTLY, all three**
+  T1 is an identity by theory and was pre-registered as one: OLS is invariant to
+  any invertible reparametrisation of the extra block, and the layer's shrinkage
+  is a GLOBAL SCALAR, so PCR at r=k must reproduce the raw arm bit-for-bit.
+  **CONTROL-HASH FIELD (D134 rule):** every arm is a purely additive
+  schedule-layer change on the D132 certified artifact, so `max|dp| = 0.0 on
+  6,148/6,148 games` trivially; the compensating checks are the four rows above,
+  and the strongest of them is that this harness reproduces D154's saved
+  per-game margin deltas EXACTLY on all three shared arms. `TANK_SEASON_FLOOR`
+  pinned to 2020-21 in every invocation (immaterial here — nothing calls
+  `fit_production` — but pinned and reported per D134).
+  (5) **THE THREE PRE-REGISTERED ARMS, FULL V3 BATTERY.** Control
+  `data/capstone_pergame.csv`, n=6,148 of 6,150 matched, seasons 2021-22..2025-26.
+  Season-clustered CI is the shipping statistic; K=5, so the small-K warning
+  applies and the cluster-mean t interval at K-1=4 dof is reported beside it.
+      arm                     m  rms(dm)   delta    season-cluster CI     MDE80
+      raw ALL15 (D154)       15   2.170  -0.00571 (-0.00867,-0.00294)  0.00452
+      **A  PCA @90% (r=11+2) 13   2.138  -0.00552 (-0.00847,-0.00281)  0.00443**
+      **B  PCA @90% +TH (35+2) 37 3.279  -0.01639 (-0.01890,-0.01388)  0.00698**
+      **C  per-term EB, all 15 15 2.331  -0.00634 (-0.00875,-0.00365)  0.00479**
+      C2 EB + team-home      45   3.743  -0.02067 (-0.02219,-0.01936)  0.00798
+    PAIRED against the raw comparator on the same games (positive = better):
+      A - raw ALL15          **+0.00019 (-0.00009,+0.00051) ns**  t(-0.00027,+0.00064)  RO 3/4
+      B - raw ALL15+TEAMHOME **+0.00164 (-0.00006,+0.00403) ns**  t(-0.00173,+0.00501)  RO 3/4
+      C - raw ALL15          **-0.00063 (-0.00121,+0.00005) ns**  t(-0.00164,+0.00039)  RO 1/4
+      C2 - raw ALL15+TEAMHOME **-0.00264 (-0.00377,-0.00179) SIG WORSE**             RO 0/4
+    Battery for arm A: rolling-origin **0/4 folds positive** (-0.0114 -0.0048
+    -0.0020 -0.0033); LOSO test-on -0.0062/-0.0114/-0.0048/-0.0020/-0.0033,
+    jackknife range [-0.00641,-0.00405] (no season flips the sign); legacy
+    dev -0.00336 / holdout -0.00878; block bootstrap -0.00552
+    (-0.00899,-0.00232), temporal design effect 1.120; era I2 0.181 ERA-STABLE;
+    ICC(season) 0.00005, season design effect 0.943; flags: rolling-origin sign
+    flips 4/4. Arm B: RO 0/4, I2 0.000, ICC -0.00055, deff 0.530, jack
+    [-0.01738,-0.01556]. Arm C: RO 0/4, I2 0.000, ICC -0.00023, deff 0.781.
+    All three are SIG NEGATIVE against the control and none is near the T1 bar.
+  (6) **THE PRE-REGISTERED PREDICTIONS WERE RIGHT ABOUT COMPRESSION AND WRONG
+  ABOUT THE SUPERVISED ARM, AND BOTH FACTS ARE INFORMATIVE.**
+      arm       predicted (prereg §3)        measured    verdict
+      A pooled  -0.0050  (-0.0060..-0.0040)  -0.00552    IN BAND
+      A paired  +0.0002..+0.0008             +0.00019    at the lower edge
+      B pooled  -0.0165  (-0.0185..-0.0140)  -0.01639    IN BAND (0.7% off)
+      C pooled  -0.0025..0.0000              **-0.00634  REFUTED, wrong side**
+      MDE80 A/B/C  0.0046 / 0.0070 / 0.0026  0.00443 / 0.00698 / 0.00479
+  A and B were predicted from theory T2 ("under a true-zero coefficient the cost
+  of a retained component is EIGENVALUE-INVARIANT, so truncation can only buy
+  back the dropped components' parameter noise") plus T3 ("variance ranking is
+  MISALIGNED with cost — the expensive terms load on PC1 and PC5, the cheap
+  DENSE6 travel/density terms are what the tail truncates"). Both held.
+  **C's refutation has a clean mechanism: `w = t^2/(1+t^2)` EXCEEDS the layer's
+  global 0.798 whenever |t| > 2.02, and the expensive terms are exactly the ones
+  with high WITHIN-WINDOW |t|** (measured over 125 refits: form_d_late |t| 3.06
+  -> w 0.853, alt_home_km 2.14 -> 0.749, dead_a 2.32 -> 0.810, dead_h 2.00 ->
+  0.673, against global w 0.801; the cheap dense terms get 0.18-0.46). So the
+  per-term EB rule shrinks the harmless columns and AMPLIFIES the harmful ones.
+  **D154 §16's registered next step, taken literally, is a LOSER — and the
+  reason is that in-window evidence is not out-of-sample stability.**
+  (7) **THE COST-vs-COMPONENTS CURVE (variance-ordered, m = r + the 2 dead
+  terms), against D154's ladder and the pure-noise benchmark.**
+      r      0     1     2     3     4     5     6     7     8     9    10    11    12    13
+      m      2     3     4     5     6     7     8     9    10    11    12    13    14    15
+      delta -.00365 -.00339 -.00374 -.00368 **-.00335** -.00436 -.00453 -.00483 -.00497 -.00508 -.00482 -.00552 -.00567 -.00571
+      noise -.00020 -.00030 -.00040 -.00050 -.00060 -.00070 -.00080 -.00090 -.00100 -.00110 -.00120 -.00130 -.00140 -.00150
+  Flat at about -0.0035 out to r=4, then degrading monotonically back to the raw
+  value. **The FLOOR is the two dead terms (-0.00365 at r=0) and PCA cannot
+  touch them** — they are columns of the shipped design, not extras. The curve
+  is never closer than 3.5x to the -1.0e-4 per-coefficient noise line, versus
+  3.8x for the raw pile: **compression does not move the pile toward the noise
+  floor at all.**
+  **AND THE SUPERVISED ORDERING IS WORSE THAN THE VARIANCE ORDERING AT EVERY r**
+  (|t|-ranked components: r=1 -0.00434 vs -0.00339, r=4 -0.00549 vs -0.00335,
+  r=9 -0.00545 vs -0.00508). Keeping the directions that fit best IN-WINDOW is
+  actively harmful — the same mechanism that sank arm C, seen a second way.
+  (8) **THE OTHER ONE-PARAMETER FAMILY, AND THIS IS THE ANSWER TO "COMPRESSION
+  OR BETTER SHRINKAGE".** A plain L2 penalty on the standardised carried block
+  (scale-free, `P_j = lambda*(X'X)_jj/n`; lambda=0 reproduces the raw arm to
+  2.9e-13), indexed by the same currency PCR uses — effective degrees of freedom:
+      lambda      0    12.5     25     50    100    200    400    800   1600   3200   6400  12800
+      edf     15.00  14.90  14.80  14.61  14.24  13.56  12.41  10.65   8.37   5.92   3.76   2.19
+      delta -.00571 -.00565 -.00560 -.00549 -.00528 -.00491 -.00429 -.00338 -.00226 **-.00120** **-.00045** **-.00009**
+  Season-clustered: edf 5.92 **-0.00120 (-0.00305,+0.00047) ns**; edf 3.76
+  -0.00045 (-0.00174,+0.00077) ns; edf 2.19 **-0.00009 (-0.00089,+0.00069) ns —
+  FREE by the prereg band.** **AT MATCHED EFFECTIVE DF ~6, RIDGE IS -0.00120
+  AGAINST PCA's -0.00335: 2.8x CHEAPER**, and paired against the raw pile ridge
+  is +0.00080 (+0.00063,+0.00092) SIG at edf 13.6 and +0.00345
+  (+0.00254,+0.00421) SIG at edf 8.4, where PCA at its own rule is +0.00019 ns.
+  **THE PENALTY IS THE DECISION VARIABLE. THE BASIS IS NOT.** This is D154 §13's
+  19x-on-the-shrinkage result reproduced on the pile rather than on the D70
+  block, by a family with a continuous knob.
+  (9) **BUT NOTHING IS EVER POSITIVE, AND THAT IS THE HONEST HEADLINE.** Every
+  point on both the PCA curve and both ridge curves is <= 0. The ridge family is
+  MONOTONE toward zero as lambda grows — its limit is "do not carry" — so there
+  is no interior optimum and no evidence of a cost worth paying. **"Keep
+  everything" can be made FREE, but only by making it INERT: at edf 2.19 the
+  applied margin has rms(dm) 0.458 against 2.170 for the raw pile, i.e. the
+  terms are 79% switched off.** That is precisely what D138 §9's +0.000012 and
+  D154 §5's "ALL15 costs the same as 15 noise columns on the full history"
+  predict, and this entry was pre-registered saying so. **PCA CANNOT
+  MANUFACTURE SIGNAL FROM NOTHING; IT DID NOT.**
+  (10) **A LIVE CONSTRUCTION HAZARD FOUND WHILE PROVING THE IDENTITY, AND IT
+  SITS INSIDE D154's MOST EXPENSIVE ARM.** PCR at r=43 does NOT reproduce raw
+  ALL15+TEAMHOME: it agrees on 6,140/6,150 games and differs by up to **0.209
+  points** on 10. Diagnosed and verified: **`alt_home_km` is an EXACT linear
+  function of the 30 home-team dummies — regressed on them it returns R^2 =
+  1.0000 with design rank 30 of 31 — so the ALL15+TEAMHOME design is
+  RANK-DEFICIENT and its fitted function is determined only on the fit frame's
+  span.** The 10 disagreeing games are EXACTLY the 10 `fit_ok = False` rows of
+  D154 §9(c) (the `is_home = false` on both sides rows, 5 in 2024-25 and 5 in
+  2025-26 including the NBA Cup knockouts 0022401229/30 and 0022501229/30);
+  each carries `alt_home_km = 0.000` while its nominal home team's modal value
+  is 0.007-0.366 km, which is what breaks the collinearity. Consequence for the
+  register: **-0.01803 is reproducible but parametrisation-dependent on 0.16% of
+  games**, and any future arm that carries team dummies alongside a
+  venue-identity column is fitting a singular design. hall-of-shame #15
+  (identity), a second time in the same block.
+  (11) **VERDICT.** **ARM A NO-SHIP** (-0.00552 SIG negative; paired +0.00019 ns,
+  below its own 0.00078 MDE80; RO 0/4). **ARM B NO-SHIP** (-0.01639 SIG
+  negative; paired +0.00164 ns). **ARM C NO-SHIP AND REFUTED** (-0.00634, WORSE
+  than the raw pile it was meant to fix; C2 is SIG worse). No arm meets V3 T1
+  (positive, >= +0.002, CI excluding zero), so **`data/pca_ship.diff` was not
+  written** per the prereg's own stop clause, and no production file was
+  touched. In the owner's frame, denominated against D132's +0.01120 gap:
+  **carrying the 15-term pile costs 51% of the gap raw, 49% under PCA, and 57%
+  under per-term EB; it costs 1% under a hard ridge, at which point the terms
+  are doing nothing.**
+  (12) **OPEN / REGISTERED NEXT STEPS.** (i) The only lever measured here that
+  moves anything is the PENALTY, and its optimum on this corpus is at the
+  "carry nothing" end — so the constructive question is not "how do we carry the
+  pile cheaply" but "is there any sub-block whose ridge path has an INTERIOR
+  optimum". DENSE13 alone is -0.00264 and DENSE6 is -0.00012 (D154), so the
+  candidate is a ridge path restricted to the sparse indicators. (ii) The
+  11-season history was NOT re-run here: it needs `fit_production`, and D154 §15
+  established that 49-71% of the apparent historical benefit of these terms is
+  our own DARKO coverage rising from 0.088 to 1.000, so a historical PCA gain
+  would be unreadable. (iii) The alt_home_km / team-dummy singularity in (10)
+  should be fixed or forbidden by construction before any future arm carries
+  both. (iv) A supervised rotation (PLS) was considered and deliberately NOT
+  run: §7's |t|-ordering result says a supervised ordering of the SAME
+  components is worse at every r, which is the cheap version of that experiment
+  and it points down.
+  [scripts/pc_spectrum.py, pc_layer.py, pc_ladder.py, pc_leaktest.py,
+   pc_charts.py (all new, none under nbapred/);
+   data/pca_prereg.md (sha256 0c3720ba...1e63938), data/pca_notes.md,
+   data/pca_spectrum.json, data/pca_ladder.json, data/pca_ladder_rows.npz,
+   data/pca_leaktest.json; data/logs/pc_ladder.log;
+   charts/pca_spectrum_and_cost.png;
+   inputs data/carryall_bank.npz + carryall_ladder{,_rows}.json/.npz (D154,
+   read-only), control data/capstone_pergame.csv (D132 certified);
+   data/nba.duckdb never opened]
+- D158 THE CERTIFIED BACKTEST WAS DRINKING FROM TONIGHT'S BOX SCORE —
+  **AVAILABILITY-ORACLE LEAKAGE IN `prod_by_season.py`, FIXED, AND THE
+  CERTIFIED HEADLINE RE-CERTIFIED HONESTLY AT 14.95%. SUPERSEDES D132 as the
+  authoritative baseline**, exactly as D132 superseded D122. The number got
+  WORSE by +3.82pp and that is the deliverable: it is the first certified
+  number in this register that a live October run could actually reproduce.
+  D156 §12(i) registered this as the next step and predicted ~+0.0024; the
+  realized cost is **+0.00386 pooled**, larger because the 5-season corpus
+  contains two seasons with no availability feed at all.
+  (0a) **CONTROL-HASH FIELD (D134 rule).** New certified artifact
+  `data/capstone_pergame.csv` vs the superseded one, preserved byte-identical as
+  `data/capstone_pergame_d132_leaky.csv` (md5 dc256d0b85a072c0083f074083194283,
+  = `capstone_pergame_d132.csv`): **6,148/6,148 games matched, p_us moved on
+  4,607 games (74.93%), max|dp| 0.170684, mean|dp| 0.012272; p_mkt max|dp|
+  0.0e+00** (the market column is untouched, as it must be). Mean OUT players
+  per team-game **0.937 honest vs 2.026 oracle**. Env: LATE_STATE, TANK_TERM,
+  ORACLE_MINUTES, INACTIVE_OUTS, REPORT_OUTS, ORACLE_PLAYED_OUTS, OCT_BRIDGE,
+  OCT_BRIDGE_TRAIL, COVID_GUARD, FF_LUCK all UNSET (D132 defaults);
+  **TANK_SEASON_FLOOR=2020-21 pinned explicitly in the command** as well as in
+  code (D155). COMMAND: `env -u LATE_STATE -u TANK_TERM -u ORACLE_MINUTES -u
+  INACTIVE_OUTS -u REPORT_OUTS -u ORACLE_PLAYED_OUTS -u OCT_BRIDGE -u
+  OCT_BRIDGE_TRAIL -u COVID_GUARD -u FF_LUCK TANK_SEASON_FLOOR=2020-21 python3
+  scripts/prod_by_season.py`.
+  (1) **THE DEFECT.** `scripts/prod_by_season.py:99-102` (pre-fix), the branch
+  taken when `INACTIVE_OUTS` and `REPORT_OUTS` are both unset — which is
+  verbatim the D122 and D132 certification commands — built the availability
+  OUT-set as `pl = played.get((gid,t), set())` then
+  `outs[t] = {p for p,d0 in comp.players.items() if ... and p not in pl}`.
+  `played` comes from `player_game_stats WHERE seconds > 0`: **tonight's box
+  score**. `docs/LEAKAGE.md:131` lists "who plays >0 minutes (DNP-CD decided
+  in-game)" as forbidden, and `LEAKAGE.md:133` permits oracle constructions
+  ONLY as labelled ceiling measurements, never as the shipped number. Every
+  certified headline from D122 through D156 that cites `capstone_pergame.csv`
+  is an availability-ORACLE number. The register had already half-noticed:
+  D156 §(0) corrected D142's "production is availability-BLIND" to
+  "availability-ORACLE", and D156 §11(c) named the fix. This entry makes it.
+  (2) **SCOPE, VERIFIED BEFORE ANYTHING ELSE: THE LIVE PATH IS CLEAN. THIS IS A
+  BACKTEST-ONLY DEFECT AND ITS SIGN IS THE FAVOURABLE ONE** — it made our
+  PUBLISHED EXPECTATION too good, it never made a live prediction wrong.
+  `nbapred/engine/slate.py:54-63` builds OUT sets from `injury_reports_pit`
+  `WHERE i.status='Out' AND i.game_date = ?` (today) — the 5PM official report,
+  pregame-public per `LEAKAGE.md:127`. `slate.py:77-79` hands the model
+  `outs_by_tid.get(t,set()) | departed`, where `departed` (`slate.py:64-67`) is
+  a roster-membership filter (`arg_max(team_id, game_date)` over past `002%`
+  games), not an availability signal — and on a live run tonight's box score
+  does not exist to be read. `scripts/predict_today.py:48` consumes
+  `slate_context(...)` and `predict_today.py:58-60` passes those sets straight
+  into `model.p_home`. **No `played`/`player_game_stats`-derived OUT set exists
+  anywhere in the live entrypoint.** Had the live path been dirty this would
+  have been a far more serious finding and would have taken priority; it is not.
+  (3) **FEED-COVERAGE REALITY, AND WHAT IT DOES TO THE MEANING OF THE POOLED
+  NUMBER.** `injury_reports_pit` runs 2023-10-24..2025-12-22 (single `05PM`
+  edition); `game_inactives` runs 2022-23..2025-26. Per certified season, the
+  honest tier ACTUALLY AVAILABLE (printed by the run itself):
+    season   5PM report   inactives     tier in force
+    2021-22  none         none          **NO FEED — EMPTY outs, availability-BLIND**
+    2022-23  none         1230/1230     T2 via inactives only
+    2023-24  1230/1230    1230/1230     full T2
+    2024-25  1226/1230    1230/1230     full T2
+    2025-26  422/1230     1227/1230     full T2 (inactives carry it past 12-22)
+  **THE 5-SEASON POOLED NUMBER IS THEREFORE A MIXED-TIER NUMBER AND MUST BE
+  QUOTED AS ONE.** 2021-22 has no honest availability feed in existence, so it
+  runs BLIND — honest, but strictly weaker than what October ships (T2 on every
+  game). Seasons with no feed fall back to EMPTY out-sets and NEVER to the
+  played set; that is the rule the fix encodes. Sub-frames, so the reader can
+  pick the one that answers their question: **all 5** n=6148 **14.95%**;
+  **4 seasons with any feed** (2022-23+) n=4920 **11.84%**; **3 seasons with
+  full T2** (2023-24+, = D156's frame) n=3690 **11.45%**. The last of these is
+  the number closest to "what production will do in October".
+  (4) **THE NEW CERTIFIED TABLE** (norm = (ll_us − ll_mkt)/(ln2 − ll_mkt)):
+    season    n     ll_us    ll_mkt      raw    norm   | D132 norm   delta
+    2021-22  1228  0.63053  0.60429  +0.02623  29.52%  |   17.69%  +11.83pp
+    2022-23  1230  0.63385  0.62437  +0.00948  13.78%  |   11.25%   +2.53pp
+    2023-24  1230  0.59906  0.58086  +0.01820  16.21%  |   13.02%   +3.19pp
+    2024-25  1230  0.58857  0.58155  +0.00703   6.30%  |    5.08%   +1.22pp
+    2025-26  1230  0.58553  0.57114  +0.01438  11.79%  |   10.07%   +1.72pp
+    POOLED   6148  0.60750  0.59244  +0.01506  14.95%  |   11.13%   +3.82pp
+  Leak per season (honest ll_us − oracle ll_us): **2021-22 +0.01052** (the
+  no-feed season, and by far the worst — it is paying the full T0-blind price),
+  2022-23 +0.00174, 2023-24 +0.00358, 2024-25 +0.00136, 2025-26 +0.00210.
+  (5) **REFACTOR FIDELITY — THE ONLY THING THAT CHANGED IS AVAILABILITY.**
+  Re-running the same script at `ORACLE_PLAYED_OUTS=1` reproduces D132 **to all
+  five certified decimals on every season and pooled**: 0.62001 / 0.63211 /
+  0.59548 / 0.58722 / 0.58343, POOLED **0.60364, 11.13%** — the D132 register
+  line exactly. Per-game vs the D132 artifact: 6148/6148 matched, 121 games
+  moved, max|dp| **3.385e-03**, the identical corpus-growth signature and the
+  identical max|dp| D156 reported. So no part of the +3.82pp is a refactor
+  artefact. That run is written to `data/capstone_pergame_oracle_ceiling.csv`.
+  (6) **RECONCILIATION WITH D156** (tier definitions reused verbatim from
+  `data/bigplayer_notes.md`, prereg sha256
+  fbcea42eafa263892c4c9b1874eb4ed4d21d2d7059311ba909541982dc89642c; T2 =
+  (5PM report ∩ 12-day roster window) ∪ (`game_inactives` ∩ roster window),
+  C1 = roster window − who actually played). On D156's three seasons the leak
+  measured here is **+0.00235** against D156's independently measured
+  C1−T2 = **+0.00243** (D156's frame was its 2,889 report-covered games, this is
+  all 3,690). **The two entries agree.** D156's own frame numbers (C1 10.42%,
+  T2 12.65%, T5 11.56%) are unchanged and remain the right ladder to cite.
+  (7) **THE LEAK IS MONOTONE IN THE OUT-COUNT — this is the fact that governs
+  the blast radius**, honest minus oracle log loss by oracle OUT count:
+    n_out    0      1      2      3      4      5      6+
+    n      459    442    776   1006   1064    826   1575
+    leak -0.00001 +0.00011 +0.00225 +0.00296 +0.00330 +0.00625 +0.00652
+  Zero OUTs ⇒ zero leak (the two constructions are literally the same model
+  there, mean|dp| 2e-05 — a clean self-check). The oracle carried **4.05 OUT
+  players per game where production carries 1.88.**
+  (8) **BLAST RADIUS — VERIFIED, NOT ASSERTED. Most registered gates are
+  UNAFFECTED, for a reason that is now measured rather than assumed.** 69 gate
+  scripts under `scripts/` build their OUT sets with the same
+  `played.get(...)` construction in BOTH arms (grep-verified), so within a gate
+  the leak is COMMON-MODE and the reported DELTA is first-order unaffected.
+  §7 sharpens that: the leak is not a constant shift but a function of |outs|,
+  so cancellation is EXACT only for terms that do not interact with the OUT
+  set. Splitting on that criterion:
+  **(a) VERDICTS THAT STAND** — terms that never touch `outs`: the tank term
+  (D73), b2b, home edge, cold-start (D16/D55), four-factors / team ratings, the
+  October bridge (D84-A/D105/D114), late-state (D90/D118), COVID guard, FF luck.
+  Their arms differ in a channel orthogonal to availability and both arms carry
+  the identical (leaky) out-sets.
+  **(b) FLAGGED FOR RE-GATING — NOT RE-RUN HERE, AND DELIBERATELY NOT RE-RUN**
+  (each is a gate whose effect is MEDIATED by the OUT set, so its measured
+  magnitude was taken in a 4.05-outs-per-game regime that production will not
+  see):
+    1. **The composition leg itself** — `CompositionModel.margin` consumes
+       `outs`, so w_comp=0.7, ROSTER_DAYS=12, and the `ab_comp_*` family
+       (design / exclusion / staleness) were all sized under oracle outs.
+       **D19, the founding availability-composition ship, is the root of this
+       sub-tree and its measured value is the most oracle-inflated number in
+       the register.**
+    2. **The props star-out family** (D33/D39/D82/D83/D146/D149/D151) — these do
+       NOT consume the capstone (D145 re-verified by AST walk that
+       `prod_by_season.py` reaches no props module), so their internal deltas
+       are safe; but their star-out UNIVERSE is defined by the REALIZED
+       ROTATION (`scripts/validate_starout.py` header: a star "missing from the
+       realized rotation"), while live fires that same code off the injury feed
+       (`predict_today.py:70` takes `t_outs` from the slate's report-derived
+       OUT sets). That is a UNIVERSE-TRANSFER question, not a leaky-control
+       question, and it is unanswered.
+    3. **PAID_ORACLES #7 tracking on-ball margin term** — weighted by the OUT
+       set, so its measured +0.0004 / heavy-fav +0.0059 inherits the regime.
+    4. **D153's 15-year OOS numbers** — `scripts/history_eval.py:208-211`
+       carries the IDENTICAL defect. Its VERDICT survives (both era arms are
+       leaky, so "the stack does not blow out in the old era" is a common-mode
+       comparison), but its absolute levels (+15.41% old era, +11.17% dev
+       corpus, 2016-17 at +3.43%) are ORACLE levels and must be re-labelled as
+       such. An honest re-run would be availability-BLIND on 13 of its 15
+       seasons — `game_inactives` starts 2022-23 — so it would measure
+       something materially different, which is exactly why it is flagged
+       rather than quietly re-run.
+  **(c) UNAFFECTED BY CONSTRUCTION** — D156, which anticipated all of this and
+  deliberately rebuilt its ladder off an honest T0 floor rather than off the
+  certified number, correctly calling the certified arm "T0-REG … reported in
+  PART C as a CLAIRVOYANT arm, because that is what it is". Its citation of
+  "T0-REG = D132 as certified" now points at
+  `data/capstone_pergame_d132_leaky.csv`.
+  **(d) STALENESS DISCLOSURE (D131 hazard class, D134 field).** D157 (PCA,
+  registered concurrently with this work) names `data/capstone_pergame.csv
+  (D132 certified)` as its control. That path now holds the HONEST artifact.
+  D157's arms are additive re-scorings against a fixed control, so its deltas
+  are common-mode and its verdict is undisturbed, but its control citation
+  should be re-pointed to `capstone_pergame_d132_leaky.csv`. Any gate whose
+  control was taken against `capstone_pergame.csv` before 2026-08-03 is
+  comparing to a superseded — and leaky — state.
+  (9) **THE FIX** (`scripts/prod_by_season.py`, the only file whose behaviour
+  changed; nothing in `nbapred/` was touched, so the live path is untouched by
+  construction). DEFAULT is now **T2-HONEST**. `REPORT_OUTS=1` gives T1 (report
+  only); `INACTIVE_OUTS=1` is an accepted alias of the default. The played-set
+  oracle survives ONLY behind **`ORACLE_PLAYED_OUTS=1`**, which (i) prints a
+  two-line NOT-CERTIFIABLE banner, and (ii) is **mechanically redirected away
+  from `data/capstone_pergame.csv`** to `capstone_pergame_oracle_ceiling.csv`
+  so a leaky run can never re-occupy the certified path. The run header now
+  prints the ACTIVE TIER, its description and `TANK_SEASON_FLOOR`, and every
+  season prints its own feed coverage and the tier in force — **no future
+  capstone can be ambiguous about which construction produced it**, which is
+  the property whose absence caused this. Coverage and tier are persisted into
+  `data/prod_by_season.json`. Note one deliberate semantic change: the old
+  `INACTIVE_OUTS=1` meant "inactives if the game is covered, ELSE report" (a
+  preference); D156's registered T2 is the UNION, which is weakly larger, and
+  the union is what ships — so the old preference variant is retired and the
+  two entries reconcile.
+  (10) **REGISTER CORRECTIONS.** (i) `docs/LEAKAGE.md` gains an INCIDENT LOG
+  with this entry and three new standing rules: an oracle construction must
+  never be reachable as a DEFAULT; any script writing a certifiable artifact
+  must PRINT the tier that produced it; a backtest whose feed does not cover a
+  season falls back to EMPTY, never to hindsight. (ii) `docs/PAID_ORACLES.md`
+  said "THE HEADLINE CAPSTONE **IS** the bought-availability tier already
+  (oracle outs are its default)" — true, and precisely the defect; the polarity
+  is now reversed, **the certified capstone IS the FREE tier**, and the
+  bought-availability tier is a labelled ceiling artifact. (iii) PAID_ORACLES
+  row #8's "residual +0.0037" was denominated against a baseline that was
+  ITSELF the played set; the honest price-worth of a real-time availability
+  wire is the C1−T2 distance, **+0.00386 pooled / +0.00235 on full-feed
+  seasons** — and per D156 §11(b) even buying it perfectly leaves 10.42%.
+  (11) **WHAT THIS DOES AND DOES NOT CHANGE ABOUT THE PROJECT'S CONCLUSION.**
+  It does not rescue anything: the model is further behind the close than the
+  register said, not closer. It does not move D156's verdict that information
+  is bounded and the sides model is the binding constraint — it strengthens it,
+  because the honest starting point is now 14.95% rather than 11.13%, and the
+  free rungs D156 priced (+0.00485 of T0→T2) are the ones now actually being
+  consumed. **The single most useful consequence is that the register's
+  headline and the October live path are finally measuring the same model.**
+  (12) **CHARTS** regenerated from the honest artifact and checked for label
+  collisions before shipping (three were found and fixed: the per-season
+  annotation now sits on an opaque bbox with 13% headroom because the honest
+  2025-26 series runs into that corner; the pooled-gap marker on the status
+  chart moved into the row gap because 14.95% now lands on the bar labels and
+  the x ticks; the CLV band labels got white bboxes). Chart titles now NAME the
+  availability tier. `charts/logloss_by_season_normalized.png`,
+  `charts/logloss_continuous_current.png`, `charts/progress_by_ship.png`
+  (step 8 relabelled "CERTIFIED NOW / honest availability / D158"),
+  `charts/status_logloss_h2h.png`, `charts/status_trading_h2h.png`.
+  (13) **TESTS: 129 passed, 0 failed** (159s), unchanged by this work.
+  [scripts/prod_by_season.py (THE FIX), scripts/make_charts_cert.py,
+   scripts/make_status_charts.py (chart labels + collisions);
+   data/capstone_pergame.csv (NEW CERTIFIED, T2-HONEST),
+   data/capstone_pergame_d132_leaky.csv (SUPERSEDED D132, preserved byte-identical,
+   md5 dc256d0b85a072c0083f074083194283), data/capstone_pergame_oracle_ceiling.csv
+   (labelled ceiling, NOT a model result), data/prod_by_season.json,
+   data/prod_by_season_oracle.json, data/honest_cert_notes.md (working notes);
+   data/logs/cert_d158_honest.log, data/logs/cert_d158_oracle_ceiling.log,
+   data/logs/charts_d158.log; docs/LEAKAGE.md (incident log), docs/PAID_ORACLES.md
+   (tier polarity corrected);
+   inputs data/nba.duckdb (read_only=True: injury_reports_pit, game_inactives,
+   player_game_stats, nba_games, odds_market); nbapred/ UNTOUCHED — the live
+   path is undisturbed by construction]
+- D159 DOES THE TRADING RESULT SURVIVE THE D158 AVAILABILITY LEAK? — **YES, AND
+  IT IS 13% SMALLER. THE UNION'S CLV AT THE OPEN ON REAL MONEYLINES IS +0.01197
+  HONEST vs +0.01381 ON THE SAME-CORPUS LEAKY ARM: THE LEAK WAS WORTH -0.00185,
+  i.e. 13.4% OF WHAT WE MEASURED, AND THE HONEST NUMBER STILL CLEARS THE K-1
+  CLUSTER-MEAN t BOUND [+0.01099,+0.01295]. THE MATCHED-CONTROL ALPHA, HOWEVER,
+  FALLS FROM +8.22% SIG TO +4.93% ns AT THE OPEN AND BOTH OF D155's SIGNIFICANT
+  CELLS DIE. THE RULES FIRE MORE HONESTLY, NOT FEWER (+3.2%, Jaccard 0.886).**
+  D156 Part B re-measured ROI honestly; CLV — the declared October target and the
+  whole justification for the paper book — had never been measured honestly.
+  Read-only on data/nba.duckdb (60s retry); nbapred/, scripts/bet_engine.py and
+  the frozen registry UNTOUCHED; no production default changed. All machinery
+  that touches a registered bet set is IMPORTED VERBATIM from bo_openbacktest.py
+  / bo_lineshop.py / lb_exploit.py (the D126/D142/D155 precedent).
+  (0) **THE DESIGN, AND WHY IT IS A CLEAN CONTRAST.** HONEST =
+  `data/capstone_pergame.csv` (T2, D158 default, **D134 CONTROL HASH md5
+  3b7bbbb78ac73c63273c18a8aa30013c**, env: all availability switches UNSET).
+  LEAKY_PAIR = `data/capstone_pergame_oracle_ceiling.csv` (md5
+  d43d9bc9ef46cc6300971444bdbb2778, `ORACLE_PLAYED_OUTS=1`) — SAME script, SAME
+  corpus, SAME weekly-refit cadence, SAME market join, **availability the ONLY
+  difference**, so every honest-minus-leaky DIFFERENCE below is causal for the
+  leak. LEAKY_REG = `data/ds_rt1_pergame.csv` p_full (md5 483237c6…), the frame
+  D121/D126/D142/D155 ACTUALLY priced, carried as the fidelity anchor.
+  `ds_rt1_capstone.py:117-122` carries the IDENTICAL played-set defect
+  `prod_by_season.py` had — that is why every betting D-line inherited it.
+  (1) **THREE HARNESS ANCHORS, ALL REPRODUCE.** (a) D155 (7)'s open-ML CLV
+  table on LEAKY_REG: R4_LOWT 485/+0.01961, T20_D03_10_W 215/+0.01358,
+  T20_D03_10 554/+0.01785, STAR_FAV 1009/+0.01215, UNION 1378/+0.01590 —
+  **EXACT, every digit, all five sets**. (b) D142 (8)'s SP ONEBOOK/BEST2:
+  R4_LOWT 231/+0.02855/+0.03906, T20_D03_10_W 104/+0.02333/+0.03054,
+  T20_D03_10 374/+0.02537/+0.03376 **EXACT**; the residual is confined to
+  STAR_FAV_SHARPER (720 vs 712, **+8 bets = +1.1%**, union CLV +0.0001), the ONE
+  rule whose universe is the REALIZED ROTATION (`star_out_map` reads
+  game_inactives x player_game_stats) — D131's staleness class and precisely
+  D158 §8(b)(2)'s flagged universe-transfer question; D152's backfill landed
+  2026-08-02, AFTER D142 ran. It is COMMON-MODE across both arms here (both
+  scored against today's DB) so it cannot manufacture or hide the contrast.
+  (c) D121's band construction recovered ARITHMETICALLY from
+  `data/bo_openbacktest.json`: centre +0.00350 ± 2*0.05521/sqrt(44) =
+  **-0.01314 / +0.02015** = the registered -0.0131/+0.0200. **EXACT.**
+  (2) **AVAILABILITY TIER VARIES BY SEASON AND IS NEVER POOLED SILENTLY.**
+  2021-22 **no feed at all -> BLIND** (empty out-sets, 0.000 outs/team);
+  2022-23 **inactives-only** (report 0/1230, inactives 1230/1230, 1.095
+  outs/team); 2023-24 full T2 (1.091); 2024-25 full T2 (1.316); 2025-26 full T2
+  (report 422/1230 but inactives 1227/1230, 1.183). The leaky arm carried 4.05
+  outs per GAME. **The REAL-MONEYLINE frame is n=3,682 = 2023-24..2025-26
+  EXACTLY = the three FULL-T2 seasons** — by accident of the odds archive the
+  primary arm is the frame that matches what October ships, so it carries no
+  mixed-tier caveat beyond K=3. The SP frame is 2022-23..2025-26 and IS
+  mixed-tier (1 inactives-only + 3 full-T2); every SP number is labelled as one.
+  2021-22 has SBR opens and is used ONCE, deliberately, as the availability-BLIND
+  natural experiment (§7).
+  (3) **TASK 4 — RULE FIRING. THE HONEST MODEL FIRES *MORE*, NOT FEWER, AND THE
+  SELECTION HAS NOT DEGENERATED.** ML frame, honest vs leaky vs Jaccard:
+  R4_LOWT 484/476/**0.893**; T20_D03_10_W 216/207/0.831; T20_D03_10
+  574/546/0.789; STAR_FAV_SHARPER 1036/1004/0.901; **UNION 1398/1355 (+3.2%),
+  Jaccard 0.886** (1293 both, 105 honest-only, 62 leaky-only). SP frame union
+  1380/1322 (+4.4%), Jaccard 0.874. **MECHANISM: every rule is a threshold on
+  `edge = p_us_side - p_mkt_side`; removing the oracle moves p_us AWAY from the
+  market (mean |dp| 0.0123 over 6,106 games, 20.6% of games move >2pp), so MORE
+  games clear the threshold.** All four rules still fire, all still 100%
+  favourite-side, mean implied price unchanged (0.688 vs 0.684), per-season union
+  volume flat (444/471/483 honest vs 440/456/459 leaky). **OCTOBER VOLUME: 66
+  union bets/month** on the frame the engine actually prices (median over 21
+  months), not the 44 the D121 bands assumed — the honest programme has ~50%
+  MORE volume, which TIGHTENS the monthly se from 0.0083 to 0.0063.
+  (4) **TASK 2 — THE HEADLINE. CLV AT THE OPEN, REAL MONEYLINES, K=3.**
+    rule                n_h   CLV_honest   K-1 t CI            n_l  CLV_leaky   DIFF      leak share
+    R4_LOWT             484   +0.01488  [+0.01055,+0.01951]SIG  476  +0.01499  -0.00011      +0.7%
+    T20_D03_10_W        216   +0.00815  [-0.00671,+0.02406]ns   207  +0.00734  +0.00080     -11.0%
+    T20_D03_10          574   +0.01392  [+0.00872,+0.01926]SIG  546  +0.01551  -0.00158     +10.2%
+    STAR_FAV_SHARPER   1036   +0.00781  [+0.00537,+0.01011]SIG 1004  +0.00983  -0.00202     +20.5%
+    UNION              1398   +0.01197  [+0.01099,+0.01295]SIG 1355  +0.01381  -0.00185     +13.4%
+  Season-clustered bootstrap CIs (secondary to the t bound at K=3): union honest
+  [+0.01155,+0.01233]; the DIFFERENCE [-0.00228,-0.00134] boot and
+  **[-0.00302,-0.00067] at K-1 t — the leak effect is itself SIGNIFICANT**.
+  **THE ANSWER TO THE QUESTION ASKED: 13.4% of our measured union CLV was the
+  leak.** 4 of 5 honest cells clear the K-1 bound — contrast D156 Part B, where
+  NO ROI cell survived it. ICC/DEFF (union honest): ICC **-0.00209**,
+  DEFF_anova **0.03**, cluster SE 0.00018 vs iid SE 0.00137 (DEFF_boot 0.13) —
+  the D132 negative-ICC signature, which is exactly why §9.3's small-K warning
+  binds and why the K-1 t interval is the quoted statistic. Per-season union CLV
+  is FLAT across the three full-T2 seasons: 2023-24 +0.01233, 2024-25 +0.01155,
+  **2025-26 +0.01203** — no decay in the newest fold (GATE_POLICY_V2 §11
+  tie-break 4).
+  (5) **DECOMPOSITION — THE REGISTERED NUMBER, AND WHERE IT WENT.** Honest is
+  **75.3% of the registered union CLV and 86.6% of the same-corpus leaky level**;
+  the rest is CORPUS DRIFT, because `ds_rt1_pergame.csv` was built 2026-07-31 and
+  D152's backfill + D153's tank-floor move landed after it:
+    set                REGISTERED  ->drift  LEAKY_PAIR   ->LEAK   HONEST   leak share of total
+    R4_LOWT              +0.01961  -0.00462   +0.01499  -0.00011  +0.01488        2%
+    T20_D03_10_W         +0.01358  -0.00624   +0.00734  +0.00080  +0.00815      -15%
+    T20_D03_10           +0.01785  -0.00235   +0.01551  -0.00158  +0.01392       40%
+    STAR_FAV_SHARPER     +0.01215  -0.00232   +0.00983  -0.00202  +0.00781       46%
+    UNION                +0.01590  -0.00209   +0.01381  -0.00185  +0.01197       47%
+  **Just under half the shortfall from the registered number is the leak; just
+  over half is corpus drift.** Drift is not a leak effect — it moves the same way
+  in every arm — but the register's CLV levels were stale on two counts, not one.
+  (6) **D142's LINE-SHOPPING ASSET SURVIVES ALMOST INTACT, AND FOR A REASON THE
+  ARITHMETIC PREDICTS.** SP frame, 2-book TeamRankings panel, K=4, UNION:
+  WORST2 honest +0.00813 / leaky +0.00955 (leak 14.8%); **ONEBOOK +0.01721 /
+  +0.01885 (8.7%)**; **BEST2 +0.02628 / +0.02814 (6.6%)** [registered +0.01003 /
+  +0.01943 / +0.02883]. Per rule at BEST2: R4_LOWT +0.03246, T20_D03_10 +0.03040,
+  T20_D03_10_W +0.02176, STAR_FAV +0.02077. **The leak share SHRINKS as execution
+  improves (14.8 -> 8.7 -> 6.6%)** because the shop adds a fixed ARITHMETIC price
+  gain (D142 §8) to a shrinking information component. The +49% best-of-2 lift is
+  not a leak artefact and never could have been.
+  (7) **THE AVAILABILITY-TIER LADDER — THE MOST OPERATIONALLY IMPORTANT NUMBER
+  HERE.** Union CLV by season, SP frame, 5 seasons (2021-22 used deliberately: it
+  is the season with NO injury feed in existence, i.e. the natural experiment for
+  a feed outage):
+    season   tier                CLV_honest  CLV_leaky   leak share
+    2021-22  BLIND (no feed)      +0.00859    +0.02970      +71%
+    2022-23  inactives-only T2    +0.02115    +0.02464      +14%
+    2023-24  full T2              +0.01606    +0.01907      +16%
+    2024-25  full T2              +0.01723    +0.01711       -1%
+    2025-26  full T2              +0.01140    +0.01325      +14%
+  **On full-feed seasons the leak was worth 10-20% of the CLV; on the no-feed
+  season it was worth 71%.** The availability feed is roughly two-thirds of what
+  the CLV asset is made of. **A feed outage in October is not a data-quality
+  incident, it is an ASSET outage, and the bands in §9 become wrong the day it
+  happens.** Feed liveness is hereby a first-class operational dependency of the
+  paper book, not a data-quality footnote.
+  (8) **TASK 3 — THE D155 MATCHED-CONTROL ALPHA SHRINKS ~40% AND LOSES
+  SIGNIFICANCE.** Control = bet the MARKET favourite from the same (season x
+  implied-probability bin) strata as the rules' bets, at the real moneyline;
+  19-season long-run control reused verbatim from `data/lb_exploit.json`.
+    when   set                 n   ruleROI    ctrl   alpha_honest  K-1 t CI          D155 registered
+    OPEN   R4_LOWT           484    +2.91%   -4.48%     +7.40%  [-17.64,+32.33]ns    +10.92% ns
+    OPEN   T20_D03_10_W      216    +4.43%   -3.55%     +7.98%  [ -7.97,+24.74]ns     +8.49% ns
+    OPEN   T20_D03_10        574    +1.09%   -4.89%     +5.98%  [-13.06,+24.51]ns     +8.71% ns
+    OPEN   STAR_FAV_SHARPER 1036    -1.15%   -4.86%     +3.71%  [ -6.64,+13.13]ns     +5.98% ns
+    OPEN   UNION            1398    -0.66%   -5.58%     +4.93%  [ -8.30,+17.44]ns    +8.22% **SIG**
+    CLOSE  UNION            1666    -1.41%   -4.82%     +3.41%  [ -5.97,+14.39]ns    +6.51% ns
+    CLOSE  T20_D03_10        704    -1.76%   -4.21%     +2.45%  [ -4.41,+10.36]ns    +5.65% **SIG**
+  **Alpha is positive in 10/10 cells and significant in 0/10 (D155 had 2/10).
+  BOTH of D155's significant cells die.** The favourite-headwind story stands in
+  substance — the control loses -4.8% to -5.6%, our rules land at -0.7% to -1.4%
+  — but **the register must stop citing +4.50/+5.47pp (or +6.51/+8.22%) as
+  measured alpha; the honest numbers are +3.41% (close) / +4.93% (open), ns.**
+  **AND: HONEST BET-AT-OPEN UNION ROI IS NEGATIVE, -0.66%** against the
+  registered +1.48% — an independent confirmation of D156 Part B (E0 retail T0
+  -1.61% / T5 -0.95%) on the real-moneyline frame, from a different direction.
+  **NO CAPITAL AT THE OPEN OR THE CLOSE. D121's recommendation is unchanged and
+  better supported than it was.**
+  (9) **TASK 5 — THE BANDS ARE REPLACED, AND ONLY HALF THE REASON IS THE LEAK.**
+  The registered -0.0131/+0.0200 have **TWO defects**: (a) they are **CENTRED ON
+  THE ALL-SAME-SIDE UNIVERSE (+0.00350)** but **WIDTHED BY THE UNION**
+  (±2*0.05521/sqrt(44)), while `bet_engine.py --monthly-report` scores the UNION
+  against them — so under their own leaky calibration GOOD sat **+0.24 sigma**
+  above the union's monthly mean, a coin flip (P(month)=47.5%, P(2 consecutive)
+  =22.5%, E[wait]=4.4 months); **it was never a 2-sigma gate**; and (b) they are
+  framed on the SP spread convention while the engine prices real book decimals
+  (`bet_engine.py:505-516`). Re-derived calibration, all six cells (union bets /
+  months / median-per-month / universe CLV / union CLV / per-bet sd / se):
+    SP|HONEST      1380 28 48.5 +0.00210 +0.01636 0.05695 0.00818
+    SP|LEAKY_PAIR  1322 28 46.0 +0.00277 +0.01840 0.05790 0.00854
+    SP|LEAKY_REG   1304 28 43.5 +0.00299 +0.01944 0.05795 0.00879
+    ML|HONEST      1398 21 66.0 +0.00482 +0.01197 0.05111 0.00629   <== the live frame
+    ML|LEAKY_PAIR  1355 21 64.0 +0.00506 +0.01381 0.05055 0.00632
+    ML|LEAKY_REG   1378 21 66.0 +0.00539 +0.01590 0.04882 0.00601
+  **NEW BANDS — honest, UNION-CENTRED, real-moneyline frame, volume assumption
+  66 union bets/month, per-bet CLV sd 0.05111, monthly se 0.00629:**
+      **RED FLAG  month mean CLV < -0.0006     GOOD  month mean CLV > +0.0246**
+  At other volumes `band = 0.01197 ± 2*0.05111/sqrt(n)`: 44/mo -0.0034/+0.0274,
+  100/mo +0.0018/+0.0222. Plain reading: **at 66 bets/month a NEGATIVE month is
+  now a red flag** (zero sits at -1.90 sigma) and a month must beat **+0.025** to
+  count as good news. **D125's real-stakes trigger is MIS-SPECIFIED, not merely
+  mis-levelled**: on the honest ML frame the old +0.0200 line is a +1.28 sigma
+  monthly event (P(month) 10.1%, P(2 consecutive) 1.0%, **expected wait ~98
+  months**); under the new bands it is a genuine 2 sigma gate (2.3% / 0.05%),
+  which is the correct property for a gate on REAL CAPITAL. **The frozen live
+  constants `bet_engine.CLV_MONTH_RED` / `CLV_MONTH_GOOD` are NOT changed by this
+  entry — changing a frozen live constant is its own D-line and its own owner
+  decision.** `docs/TRADING_STRATEGY.md` §17 carries the new bands.
+  (10) **PRICE-PANEL RULE, DECLARED IN ADVANCE (a trap the new bands would
+  otherwise walk into).** +0.01197 is a SINGLE-QUOTE measurement. D142 measured
+  best-of-2 as worth +0.0094 arithmetically and established that the shop GAIN
+  transfers even where the LEVEL does not — so a live book capturing >=2 books
+  runs ~+0.021 and **would clear a +0.0200 GOOD line on line shopping alone, with
+  zero model skill.** THEREFORE: score the monthly CLV against these bands **at
+  the CONSENSUS price**, and report the best-price CLV **separately** as the shop
+  premium. `bet_quotes_panel` already logs both (D125 §2); this needs discipline,
+  not new data.
+  (11) **D121's SELECTION PLACEBO, RE-RUN HONEST — CLEAN, AND THIS IS THE
+  CONTROL THAT DECIDES WHETHER THE TARGET EXISTS AT ALL.** p_us permuted within
+  (season x p_open decile) so the selection mechanism and the open-price
+  distribution survive but the model's information is destroyed: UNION
+  **-0.00082 [-0.00382,+0.00391] against a real +0.01197 — clean**; T20_D03_10
+  -0.00001, STAR_FAV -0.00597, T20_D03_10_W +0.00147, all clean; R4_LOWT +0.00221
+  [+0.00048,+0.00327] = 15% of its real CLV, "partial". **The honest CLV is
+  INFORMATION, not harvested open-price mean reversion**, exactly as it was on
+  leaky probabilities.
+  (12) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: the ML arm is
+  **E5+E6** (2023-24, 2024-25, 2025-26); the SP arm is **E4+E5+E6**; the tier
+  ladder in §7 adds **E3** (2021-22) as a single labelled BLIND cell. E0/E1/E2
+  are absent: no model probabilities exist for them in the certified corpus.
+  ERA-AVAILABILITY: real opening moneylines exist ONLY in E5+E6, and the
+  official injury report exists only from E5 (`game_inactives` from E4) — **so
+  the era boundary and the availability-tier boundary COINCIDE**, which is a
+  confound this entry cannot break and states rather than hides. ERA-STABILITY:
+  the honest union CLV is +0.01233 (E5) / +0.01155 / +0.01203 (E6) — flat.
+  CLUSTERING: season, K=3 (ML) and K=4 (SP); every CI is season-clustered and the
+  K-1 cluster-mean t is reported on every headline per §9.1(4); ICC and
+  DEFF_anova reported per §9.1(3); §9.3's small-K warning is honoured by treating
+  the t interval, never the bootstrap, as the shipping statistic. COVID FRAME: no
+  COVID-era season enters any headline.
+  (13) **VERDICT, PLAINLY, BECAUSE THE OWNER IS ABOUT TO COMMIT A SEASON.**
+  (a) **The CLV asset is REAL and it SURVIVES**: +0.01197/bet honest, K-1 t CI
+  excludes zero, placebo clean, stable across all three full-feed seasons.
+  **13.4% of it was the leak — not most of it.** (b) **October has a measurable
+  target**: at 66 bets/month the monthly se is 0.0063, so ONE month separates
+  +0.0120 from zero at 1.9 sigma and two months at 2.7 sigma. The programme can
+  answer its own question inside one season. (c) **The bands were wrong on two
+  counts and are replaced** (§9). (d) **The ROI story is WORSE than registered
+  and the alpha is no longer significant** (§8) — the CLV-farming posture is
+  reinforced, and capital is not on the table. (e) The single most actionable new
+  fact is §7: **the CLV asset is ~2/3 made of the availability feed.**
+  (14) **CHART** rendered and inspected before shipping (three collision passes:
+  the three panel subtitles were overrunning into each other and were shortened;
+  the panel-A legend was sitting on the RED-FLAG rule and moved; the panel-B GOOD
+  label was over the BEST2 bars and moved left; x tick labels rotated/abbreviated;
+  a figure footnote now names both input artifacts and the CI convention).
+  `charts/honest_clv.png` — per-rule honest-vs-leaky CLV with K-1 t whiskers and
+  the D121 bands marked, the D142 execution-policy ladder re-priced honestly, and
+  the REGISTERED -> drift -> LEAK -> HONEST waterfall.
+  (15) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not re-run D147/D148 (the
+  movement model and the arbitrage/middle work) — those consume
+  `cm_clvmodel_rows.csv.gz`, a different artifact, and are FLAGGED here as
+  carrying the same leaky p_us lineage and needing the same treatment. It does
+  not touch the props lanes (D158 §8(b)(2)'s universe-transfer question is still
+  open). It does not change any frozen constant, any production default, or
+  `scripts/bet_engine.py`.
+  [scripts/hc_honestclv.py (new, the measurement), scripts/hc_chart.py (new);
+   data/hc_honestclv.json, data/logs/hc_honestclv.log,
+   data/honest_trading_notes.md (full working), charts/honest_clv.png;
+   docs/TRADING_STRATEGY.md §17 (new bands);
+   inputs data/capstone_pergame.csv (CONTROL, md5 3b7bbbb78ac73c63273c18a8aa30013c,
+   all availability switches UNSET), data/capstone_pergame_oracle_ceiling.csv
+   (md5 d43d9bc9ef46cc6300971444bdbb2778), data/ds_rt1_pergame.csv (md5
+   483237c6c5d0318a2c08aa882bf8dd6c), data/derived/odds_open.csv (md5
+   e0e9cb80c7e977b366f9b56ea5189f68), data/raw/teamrankings/spread_movement.jsonl,
+   data/lb_exploit.json (19-season favourite control, reused),
+   data/bo_openbacktest.json (band-construction anchor), data/nba.duckdb
+   (read_only=True); nbapred/, scripts/bet_engine.py and the frozen registry
+   UNTOUCHED]
+- D160 HISTORICAL BACKFILL COMPLETED — **19 CONTIGUOUS SCORABLE SEASONS WITH
+  MARKET ODDS (2007-08..2025-26), THE CORPUS IS 100% BOXED FROM THE PBP FLOOR,
+  AND THREE SILENT DATA/CRON DEFECTS ARE FIXED.** Brief: finish D152's backfill
+  so a CONTIGUOUS run of scorable seasons that ALSO has odds exists; target was
+  18 (2008-09..2025-26). **DELIVERED 19.** **EVAL CORPUS UNCHANGED — this entry
+  moves DATA, not the eval universe.** No default changed, no gate re-run;
+  **D158 remains the certified baseline** (honest availability, pooled 14.95%,
+  11.45% on the three full-feed seasons) and is untouched.
+  (1) **THE DECISIVE FINDING: THE NETWORK WORK WAS ALREADY DONE, AND THE HOLES
+  WERE A RACE, NOT A PULL FAILURE.** `data/logs/bf_*.log` shows D152's
+  unattended chains completed the artifact pulls for EVERY season down to
+  1996-97 — "DONE artifacts in 35 min; **0 failures**" on each. Raw cache
+  measured: **boxscoretraditionalv3 36,596 files / playbyplayv3 36,686**, and a
+  per-season index confirms **1996-97..2025-26 is 100% cached, box AND PBP,
+  every expected 002 game**. The reason 2008-09 sat at 386/1230 and 2013-14 at
+  27/1230 is that a `build_features.py` run at **2026-08-02 ~09:40** caught both
+  seasons MID-PULL (2008-09 began 09:29 → 386 games × 1.70 s ≈ 09:40; 2013-14
+  began 09:39 → 27 games ≈ 09:40) and `possessions.load_corpus`'s incremental
+  `have` set then marked exactly those game_ids done forever. **So the remaining
+  work was a LOCAL PARSE: zero stats.nba.com calls for priorities 1-3, and
+  exactly ONE call (LeagueGameFinder 2004-05) for priority 4.** The 1.70 s/game
+  budget never applied; measured cost is **2-5 s to parse a season** and
+  **< 1.1 s of held write lock to land it**.
+  (2) **NEW SUBCOMMAND `backfill_history.py pgs --season S`** (added to the
+  existing driver, not a new script, so lock discipline lives in one place):
+  index cache → select the season by GAME-ID PREFIX (works for 2004-05, which
+  was absent from `nba_games`) → parse box+PBP **outside the lock** → **ZONE-DEAD
+  GATE BEFORE ANY WRITE** → land via `possessions._write_rows` (register +
+  `INSERT..SELECT`) through `yielding_connect`. Refuses any season < 1996-97
+  outright. `--dry-run` gates without writing; `--force` re-parses after a
+  parser fix.
+  (3) **LANDED, EVERY SEASON VERIFIED d=0 / miss=0 / zone-dead 0.** Priority
+  order was honoured and each was verified before the next: **2013-14** 1203
+  games/30,685 rows; **2008-09** 844/20,192; **2007-08** 1229/29,476;
+  **2004-05** 1229/29,434; then 2006-07, 2005-06, 2003-04, 2002-03, 2001-02,
+  2000-01, 1999-00, 1998-99, 1997-98, 1996-97. **Zone-attempts/fga = exactly
+  1.0000 on every one** — every box field-goal attempt maps to exactly one PBP
+  zone, the signature of a healthy PBP season and the direct opposite of the
+  pre-1996-97 failure mode. **FINAL STATE: all 30 seasons 1996-97..2025-26 at
+  100.0% box coverage, 35,546/35,546 games, `player_game_stats` 1,005,376 rows
+  / 36,582 games, and ZERO zone-dead games anywhere in the DB.** `verify`
+  reconciles to EXPECTED on all four known shorts (1998-99 725, 2011-12 990,
+  2012-13 1229, 2019-20 1059, 2020-21 1080).
+  (4) **SCORABILITY — THE HEADLINE. 19 CONTIGUOUS SEASONS, ALL WITH ODDS.**
+  Resolved on D153's DATA SUFFICIENCY (`history_scorable.py`: prior season
+  >= 20,000 pgs rows AND own coverage >= 99% AND odds present), computed
+  IN-PROCESS so `data/history_scorable.json` was **not** overwritten (D156
+  reuses it; overwriting is a D131-class staleness hazard) — written to
+  `data/backfill2_scorable.json` instead. **SCORABLE = 2007-08..2025-26, 19
+  seasons, contiguous, every one with `odds_market` closes** (up from D153's 14
+  scorable / 11 poolable): **16 POOLABLE** (2007-08, 2008-09, 2009-10, 2010-11,
+  2012-13, 2013-14, 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2021-22,
+  2022-23, 2023-24, 2024-25, 2025-26) **+ 3 SEPARATE STRATA** (2011-12 lockout,
+  2019-20 E0+bubble, 2020-21 E2). **The brief asked for 18 (2008-09..2025-26)
+  and got 19, because landing 2006-07 — nominally a "no odds, model-only"
+  season — supplied 2007-08's D62 carry.** K=18 was the stated prize; K=19 is
+  the availability-BLIND frame that now exists.
+  (5) **TWO NEW NAMED FLOORS, MEASURED. BOX SCORES ARE NO LONGER THE BINDING
+  CONSTRAINT.** With all 30 seasons at 100% coverage, what stops the run going
+  further back is (a) **`odds_market` starts 2007-08** — so 2004-05/2005-06/
+  2006-07 fit fine but cannot be scored against a market, making them training
+  tail and carry only; and (b) **A DARKO FLOOR AT 2003-04 THAT WAS NOT IN THE
+  REGISTER**: `darko_history` begins 2003-10-29 and `fit_production` **RAISES**
+  `RuntimeError: darko_history empty before <date>; refusing snapshot fallback`
+  for every opening night at or below 2003-10-28. **1996-97..2003-04 are not
+  fittable AT ALL, however complete their box data is** — their value is era
+  measurement, four-factors/tank history, and the D62 carry into 2004-05, and
+  nothing else. That is the honest ranking the brief asked for, with a reason
+  attached rather than an assumption.
+  (6) **DEFECT 1 — SPACE-PADDED `actionType`: 11 GAMES OF INVISIBLE ZONE
+  CORRUPTION, CAUGHT ONLY BECAUSE THE GATE RAN BEFORE THE WRITE.** 2000-01
+  tripped at ratio 0.9909 with 11 zone-dead games — `0020000374`..`0020000383`
+  and `0020000389`, **all played 2000-12-22/23**. Their PBP is **NOT empty**:
+  432-529 actions each, `shotDistance` and `personId` normal. stats.nba.com
+  returns `actionType` **space-padded to 40 characters** for those games
+  (`'Missed Shot                             '`), and `apply_pbp_zones` tested
+  membership by EXACT match — so all **1,745 field-goal attempts** landed with
+  every zone count zero and zero shooting fouls. **This is D152's pre-1996-97
+  failure mode arriving through a different door**: the file is present and
+  parses, so the "no PBP cached" deferral never fires, and `four_factors`' eFG
+  silently degrades to fgm/fga. FIX: `.strip()` on `actionType`/`shotResult`,
+  then `pgs --force`. **BLAST RADIUS AUDITED ACROSS THE WHOLE DB, NOT ASSUMED —
+  every season 1996-97..2025-26 now measures zone-attempts/fga = 1.0000;
+  2000-01 was the only affected season.**
+  (7) **DEFECT 2 — 13 PRE-1996-97 GAMES HAD LEAKED PAST D152's REFUSAL.**
+  `player_game_stats` held games `00283xxxxx`..`00295xxxxx` (1983-84 → 1995-96),
+  the mid-season games `backfill_history.py probe` sampled per season, **every
+  one zone-dead** (0 zone attempts, 155-218 fga). They were invisible to
+  `verify` because its zone-dead query JOINS `nba_games`, and those seasons are
+  not in `nba_games`. D152 REFUSED pre-1996-97 in prose; `build_features.py`
+  landed it anyway. Purged (274 rows, 0.29 s of lock). **AND THE REFUSAL IS NOW
+  ENFORCED IN CODE** — deleting alone was not enough, since the next
+  `build_features.py` would re-parse the same 13 cached boxes and re-insert the
+  zeros: `possessions.load_corpus` now REFUSES any game with `fga>0` and zero
+  zone attempts, logs `ZONE-DEAD <gid> ... REFUSED`, and returns the count.
+  **Verified live: the next run printed exactly 13 refusals and inserted 0
+  rows.** A deferred game is visible as missing coverage; a zone-zero game is
+  invisible corruption.
+  (8) **DEFECT 3 — `build_features.py`, A CRON JOB, WAS CRASHING.**
+  `stints.load_corpus` raised `_duckdb.InvalidInputException: executemany
+  requires a non-empty list of parameter sets` when its 16 candidate games all
+  produced zero stints, **killing the script before `schedule.build` ever ran**.
+  Pre-existing; the backfill only triggered it. Fixed (early return on empty
+  batch), and the same `executemany` converted to register + `INSERT..SELECT`
+  (~152k rows, i.e. minutes of held lock on a rebuild).
+  (9) **A SECOND `executemany` IN THE DAILY WRITE PATH — MEASURED AND FIXED.**
+  `nba_stats.load_season_games` still wrote `nba_games` row-by-row. **MEASURED
+  on the 2004-05 write: 2,728 rows = 114 s of HELD WRITE LOCK**, and on this
+  build a held write lock BLOCKS READERS. Converted to the D152 register path:
+  the identical write took **0.55 s (>200x)**, verified row-for-row identical
+  (2,728 rows / 1,364 game_ids / 1,230 002 / same date span / 34 team codes).
+  `pull_nba_daily.py`'s 2025-26 write now returns in **0.4 s** instead of ~2 min.
+  (10) **2004-05, THE ONE MISSING SCHEDULE — ROOT-CAUSED, NOT RE-PULLED.**
+  `bf_2004-05.log`: the 35-minute artifact pull SUCCEEDED (1,229 games, 0
+  failures) and then `load_season_games` died on `int(r.TEAM_ID)` with
+  `ValueError: cannot convert float NaN to integer`. LeagueGameFinder returns
+  **6 rows with NULL TEAM_ID** for 2004-05 — `0030400002` (All-Star weekend
+  Rookie/Sophomore, "RKE @ SPH") and five preseason `001` games — and **none of
+  the 6 is a 002 game**. Now dropped with a WARNING that names them and counts
+  how many were 002 (measured: 0). Landed: 2,728 rows / 1,230 002 games /
+  2004-10-22..2005-06-23, then 1,229 games / 29,434 rows at ratio 1.0000.
+  (11) **`scorability_probe.py` — D153's REPORTED-WRONG DEFECT FIXED, NOT WORKED
+  AROUND.** D153 caught it "REPORTING 2007-08 AND 2008-09 AS SCORABLE WHEN THEY
+  ARE NOT" because the D123 guard only checks that carry rows EXIST and 24
+  placeholder rows satisfy it. `probe()` now IMPORTS D153's sufficiency resolver
+  (ONE definition, so the two can never disagree again) and reports
+  `fit_returns`, `sufficient` and `scorable = fit_returns AND sufficient` as
+  three separate fields. Re-run agrees with `history_scorable.py` exactly —
+  **19/30** — and now prints the honest line for 2004-05/2005-06/2006-07:
+  *"fit_production RETURNS but the season is NOT scorable: no odds_market
+  closes"*, which is precisely the false-YES class D153 named. Old artifact kept
+  at `data/scorability_pre_d160.json`.
+  (12) **NEWLY LANDED != ADMISSIBLE, AND THE EVIDENCE AGAINST POOLING IS NOW
+  OVERWHELMING.** D139/D152's regime warning was based on 3 pre-2019 seasons; it
+  now rests on 15. **Home margin runs +2.573 to +3.884 in EVERY season
+  1996-97..2010-11 (15/15) against +1.69 to +2.50 across the entire current
+  corpus — the two ranges DO NOT OVERLAP AT ALL**, and the maximum ever measured
+  is **2002-03 at +3.884 / .6283 home WR** against 2020-21's +0.944. Core-DNP in
+  the old era (.1051-.1614) is roughly HALF today's (.2023-.2502). Widening the
+  eval corpus remains a separate owner decision and this entry does not take it.
+  (13) **ERAS.md — 16 NEW SIGNATURE ROWS AND FOUR CORRECTIONS TO REGISTERED
+  CLAIMS.** §2 now covers all 30 seasons with zero gaps (new: 1996-97..2009-10,
+  2013-14, 2014-15); arena coverage was checked BEFORE measuring per D152 §7 —
+  all 34 team codes in sub-2009-10 002 games are in `arenas.csv`, so no season's
+  travel is silently zeroed. CORRECTIONS: (a) **1998-99, not 2011-12, is the
+  most schedule-distorted season we hold** — b2b **.335** vs .310, 3-in-4
+  **.494** vs .463, mean rest **1.81 d** vs 1.88, rest>=3 **.114** vs .123 —
+  and it is also the pace/scoring trough of the whole series (**91.61** poss,
+  **91.58** pts vs 93.89/96.26); it gets 2011-12's treatment, a separate
+  stratum, and costs the betting lane nothing because it has no odds.
+  (b) **highest travel measured anywhere is 2003-04 at 941.6 km/team-game**, not
+  E-1's 903.7 — travel has fallen ~90 km/team-game since. (c) lowest core-DNP is
+  **.1051 (2000-01)**, not 2016-17's .1300; fewest players used is **9.99
+  (1996-97)**, not 2010-11's 10.22. (d) **A NEW MEASURED REGIME BOUNDARY: THE
+  SHORTENED 3-POINT LINE.** The 3PA-share series is a clean 28-season monotone
+  ramp — .160 (1997-98) → .187 → .222 → .243 → .260 → .285 → .337 → .384 →
+  **.421 (2024-25)** — with **exactly one break: 1996-97 at .212**, out of
+  sequence by **+5.2pp** against 1997-98 and the largest single-season move in
+  the entire series. That lands exactly on the 22-ft line of 1994-95..1996-97,
+  restored to 23'9" in 1997-98. Measured here, not recalled; added to §7 with
+  the DARKO and odds floors. **E-3 as coded ("<= 2010-11") now spans 15 seasons
+  with a 1.3-pt home-margin and 6.2pp 3PA-share spread and is too coarse — but
+  D160 deliberately did NOT re-code the eras or touch
+  `nbapred/eval/splits.py::ERAS`, because that is model-facing and needs a gate.
+  The sub-structure is named for whoever re-registers.**
+  (14) **THE FROZEN PATH IS UNTOUCHED, MEASURED NOT ASSUMED.** Full suite
+  **129 passed, 0 failed (168 s)** — better than D152's 128/1, because D155 has
+  since re-registered the F6 one-shot and retired the uncapped OctoberBridge
+  construction. Both arms re-measured explicitly: the uncapped diagnostic is
+  **9/53 moved, max 1.2086, mean 0.1165 — BIT-IDENTICAL to D152**, i.e. landing
+  14 further seasons moved it by exactly ZERO because the trailing-minutes leg
+  was already saturated; the SHIPPED path (`trail_seasons=2`, `OCT_BRIDGE_TRAIL`
+  default, frozen D105/D122) is **0/53 moved, max 0.0000**.
+  `tanking.floor_audit()` = `{pinned: 2020-21, derived: 1996-97, drifted: True}`
+  — the derived floor moved 2014-15 -> 1996-97, and **D155's pin is exactly what
+  stops that becoming a model change**. Nothing in `nbapred/model/` behaviour
+  changed; the three code fixes are a parser strip, a refusal guard, and two
+  executemany->register conversions.
+  (15) **CRON HEALTH VERIFIED LIVE (brief task 6).** `build_features.py` RC=0
+  after the stints fix (0 new pgs / **13 REFUSED zone-dead** / lineup_stints 16
+  games -> 0 stints / schedule_features 2,460); `pull_nba_daily.py` RC=0 (5,103
+  players, 2,805 team-game rows, 0 games needing artifacts). **Every write in
+  this session held the lock under 1.1 s** (30,685 rows = 1.00 s; the 13-game
+  purge = 0.29 s), so no yielding was ever required — but `yielding_connect` was
+  used on every write path regardless. No cron job was starved.
+  (16) **WHAT THIS DOES NOT CLAIM.** It does not widen the eval corpus, change a
+  default, re-run a gate, or re-price anything: D158 stands. It does not score
+  the 19 seasons — that is the next entry's job, and D153's absolute levels
+  remain ORACLE-labelled per D159. `lineup_stints` gains no history
+  (GameRotation is partial at all depths, D152). Playoffs (004)/preseason (001)
+  below 2018-19 remain unpulled by design. **1996-97 keeps a NAMED residual**:
+  ratio 0.9994, a 107-shot shortfall traced to ONE cause — `personId` **775**, a
+  GSW player who appears in the PBP with an EMPTY `playerName`, is absent from
+  the boxscore entirely and is not in `nba_players` (103 shots across 17 games).
+  Upstream roster defect, bounded at 0.06%, in a season with no odds; left
+  as-is rather than papered over.
+  [code scripts/backfill_history.py (new `pgs` subcommand + `--force`),
+   scripts/scorability_probe.py (sufficiency fix),
+   nbapred/features/possessions.py (actionType/shotResult strip; ZONE-DEAD
+   refusal in load_corpus), nbapred/features/stints.py (empty-batch crash +
+   register write), nbapred/ingest/nba_stats.py (NULL TEAM_ID drop + register
+   write); data/backfill2_notes.md (full working), data/backfill2_scorable.json,
+   data/era_signatures.json (re-measured; pre-run kept as
+   era_signatures_pre_d160.json), data/scorability.json (pre-run kept as
+   scorability_pre_d160.json), data/logs/bf2_*.log;
+   docs/ERAS.md §1 §2 §7 (16 rows + 4 corrections + 3 new floors);
+   data/nba.duckdb WRITTEN (player_game_stats, nba_games);
+   nbapred/model/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, no gate re-run,
+   eval corpus unchanged at the D132 5-season / 6,148-game denomination]
+- D161 THE K=19 TEST — MODEL AND THE FOUR FROZEN BETTING RULES SCORED ON ALL 19
+  CONTIGUOUS SEASONS AT ONE CONSTANT, HONEST AVAILABILITY TIER. **THE RULES DO
+  NOT SURVIVE OUT OF SAMPLE ON ROI, AND THE 19-SEASON FRAME REJECTS THEM RATHER
+  THAN MERELY FAILING TO CONFIRM THEM: 0 OF 92 PRE-SPECIFIED ROI CELLS ARE
+  SIGNIFICANTLY POSITIVE AGAINST 4.6 EXPECTED, 23 ARE SIGNIFICANTLY NEGATIVE,
+  AND THE UNION LOSES -3.40% [-7.87,-0.53] AT 18 DOF ON REAL CLOSING MONEYLINES
+  AND -5.60% [-9.60,-0.74] ON THE 15 SEASONS NO GATE HAS EVER SEEN. WHAT DOES
+  SURVIVE IS CLV: UNION +0.00662 [+0.00150,+0.00943] SIG AT K=19, POSITIVE IN
+  ALL FIVE ERAS (I2=0%), AND CLEAN AGAINST A WITHIN-DATE PERMUTATION PLACEBO AT
+  p=0.000. THE D155 MATCHED-CONTROL ALPHA, TESTABLE FOR THE FIRST TIME AT 18
+  DOF, COLLAPSES TO +0.90% ns — AND D155's ONE SURVIVING SIGNIFICANT CELL FLIPS
+  TO SIGNIFICANTLY NEGATIVE.** Every "positive but not significant" verdict of
+  the last three days came from K=3 seasons = 2 dof, a test that cannot reject
+  anything; D160 landed the 19-season frame and this entry uses it.
+  **DIAGNOSTIC. No production default changed, no registered gate re-run, the
+  eval corpus NOT widened (the D132 5-season / 6,148-game denomination is
+  untouched), `nbapred/` and `scripts/bet_engine.py` UNTOUCHED, DB
+  read_only=True.** `data/capstone_pergame.csv` copied aside FIRST to
+  `capstone_pergame_D158_BACKUP_k19.csv` and verified UNCHANGED at the end
+  (md5 **3b7bbbb78ac73c63273c18a8aa30013c**, = D159's control hash).
+  (0) **THE AVAILABILITY TIER IS CONSTANT ON ALL 19 SEASONS AND IT IS BLIND —
+  EMPTY OUT SETS EVERYWHERE.** `injury_reports_pit` starts 2023-10-24 and
+  `game_inactives` starts 2022-23 (measured: 1230/1230/1230/1227 gids on the
+  four covered seasons and NOTHING before), so honest availability information
+  does not exist for 15 of the 19. D158 established that a mixed tier yields an
+  uninterpretable pooled number. **THEREFORE EVERY LEVEL IN THIS ENTRY IS A
+  LOWER BOUND ON THE MODEL, AND THE THREE FULL-FEED SEASONS (D158's 11.45%)
+  REMAIN THE ESTIMATE OF LIVE PERFORMANCE.** The tier cost is PRICED, not
+  waved at: on the three seasons where both tiers exist, BLIND scores +15.57%
+  normalized against D158's certified T2 **+11.45% = +4.12pp**. **NO
+  PLAYED-SET ORACLE IS CONSTRUCTED ANYWHERE** — `ORACLE_PLAYED_OUTS` is never
+  set and no `player_game_stats`-derived OUT set exists in any code path here.
+  `TANK_SEASON_FLOOR=2020-21` pinned explicitly in every arm (D155);
+  `tanking.floor_audit()` printed live = {pinned 2020-21, derived 1996-97,
+  drifted True}.
+  (0a) **HARNESS ANCHOR — IT PASSES EXACTLY.** 2021-22 has no availability feed
+  in existence, so the CERTIFIED harness already ran it BLIND. `k19_model.py`
+  reproduces D158's cell **n=1228, ll_us 0.63053, ll_mkt 0.60429 to five
+  decimals**. That is the one cell where a blind harness must agree with the
+  certified one, and it does.
+  (0b) **MY OWN ERA CODING, BECAUSE `splits.py::ERAS` IS FLAGGED TOO COARSE**
+  (D160 §13: E-3 now spans 15 seasons and D160 deliberately did not re-code it).
+  **K19-ERA**, on measured ERAS.md §2 boundaries: **K-A** 2007-08..2010-11
+  (pre-lockout CBA, the old home-margin regime D160 §12 showed does not overlap
+  the modern range at all); **K-B** 2011-12..2013-14 (post-lockout; 2011-12 is a
+  D160 separate stratum and is labelled in every table); **K-C** 2014-15..2018-19
+  (3PT ramp); **K-D** 2019-20..2020-21 (COVID — both D160 separate strata,
+  reported and NEVER pooled into a headline; every table also carries a
+  17-season ex-COVID row); **K-E** 2021-22..2025-26 (the corpus every gate in
+  the campaign was run on). The 2004-05 hand-check change is outside the frame.
+  (1) **A DEFECT FOUND AND FIXED: A FRANCHISE-CODE JOIN HOLE THAT SILENTLY
+  DELETED 938 GAMES — THREE WHOLE FRANCHISES — FROM THE HISTORICAL FRAME.**
+  `nba_games.team_abbrev` carries the abbreviation IN FORCE THAT SEASON (NJN,
+  NOH, SEA); `odds_market` AND `data/derived/odds_open.csv` carry the MODERN
+  franchise code on every row (BKN, NOP, OKC). The market join is
+  (game_date, home, away), so before the fix every game played by a relocated
+  franchise had no market price and dropped out. Measured, run-1 vs run-2:
+  **2007-08 991->1230 (+239, SEA+NJN+NOH), 2008-09/2009-10/2010-11 1068->1230
+  (+162 each, NJN+NOH), 2011-12 859->990 (+131), 2012-13 1146->1228 (+82, NOH),
+  2013-14 onward unchanged.** **D153 (1) reported exactly this as "MARKET
+  COVERAGE is thin on the three oldest seasons and the loss is not random" with
+  counts 162 / 131 / 83 — those numbers ARE the NJN+NOH and NOH schedules. The
+  mechanism was never named; it is named and fixed here.** Verified from data,
+  not asserted: after the map {SEA->OKC, NJN->BKN, NOH->NOP} the set difference
+  (nba_games codes − odds codes) is **exactly {} on all 19 seasons**. This is a
+  JOIN FIX — no operator, threshold or price convention is touched. The loss was
+  NOT random: two of the three franchises were mid-relocation, i.e. exactly the
+  tanking/roster-churn population the D73 term is about.
+  (2) **DELIVERABLE 1 — THE MODEL, 19 SEASONS, 22,804 GAMES** (blind; norm =
+  (ll_us−ll_mkt)/(ln2−ll_mkt); DARKO = minute-coverage of the roster window):
+    season   era   n     ll_us    ll_mkt     raw     norm    DARKO
+    2007-08  K-A  1230  0.60255  0.56927  +0.03328  26.87%    3.2%
+    2008-09  K-A  1230  0.58843  0.56568  +0.02275  17.85%    6.4%
+    2009-10  K-A  1230  0.60825  0.57889  +0.02935  25.69%    8.8%
+    2010-11  K-A  1230  0.60396  0.57640  +0.02756  23.61%   10.5%
+    2011-12  K-B   990  0.61653  0.58731  +0.02922  27.61%   12.1%  LOCKOUT
+    2012-13  K-B  1228  0.60020  0.58161  +0.01859  16.67%   17.5%
+    2013-14  K-B  1230  0.61208  0.58662  +0.02546  23.90%   21.8%
+    2014-15  K-C  1230  0.59819  0.57422  +0.02397  20.16%   26.6%
+    2015-16  K-C  1230  0.58857  0.57288  +0.01570  13.05%   34.9%
+    2016-17  K-C  1230  0.61961  0.61169  +0.00791   9.71%   41.9%
+    2017-18  K-C  1230  0.62112  0.59383  +0.02729  27.48%   48.4%
+    2018-19  K-C  1230  0.61690  0.59464  +0.02227  22.60%   59.5%
+    2019-20  K-D  1058  0.62160  0.61173  +0.00987  12.12%   70.7%  COVID
+    2020-21  K-D  1080  0.64559  0.61794  +0.02764  36.76%   79.5%  COVID
+    2021-22  K-E  1228  0.63053  0.60429  +0.02623  29.52%   86.9%  <- D158 anchor
+    2022-23  K-E  1230  0.63974  0.62437  +0.01536  22.34%   96.2%
+    2023-24  K-E  1230  0.60350  0.58086  +0.02263  20.16%  100.0%
+    2024-25  K-E  1230  0.59463  0.58155  +0.01308  11.72%  100.0%
+    2025-26  K-E  1230  0.58929  0.57114  +0.01814  14.87%  100.0%
+  **POOLED 19: n=22,804, ll_us 0.61022, ll_mkt 0.58833, raw +0.02189, norm
+  +20.88%. K=19 season-clustered bootstrap [+0.01883,+0.02479]; K−1
+  CLUSTER-MEAN t [+0.01851,+0.02531] — SIG.** ICC +0.00016, DEFF_anova 1.20,
+  DEFF_boot 1.05. **19/19 seasons positive: the market beats us in every single
+  season of the frame, and at K=19 that is now an ESTABLISHED fact rather than
+  an unrejectable one.** Sub-blocks: 17 ex-COVID +0.02220/+20.64% SIG; 16
+  ex-COVID ex-lockout +0.02185/+20.30% SIG; OOS_DEEP 15 (2007-08..2021-22)
+  +0.02315/+22.02% SIG; the D132 5-season corpus scored BLIND +0.01909/+18.95%.
+  BY ERA: K-A +23.42% / K-B +22.28% / K-C +18.74% / K-D +24.08% / K-E +18.95%,
+  DerSimonian-Laird **Q=12.78 df=4 I2=68.7% p=0.0125 -> ERA-CONDITIONAL** in
+  magnitude with the sign identical in all five (§10.3 form: the level must not
+  be quoted as one number without the per-era table).
+  (3) **DOES IT TREND?** Season-level OLS on 19 points: **normalized gap
+  -0.227pp/season, t=-0.76, CI[-0.861,+0.407] ns** (ex-COVID -0.308, t=-1.21,
+  ns); **RAW gap -0.00062/season, t=-2.33, CI[-0.00117,-0.00006] SIG** (ex-COVID
+  -0.00062, t=-2.48, SIG). The two disagree because the MARKET's own log loss
+  falls across the frame, so a shrinking raw deficit is a flat normalized one.
+  **The honest reading is that we have closed the raw gap by ~1.2 millinats a
+  decade and have closed NONE of the normalized gap.** Dispersion: mean +21.19%,
+  sd 7.09pp, min +9.71% (2016-17), max +36.76% (2020-21).
+  (4) **THE DARKO-COVERAGE CONFOUND, MEASURED AND SEPARATED AS FAR AS IT CAN
+  BE — AND IT DOES NOT EXPLAIN THE LEVEL.** DARKO minute-coverage of the roster
+  window runs **3.2% (2007-08) -> 100.0% (2023-24 on)** and is **98.2%
+  collinear with the season index**, so era and our own feed CANNOT be fully
+  separated on this frame; that is stated, not assumed away. What IS measurable:
+  corr(norm gap, coverage) = **-0.116** on 19 / -0.234 ex-COVID — much weaker
+  than D153's -0.391; the PARTIAL correlation controlling for time is
+  **+0.333**, i.e. it changes sign once time is removed; and splitting on
+  COVERAGE rather than calendar, **DARKO<50% (11 seasons) +21.14% vs DARKO>=50%
+  (8 seasons) +21.26%, a difference of +0.12pp** (game-level +21.18% vs
+  +20.39%). **READING: on the LEVEL of the model-vs-market gap the talent-feed
+  ramp explains essentially nothing.** This does NOT contradict D153: its +0.79
+  was corr(coverage, D19 composition-leg ABLATION effect), a different
+  quantity, and that finding stands. What the ramp DOES drive is rule FIRING —
+  see §9.
+  (5) **DELIVERABLE 2, THE HEADLINE — THE FOUR FROZEN RULES ON REAL CLOSING
+  MONEYLINES, ALL 19 SEASONS, NO VIG ASSUMPTION** (arm CLOSE|ML|19; frame
+  22,740 games with both prices; every operator imported VERBATIM from
+  `bo_openbacktest.registry_masks`/`price_cols`/`am2dec`):
+    rule                 n    hit%    be%    ROI%   K−1 t CI (18 dof)
+    R4_LOWT           1349   66.27  68.14   -2.89  [ -8.41, +2.89] ns
+    T20_D03_10_W       394   75.13  78.99   -5.00  [-14.44, +3.71] ns
+    T20_D03_10        1339   72.67  76.98   -5.71  [-10.75, -4.40] **SIG NEG**
+    STAR_FAV_SHARPER  1273   69.99  70.86   -1.36  [ -7.61, +6.70] ns
+    UNION             2954   67.98  70.32   -3.40  [ -7.87, -0.53] **SIG NEG**
+  **DEV vs OOS, AND THE OOS BLOCK IS THE REAL EVIDENCE.** The rules were chosen
+  on 2023-24+2024-25, so 2007-08..2021-22 is 15 genuinely out-of-sample seasons.
+  **OOS_DEEP: UNION -5.60% [-9.60,-0.74] SIG NEGATIVE; T20_D03_10 -9.16%
+  [-12.51,-5.05] SIG NEGATIVE; R4_LOWT -3.94% ns; T20_D03_10_W -11.27% ns.**
+  DEV (K=2) UNION -2.14% ns and NONDEV (K=2) -0.75% ns are both structurally
+  unrejectable — which is precisely the K=3 problem this entry exists to escape.
+  **THE SIGN OF THE DEV/OOS GAP IS THE ORDINARY OVERFITTING SIGN: the rules look
+  least bad exactly where they were chosen.**
+  (6) **AND WHAT SURVIVES: CLV, ON ALL 19 SEASONS** (arm OPEN|SP|19 — real
+  opening moneylines exist ONLY in 2023-24..2025-26, so the 19-season open arm
+  uses the program-wide SP@1.045 convention; D155 (7) measured that the
+  convention moves the CLV LEVEL by ~20% and never its sign or significance):
+    rule                 n      CLV       K−1 t CI (18 dof)
+    R4_LOWT           1318  +0.00746  [+0.00042,+0.01083] SIG
+    T20_D03_10_W       490  +0.00798  [+0.00090,+0.01164] SIG
+    T20_D03_10        1490  +0.01041  [+0.00350,+0.01202] SIG
+    STAR_FAV_SHARPER  1192  +0.00097  [-0.00248,+0.00434] ns  (K=4; inert before 2022-23)
+    UNION             2925  +0.00662  [+0.00150,+0.00943] **SIG**
+  OOS_DEEP 15 seasons: **UNION +0.00607 [-0.00004,+0.01017]** — misses zero by
+  4e-5, i.e. positive and a hair short of significance on the deep block alone;
+  T20_D03_10 +0.00568 [+0.00079,+0.01001] SIG. ROI on the same arm is UNION
+  -4.97% [-7.23,-1.23] SIG NEG (the SP map overstates breakeven by ~2pp per
+  D121's methodological finding, which is why §5's real-moneyline arm is the
+  ROI of record and this arm is the CLV of record).
+  (6a) **THE 3-SEASON REAL-MONEYLINE OPEN ARM, AS A LEVEL ANCHOR AND AS A
+  FOURTH MEASUREMENT OF WHAT THE FEED IS WORTH.** UNION n=1519, ROI -1.19%
+  [-4.94,+2.58] ns, **CLV +0.00547 [+0.00232,+0.00855] SIG**. D159 measured
+  **+0.01197 on the SAME THREE SEASONS with the T2 feed in force**. **Running
+  BLIND on the modern seasons costs 54% of the CLV** — an independent
+  confirmation of D159 §7 ("the availability feed is roughly two-thirds of what
+  the CLV asset is made of") from a fourth direction, and the cleanest possible
+  statement of why §5/§6's levels are LOWER BOUNDS.
+  (7) **DELIVERABLE 3a — THE D155 MATCHED-CONTROL ALPHA, TESTABLE AT 18 DOF FOR
+  THE FIRST TIME.** Control = bet the MARKET favourite from the same (season x
+  implied-probability bin) strata as the rules' own bets, at the real moneyline;
+  `lb_exploit.matched_control` imported verbatim (its t-quantile table falls
+  back to 2.1 above K−1=4, which at 18 dof is 2.101 to three decimals: EXACT).
+    when   set                 n   K  ruleROI    ctrl    alpha   K−1 t CI
+    close  R4_LOWT          1349  18   -2.89%  -4.42%   +1.53%  [-4.25,+8.19] ns
+    close  T20_D03_10_W      394  16   -5.00%  -3.72%   -1.28%  [-10.67,+5.48] ns
+    close  T20_D03_10       1339  19   -5.71%  -3.54%   -2.17%  [-7.44,-0.42] **SIG NEG**
+    close  STAR_FAV_SHARPER 1273   4   -1.36%  -4.33%   +2.97%  [-6.99,+16.75] ns
+    close  UNION            2954  19   -3.40%  -4.30%   +0.90%  [-3.61,+5.13] ns
+    open   UNION            1519   3   -1.19%  -5.22%   +4.03%  [-5.70,+12.96] ns
+  **THE TRAJECTORY IS THE FINDING: D155 +6.51% close / +8.22% SIG open ->
+  D159 honest +3.41% / +4.93% ns -> D161 +0.90% ns at 18 dof.** The
+  favourite-HEADWIND story survives in substance — the bin-matched control loses
+  -4.30% and our rules land at -3.40% — but the claim that our selection beats a
+  bin-matched favourite bettor does not: the alpha is +0.90pp with a CI four
+  times its own width, and **D155's one still-standing significant cell,
+  T20_D03_10 (+5.65% SIG at K=3), flips to -2.17% SIGNIFICANTLY NEGATIVE at
+  K=19.** The register must stop citing a measured alpha at all; the honest
+  number is +0.90% and it is indistinguishable from zero.
+  (8) **DELIVERABLE 3b — THE WITHIN-DATE PERMUTATION PLACEBO (D147's method),
+  400 draws, seed 20260803.** p_us is permuted ACROSS GAMES ON THE SAME DATE, so
+  the slate, the selection mechanism and the price distribution all survive
+  while the model's information is destroyed; the rules then re-fire on the
+  placebo. OPEN|SP|19: **UNION real CLV +0.00662 vs placebo -0.00237 (sd
+  0.00113), p=0.000 — CLEAN. The CLV is INFORMATION.** R4_LOWT p=0.000,
+  T20_D03_10 p=0.000, STAR_FAV p=0.000; T20_D03_10_W p=0.110 is the one weak
+  cell. On ROI: **UNION real -4.97% vs placebo -6.64% (sd 1.09), p=0.070 — the
+  model is worth +1.67pp of ROI over a no-information model, and that is not
+  enough to reach breakeven.** **THAT SENTENCE IS THE WHOLE RESULT OF THE
+  PROJECT'S TRADING LANE: the information is real, it is measurable, and it is
+  smaller than the vig.** On CLOSE|ML|19 the CLV placebo BEATS the real CLV in
+  every cell (p~1.000) — mechanical and expected, since bets selected on
+  edge-vs-CLOSE are by construction games where the line has already moved AWAY
+  from our side; recorded so nobody later reads it as a failure.
+  (9) **DELIVERABLE 3c — FAMILY-WISE (D121's 9-vs-14.4 standard). 92
+  pre-specified ROI cells (4 price arms x 5 windows x 5 sets), expected 4.6
+  significant under a global null. OBSERVED SIGNIFICANTLY POSITIVE: ZERO.
+  OBSERVED SIGNIFICANTLY NEGATIVE: 23.** D121 read its 9-of-14.4 as "BELOW the
+  free-lunch rate"; this is **0 of 4.6 with 23 significant losers**, which is a
+  stronger statement than "the family is null" — the family is significantly
+  BAD. On CLV: 88 cells, expected 4.4, **OBSERVED 19 significantly positive**,
+  4.3x the null rate in the opposite direction. Cells overlap heavily (the same
+  bets re-scored across arms and windows), so both counts are upper bounds on
+  the surprise, exactly as D121 said of its own.
+  (10) **DELIVERABLE 4 — ERA CONDITIONALITY. NEITHER PRODUCT IS ERA-SPECIFIC,
+  AND THAT CUTS BOTH WAYS.** ROI (CLOSE|ML|19, UNION): K-A -4.38% / K-B -10.98%
+  / K-C -5.42% / K-D -4.77% / K-E -1.83%; DL **Q=3.19 df=4 I2=0.0% p=0.528 ->
+  ERA-STABLE**, negative in all five. CLV (OPEN|SP|19, UNION): K-A +0.0020 /
+  K-B +0.0038 / K-C +0.0073 / K-D +0.0070 / K-E +0.0073; DL **Q=1.73 df=4
+  I2=0.0% p=0.787 -> ERA-STABLE**, positive in all five. **So the answer to "is
+  this a rule that only works post-2015" is NO in both directions: the CLV works
+  across two decades and the ROI loses across two decades.** The hand-check
+  change (2004-05) is outside the frame; the 3PT ramp (.222 -> .421) and both
+  stoppages are inside it and move nothing. The ONE genuinely era-limited object
+  is **STAR_FAV_SHARPER, whose trigger is `game_inactives` and which therefore
+  CANNOT FIRE AT ALL before 2022-23: its OOS block is UNTESTABLE, not failed**
+  (GATE_POLICY_V2 §10.2 / the D110 §1a cold-estimator error, generalised).
+  (11) **A UNIVERSE-TRANSFER CAVEAT ON THE OOS BLOCK, MEASURED AND STATED
+  RATHER THAN DISCOVERED LATER.** The rules are EDGE THRESHOLDS and the model's
+  edge distribution is NOT stationary: mean edge vs the close runs **-0.046
+  (2007-08) -> -0.007 (2018-19) -> +0.030 (2024-25)** and mean model confidence
+  |p-0.5| runs **0.133 -> 0.195**, both tracking the DARKO ramp; same-side
+  agreement is FLAT at 83-88% throughout, so the mechanism is CONFIDENCE, not
+  side selection. Consequence: the rules fire **49-127 bets/season in K-A/K-B
+  against 175-497 in K-E**, so the OOS bets are the far tail of a left-shifted
+  edge distribution rather than a like-for-like sample. This is a real limit on
+  the OOS block and it is the same availability-trap family as §10's STAR_FAV
+  finding. It does NOT rescue the verdict — the old-era bets are the ones where
+  our CLAIMED edge was largest, so if anything they were the favourable tail —
+  but a future entry that widens the eval corpus must handle it explicitly.
+  (12) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: **K-A..K-E, i.e.
+  2007-08..2025-26**, my own coding per §0b, mapping onto ERAS.md as
+  E-3/E-2/E-1/E0/E2/E3/E4/E5/E6. ERA-AVAILABILITY: real CLOSING moneylines exist
+  in all 19 seasons; real OPENING moneylines only in E5+E6; the 5PM injury
+  report only from E5 and `game_inactives` from E4, which is WHY the whole frame
+  runs blind and why STAR_FAV_SHARPER is structurally inert on 15 of 19.
+  ERA-STABILITY: the MODEL gap is **ERA-CONDITIONAL** (I2=68.7%, p=0.0125, sign
+  identical); the rules' ROI and CLV are both **ERA-STABLE** (I2=0.0%).
+  COVID FRAME: E0/E1/E2 ARE included as K-D and are reported in every table AND
+  excluded in a parallel 17-season row — the model headline is +20.88% with them
+  and +20.64% without, and NO rules verdict changes SIGN: union ROI -3.40% ->
+  -3.26% on real closing MLs, -4.97% -> -4.75% on the SP open arm, union CLV
+  +0.00662 -> +0.00658. **ONE SIGNIFICANCE FLAG DOES MOVE AND IS DECLARED HERE
+  RATHER THAN BURIED: the CLOSE|ML union ROI is SIG NEG on 19 seasons
+  [-7.87,-0.53] and NS ex-COVID [-8.19,+0.04], because dropping 267 of its
+  2,954 bets costs 2 clusters and widens the t bound.** The OOS_DEEP block
+  (which CONTAINS the COVID seasons) is SIG NEG at -5.60% either way, and the
+  SP open arm stays SIG NEG ex-COVID, so the verdict does not rest on the COVID
+  cells. CLUSTERING: season, K=19; every CI is
+  season-clustered and the K−1 cluster-mean t is the shipping statistic per
+  §9.1(4), with the bootstrap secondary per §9.3.
+  (13) **VERDICT, PLAINLY, BECAUSE THE OWNER IS WEEKS FROM COMMITTING A SEASON.**
+  (a) **THE BETTING RULES DO NOT HAVE AN ROI EDGE, AND THIS IS NOW A REJECTION
+  RATHER THAN A FAILURE TO CONFIRM.** On 15 out-of-sample seasons the union
+  loses -5.60% with a CI that excludes zero; 0 of 92 cells is significantly
+  positive; the matched-control alpha is +0.90% ns. Nothing in the register
+  should describe these rules as profitable, at the open or the close, on any
+  frame. **D121's "no capital" recommendation is not merely unchanged — it is
+  now supported by the only test in the project that could have overturned it.**
+  (b) **THE CLV ASSET IS REAL, IT IS ERA-STABLE OVER TWO DECADES, AND IT IS
+  SMALLER THAN ADVERTISED.** +0.00662/bet blind over 19 seasons, SIG at 18 dof,
+  placebo-clean at p=0.000, positive in all five eras — and +0.00547 on the
+  three modern seasons where D159's fed model made +0.01197. The CLV-farming
+  posture that D159 recommended is the correct one and this entry strengthens
+  it. (c) **THE HONEST OCTOBER EXPECTATION IS STILL D158/D159's FULL-FEED
+  NUMBERS, NOT THESE.** The blind tier costs +4.12pp of normalized gap and 54%
+  of the CLV; it was chosen for CONSISTENCY across 19 seasons, and it is the
+  right instrument for era-stability and the wrong one for level. (d) **THE
+  MOST ACTIONABLE NEW FACT is §8's ROI placebo: the model beats a
+  no-information model by +1.67pp of ROI and needs ~+3.4pp more to break even.**
+  That is a sized target, and it is roughly the size of D142's line-shopping
+  gain — which is the only lever in the register that has ever moved a number
+  that far.
+  (14) **CHART** rendered and inspected, three collision passes (pass 1: the
+  two panel titles overran into each other and were shortened and re-padded;
+  pass 2: the K-D whiskers are +-165% at K=2/1 dof and were blowing both y
+  ranges — now CLIPPED with a flag, and the legend moved above the axes; pass 3:
+  the figure footnote was sitting on both bottom x-tick blocks and the
+  bottom margin was raised). `charts/k19_model_and_rules.png` — LEFT the
+  normalized gap for all 19 seasons with the pooled blind level, the certified
+  full-feed reference (11.45%) and each season's DARKO coverage; RIGHT the rules
+  by era, ROI vs breakeven above and CLV vs zero below, both with K−1 t
+  intervals.
+  (15) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not widen the eval corpus,
+  change a default, re-run a gate, or re-certify anything: **D158 remains the
+  certified baseline and D159 remains the trading baseline.** It does not
+  re-price the D159 monthly bands (they are a full-feed construction and this is
+  a blind frame). It does not touch the props lanes. It does not resolve the
+  §11 universe-transfer question or the §4 collinearity between our talent feed
+  and the calendar — both are named as the honest limits of a 19-season blind
+  frame. STAR_FAV_SHARPER remains untested out of sample and cannot be tested
+  until an inactives source predating 2022-23 exists.
+  [code scripts/k19_model.py, scripts/k19_analyze.py, scripts/k19_rules.py,
+   scripts/k19_chart.py (all new, none under nbapred/);
+   data/k19_pergame.csv (22,804 games, availability-BLIND),
+   data/k19_model.json, data/k19_model_stats.json, data/k19_rules.json,
+   data/k19_notes.md (full working incl. the pre-registration),
+   data/k19_model_PREFIX_nocrosswalk.json + data/logs/k19_model_PREFIX_nocrosswalk.log
+   (the pre-fix run, kept as the evidence for §1),
+   data/logs/k19_model.log, k19_analyze.log, k19_rules.log;
+   charts/k19_model_and_rules.png;
+   inputs data/nba.duckdb (read_only=True), data/derived/odds_open.csv
+   (md5 e0e9cb80c7e977b366f9b56ea5189f68), data/lb_exploit.json (D155's
+   19-season favourite control, reused verbatim),
+   data/capstone_pergame.csv (READ ONLY, backed up to
+   capstone_pergame_D158_BACKUP_k19.csv, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run);
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   UNTOUCHED, no gate re-run, no default changed, eval corpus unchanged at the
+   D132 5-season / 6,148-game denomination]

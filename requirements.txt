@@ -1,0 +1,5 @@
+nba_api>=1.11
+duckdb>=1.5
+pandas>=2.0
+requests>=2.31
+cloudscraper>=1.2
