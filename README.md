@@ -59,6 +59,45 @@ the project.
 The last two lines are the whole finding: **the information is real, it is
 measurable, and it is smaller than the vig.**
 
+### Closing prices vs opening prices
+
+Those headline ROIs are struck at the **close**, where market odds exist for all
+19 seasons. You would never actually bet there — the close is the market's final
+and best answer. The interesting price is the **open**, and it is a weaker test
+for an unavoidable reason: real opening moneylines only exist in our data for
+**three seasons**, which is two degrees of freedom and cannot reject anything.
+
+| frame | seasons | union ROI | verdict |
+|---|---|---|---|
+| **Close**, real moneylines | **19** | **−3.40%** | **significantly negative** |
+| Close, 15 seasons no gate ever saw | 15 | **−5.60%** | **significantly negative** |
+| **Open**, real moneylines, live injury feed | **3** | **−0.66%** | not significant |
+| Open, real moneylines, availability-blind | 3 | −1.19% | not significant |
+
+So: **at the close we can prove the rules lose. At the open we can prove
+nothing** — the point estimate is roughly breakeven and the interval swallows it.
+
+Execution is the larger lever, and it is an access problem rather than a
+modelling one. Holding the model fixed and varying only where the bet is placed
+(fully-equipped model tier, at the open):
+
+| execution | cost over fair | union ROI |
+|---|---|---|
+| 1 retail book (our access) | 3.00 pts | −0.95% |
+| 2 books | — | +0.39% |
+| 5 books | 1.10 pts | +1.76% |
+| 8 books | 0.67 pts | +2.39% |
+| exchange, 2% commission | **0.41 pts** | **+2.69%** |
+
+A single exchange account structurally beats an extrapolated eight-book shop,
+because commission scales with the payout and these rules are 68% favourites.
+**None of these cells survives the three-season significance bound**, so they
+are reported as point estimates and a direction, not as a result.
+
+The honest summary of the trading work: *the rules are rejected where we have
+power to test them; at the price we would actually pay they are indistinguishable
+from breakeven; and the only lever large enough to matter is transaction cost.*
+
 The betting rules are *rejected*, not merely unconfirmed — they look least bad
 precisely on the seasons they were selected from, which is the overfitting
 signature. Closing-line value survives everything we have thrown at it,
