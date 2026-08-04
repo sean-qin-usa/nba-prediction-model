@@ -186,7 +186,7 @@ above, so the frictions are named rather than omitted:
 **None of these cells survives its significance bound**, so they are point
 estimates and a direction, not a result.
 
-### The one thing that clears the vig: walk-forward *selection*
+### The result that clears the vig — and why it does not survive audit
 
 Everything above holds a configuration **fixed** and asks whether it profits. A
 different question is whether *choosing* the configuration from history alone,
@@ -194,25 +194,68 @@ and applying it to the next unseen season, profits — re-selecting each year th
 way you actually would in practice.
 
 Select on seasons 1..k from a pre-declared 600-cell space, freeze, score season
-k+1, roll forward. **Fourteen unseen seasons:**
+k+1, roll forward. Fourteen unseen seasons, priced at the opening spread under
+measured five-book execution with the outlier-realism haircut:
 
 | | |
 |---|---|
-| **Pooled ROI** | **+1.66%** (cover 53.26% vs 52.38% break-even) |
-| vs the shipped fixed configuration, same seasons | shipped −3.15% → **+4.40 pts better** |
-| **vs the identical loop run on permuted predictions** | noise −4.01%; real beats **all 200 draws, p = 0.000** |
-| 13-dof confidence interval | **[−4.85, +7.26] — not significant** |
+| Pooled ROI | **+3.54%** (cover 54.24% vs 52.38% break-even) |
+| Cumulative | **+54.9 units**, curve never below flat at a season boundary |
+| vs the identical loop on permuted predictions | noise −4.01%; real beats **all 200 draws, p = 0.000** |
+| 13-dof confidence interval | **[−3.51%, +8.98%] — not significant** |
 
-**This is the only result in the repository that clears the vig and is cleanly
-separable from noise.** It is *not* separable from zero: the smallest effect
-this test could have established is 7.86 points and the effect is 1.66. So it
-is a candidate, not a finding.
+**Then we audited the model underneath it, and the result did not survive.** The
+walk-forward loop re-selects the *betting configuration* honestly, but the
+*model architecture* was chosen on a 2021-26 corpus and handed to every step as
+fixed. Ablating the era-specific terms:
 
-Two things make it more interesting than a lucky cell. The selection is
-**stable** — 4 changes across 13 transitions, 4 distinct configurations out of
-600, and every single step chooses the same edge threshold plus a confidence
-band; procedures chasing noise do not converge like that. And it beats the noise
-control **decisively**, which nothing else here does.
+| model | firm-tier ROI | share of +3.54% surviving |
+|---|---|---|
+| full shipped stack | +3.54% | 1.00 |
+| − tank term | +1.68% | **0.48** |
+| − tank − bridge − carry | **−0.16%** | **0.00** |
+| stripped to four-factors + composition | **−3.70%** | sign flips |
+
+The mechanism is confirmed by difference-in-differences, not merely correlated:
+the shipped stack is the **only** variant on a six-rung ladder that is more
+accurate where it was designed than where it was not, and the era-specific terms
+deliver **+7.22 ROI points on the block they were gated on against +0.79 on the
+block nobody had in hand — a 9.1× ratio** (5.3× in the model's own accuracy
+metric). **Zero shipped components can be dated to a gate that used only
+pre-2021 data.**
+
+An obvious response — if the model is era-specific, build one per era — was
+tested and fails the same way. Era-local selection, evaluated on held-out
+seasons *within* each era, beats global selection by +5.18 points, which sits at
+the **94th percentile of its own noise distribution**; the model-selection half
+of it is worth **−0.03 points**, and a fixed five-season window with no era
+structure does just as well. What is being measured is window length, not era.
+
+**Honest reading: +3.54% is a property of an architecture selected on 2021-26,
+not evidence of a transferable edge.** The counterfactual is bounded rather than
+clean — no rung of that ablation ladder is lookahead-free either — so the number
+is neither validated nor replaced by −3.70%. The first season on which the
+model's *structure* is genuinely out of sample is 2026-27.
+
+### The modern era, stated accurately
+
+Under the walk-forward procedure the five modern seasons (2021-22 → 2025-26)
+return **+3.88% ROI on 820 bets, +31.9 units** at five-book execution (+1.53% at
+one book), against **+3.15% and +23.1 units** on the nine earlier scored seasons.
+
+**These modern numbers are not an out-of-sample result and should not be quoted
+as one.** The architecture being scored — the carry term, the tank term, the
+October bridge, the schedule layer, the 50/50 blend, the 7.2 scale — was chosen
+on a 2021-26 corpus, so the block being measured is the block that selected the
+structure. The one clean comparison available points the wrong way for the
+modern figure: the era-specific terms are worth 9.1× more on the seasons they
+were gated on than on the seasons nobody had in hand.
+
+The full 14-season interval spans zero at every execution tier, the design's
+smallest detectable effect is ~8 ROI points, and resolving +3.54% would take
+**~36 seasons**. We have 14. That is why 2026-27 — the first season on which the
+model's structure is genuinely out of sample — is worth more than any further
+backtesting.
 
 ### The number that keeps everything else honest: manufacturing capacity
 
