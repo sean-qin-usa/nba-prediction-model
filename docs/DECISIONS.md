@@ -8647,3 +8647,947 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
    nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
    UNTOUCHED, no gate re-run, no default changed, eval corpus unchanged at the
    D132 5-season / 6,148-game denomination]
+- D162 ATS AT THE OPENING SPREAD, ALL 19 SEASONS — **THE FIRST OPEN-PRICE TEST
+  IN THIS PROJECT WITH REAL STATISTICAL POWER, AND IT SETTLES THE QUESTION IN
+  BOTH DIRECTIONS: OUR EXPECTED MARGIN DOES BEAT THE OPENING SPREAD
+  (50.654% vs 50.000%, +0.654pp [+0.006,+1.271] SIG at 18 dof, unconditionally,
+  22,742 games, NO SELECTION AT ALL) AND IT DOES NOT COME CLOSE TO CLEARING
+  -110 (breakeven 52.381%, ROI -3.25% [-4.46,-2.08] SIGNIFICANTLY NEGATIVE).
+  ON THE 14 SEASONS NO GATE HAS EVER SEEN IT IS -3.64% [-4.76,-2.56] SIG NEG
+  AND THE COVER RATE IS NOT EVEN SIGNIFICANTLY ABOVE 50% (+0.438pp
+  [-0.158,+1.013] ns). 0 OF 20 PRE-SPECIFIED ROI CELLS ARE SIGNIFICANTLY
+  POSITIVE AGAINST 1.0 EXPECTED; 12 ARE SIGNIFICANTLY NEGATIVE. WHAT SURVIVES
+  IS CLV, NOW IN A CONVENTION-FREE UNIT: +0.16623 SPREAD POINTS PER BET
+  [+0.06699,+0.26363] SIG AT 18 DOF, POSITIVE IN 17 OF 19 SEASONS, PLACEBO-CLEAN
+  AT p=0.000.** D121's ATS-at-open 52.72% is REPRODUCED EXACTLY (52.79% on its
+  own frame) and shown to have been a K=4, 4-dof statistic whose K-1 interval is
+  [-8.15,+9.69] — twenty points wide. **DIAGNOSTIC. No production default
+  changed, no registered gate re-run, eval corpus NOT widened, `nbapred/` and
+  `scripts/bet_engine.py` UNTOUCHED, `scripts/prod_by_season.py` NOT RUN, DB
+  read_only.** `data/capstone_pergame.csv` copied aside FIRST to
+  `capstone_pergame_D158_BACKUP_ats19.csv` and verified UNCHANGED at the end
+  (md5 **3b7bbbb78ac73c63273c18a8aa30013c** = D159/D161's control hash).
+  (0) **WHY THIS FRAME EXISTS AND WHY IT IS CLEANER THAN EVERY PRIOR OPEN
+  TEST.** Every open-price verdict the register holds — D121, D142, D148, D159
+  and D161's open arm — rests on K=3 seasons = 2 dof, because real opening
+  MONEYLINES exist only for 2023-24..2025-26 (3,954 games). Opening SPREADS
+  exist for **19 seasons / 22,742 games**. An ATS bet at a stated -110 needs
+  **NO DEVIG** (the price is quoted, not a two-sided ML pair) and **NO
+  SYNTHETIC SPREAD->PROBABILITY MAP** — which matters because D155 proved that
+  map is optimistic on dogs by 3.1pp and D148 measured +23.49% synthetic vs
+  +9.93% real ROI on the SAME bets. And our model's native output is an
+  expected MARGIN: `production.p_home = sigmoid(margin/7.2)` inverts EXACTLY,
+  so `m_us = 7.2*logit(p_us)` recovers the production margin with no fitted
+  conversion anywhere. **Margin vs spread is the only comparison in the whole
+  program with no price convention in it.**
+  (1) **PRE-REGISTRATION, WRITTEN AND HASHED BEFORE ANY SCORING CODE RAN.**
+  `data/ats19_prereg.md` sha256
+  **d5d500800006790bcab357a8abdf9ed2f0d7fa7dbcfcbb19cf88d8302e8421f0**. It
+  fixes: the margin recovery (7.2 primary, 6.96 = `bo_openbacktest.SPREAD_SCALE`
+  as the D121 reconciliation arm only); the bet rule (HOME iff
+  `m_us > open_margin`); the **UNTUNED** threshold set **T in {0,1,2,3}
+  points** with **T=0 (ALL GAMES, NO SELECTION) as the PRIMARY**; -110 as the
+  headline juice with -105/-115 sensitivity and an explicit ban on assuming
+  anything better than -110; the K-1 = 18 dof season-cluster-mean t interval as
+  the shipping statistic; the ex-ante **MDE80 = 1.86% of ROI = 0.98pp of cover
+  rate** (realised: 1.67% / 0.87pp); the five windows; spread-point CLV; three
+  controls; and a decision rule that separates **"beats the spread" (>50.000%)**
+  from **"clears -110" (>52.381%)**. **THE THRESHOLD SET IS THE PLACE A FAKE
+  RESULT WOULD COME FROM AND THE PREREG SAYS SO IN THOSE WORDS:** translating
+  the four frozen probability-edge rules into a POINTS threshold would be a NEW
+  SELECTION, so the mechanical margin-vs-spread comparison is used instead and
+  the frozen bet SETS are carried only as a no-new-selection secondary.
+  (2) **FRAME AND COVERAGE. 22,804 model games JOIN 1:1 to `odds_open`;
+  22,742 = 99.73% carry an OPENING SPREAD, on all 19 seasons** (per season
+  1,222-1,230 except the lockout 990, COVID 1,056/1,075 and 2022-23's 1,194).
+  The contrast that motivates the entry: opening TOTALS 22,207 on 19 seasons,
+  opening SPREADS 22,742 on 19 seasons, opening MONEYLINES 3,954 on 3.
+  **D161's FRANCHISE-CODE FIX IS INHERITED AND RE-VERIFIED: 938 rows in
+  `k19_pergame.csv` (936 after the spread filter) carry a season abbreviation
+  different from the modern franchise code — 2007-08 239, 2008-09/09-10/10-11
+  162 each, 2011-12 131, 2012-13 82 (SEA, NJN, NOH).** Without the crosswalk
+  those three franchises drop silently, exactly as D161 measured.
+  **PUSH RATE against the opening number: 1.5434% (351/22,742)**; against the
+  close 1.4467%. Pushes are EXCLUDED from the cover rate and INCLUDED in the ROI
+  denominator (pre-registered). A source note, because it explains a per-season
+  oddity rather than a result: SBR-era opening lines are integers 46-56% of the
+  time, while the ESPN+ActionNetwork feed for 2024-25/2025-26 is 98.6% half
+  points — hence **0 pushes in 2024-25**. Half-point lines cannot inflate a
+  cover rate (pushes are dropped from the denominator either way); they only
+  remove ties.
+  (3) **AVAILABILITY TIER: BLIND ON ALL 19 SEASONS, EMPTY OUT SETS,
+  ONE CONSTANT TIER (D158).** `injury_reports_pit` starts 2023-10-24 and
+  `game_inactives` starts 2022-23, so honest availability information does not
+  exist for 15 of 19 seasons and a mixed tier is uninterpretable. **EVERY LEVEL
+  BELOW IS A LOWER BOUND ON THE MODEL. NO PLAYED-SET ORACLE IS CONSTRUCTED
+  ANYWHERE.** `TANK_SEASON_FLOOR=2020-21` pinned. The model input is D161's
+  `k19_pergame.csv` verbatim (md5 5c26fee1a56c562ed983d1d9f665794e), which
+  reproduced D158's certified 2021-22 cell to five decimals.
+  (4) **THE PRIMARY RESULT — ALL GAMES, NO SELECTION, -110.**
+    window                      n   push  cover%    ROI%   K-1 cluster-mean t
+    POOL19 (19 seasons)    22,742    351  50.654   -3.25   [-4.46,-2.08] SIG NEG
+    OOS14  (2007-08..20-21) 16,634   301  50.438   -3.64   [-4.76,-2.56] SIG NEG
+    DEV5   (2021-26)         6,108    50  51.238   -2.16   [-6.75,+2.42] ns
+    NOCOVID17               20,611    318  50.796   -2.98   [-4.16,-1.79] SIG NEG
+    OOS_DEEP15 (D161's)     17,858    318  50.376   -3.76   [-4.82,-2.73] SIG NEG
+  ICC **-0.000156**, DEFF_anova 0.81, DEFF_boot 0.89 — **clustering neither
+  rescues nor damages this arm**; the i.i.d. CI was if anything conservative,
+  which is the D138 pattern, not the D111 one. Season-cluster bootstrap agrees
+  with the t interval in every row. **1 of 19 seasons clears 52.381% (2024-25,
+  54.07%); 13 of 19 clear 50.000%.**
+  (5) **THE TWO CLAIMS, TESTED SEPARATELY BECAUSE THE PREREG REQUIRED IT — AND
+  THIS IS THE SUBSTANCE OF THE ENTRY.**
+    window   cover%   vs 50.000%   K-1 t          vs 52.381%   K-1 t
+    POOL19   50.654   +0.654pp  [+0.006,+1.271] SIG+   -1.727pp [-2.375,-1.110] SIG-
+    OOS14    50.438   +0.438pp  [-0.158,+1.013] ns     -1.943pp [-2.539,-1.368] SIG-
+    DEV5     51.238   +1.238pp  [-1.196,+3.651] ns     -1.143pp [-3.577,+1.271] ns
+  **SO: YES, OUR MARGIN BEATS THE OPENING SPREAD — BY 0.654pp, WITH A LOWER
+  BOUND OF 0.006pp, i.e. BARELY ESTABLISHED ON THE FULL 19 AND NOT ESTABLISHED
+  AT ALL ON THE OUT-OF-SAMPLE 14. AND NO, IT DOES NOT CLEAR -110: IT IS SHORT
+  BY 1.727pp, WHICH IS 2.6x THE EDGE IT HAS.** Both sentences are the answer;
+  neither may be quoted without the other.
+  (6) **THE SAME FACT IN POINTS, WHICH IS THE MOST USEFUL FORM ANYONE HAS
+  PRODUCED FOR THIS PROGRAM.** sd(actual margin - opening line) = **12.574
+  pts**. Our margin disagrees with the opening spread by **2.455 pts on
+  average**. If that entire disagreement were information the cover rate would
+  be **57.61%**. The realised 50.654% corresponds to an EFFECTIVE real edge of
+  **0.206 points — 8.4% of the 2.455 we claim.** **-110 requires 0.751 points of
+  effective edge. We deliver 27% of what the vig costs.** That is a sized,
+  falsifiable target in the units the model actually emits, and it replaces
+  "the edge is small" with a number.
+  (7) **SELECTION: THE PRE-DECLARED, UNTUNED THRESHOLDS.** POOL19: T>=0
+  50.654%/-3.25% SIG NEG; T>=1 (n=16,707) 50.735%/-3.09% SIG NEG; T>=2
+  (n=11,353) 51.239%/-2.15% SIG NEG; T>=3 (n=7,148) 52.110%/**-0.51%
+  [-2.80,+1.48] ns**. **Monotone in T and still short at T=3** — selection on
+  our own disagreement helps, in the right direction, and does not reach
+  breakeven. On OOS14 the same ladder is -3.64 / -3.36 / -2.59 / -1.24, i.e.
+  the T>=3 cell is the only one that escapes significance and it escapes it
+  from BELOW.
+  (8) **JUICE SENSITIVITY. THE COVER RATE IS 50.654% IN EVERY ROW — ONLY THE
+  PRICE MOVES.** -105 (be 51.2195%) ROI **-1.09% [-2.33,+0.11] ns**; **-110
+  (be 52.3810%) -3.25% [-4.46,-2.08] SIG NEG**; -115 (be 53.4884%) -5.22%
+  [-6.40,-4.08] SIG NEG. **Even at -105 — a price no book offers on both sides
+  of an NBA side for a season — the arm is at best breakeven.** Real books vary
+  by side, by number and by era, this corpus carries NO per-game ATS price, and
+  the headline is and stays -110.
+  (9) **DEV vs OOS, AND THE OOS BLOCK IS THE REAL EVIDENCE.** The model and its
+  rules were developed on 2021-26, so **2007-08..2020-21 is 14 genuinely
+  out-of-sample seasons: -3.64% [-4.76,-2.56] SIG NEGATIVE at 13 dof**, with a
+  cover rate NOT significantly above 50%. DEV5 -2.16% ns at 4 dof — structurally
+  unrejectable, which is the whole K=3/4 problem. **The arm looks least bad
+  exactly where the model was developed: the ordinary overfitting sign, the same
+  one D161 §5 found on the moneyline frame.**
+  (10) **FULL V3 BATTERY (§8).** BLOCK BOOTSTRAP (7-day calendar blocks)
+  -3.245% [-4.563,-1.996] SIG — within-week correlation does not save it.
+  ROLLING-ORIGIN, 18 expanding-window folds: **sign consistency 1/18**, mean
+  -3.319%, sd 2.535pp, drift +0.090pp/season, final cumulative -3.295%
+  [-4.598,-2.033]. LOSO (stability diagnostic ONLY — the 19 folds share 94% of
+  their data and are NOT 19 proofs, §8.2): test-on sign 1/19, fold range
+  [-8.13%,+3.22%], **jackknife range [-3.615%,-3.003%]**, largest single
+  influence -0.369pp (drop 2024-25) — **no season carries the verdict.**
+  ERA DECOMPOSITION on D161's K19 coding: K-A -3.75% SIG NEG / K-B -3.30% SIG
+  NEG / K-C -3.00% SIG NEG / K-D -5.82% ns (K=2) / K-E -2.16% ns (K=5);
+  **DerSimonian-Laird Q=3.48 df=4 I2=0.0% p=0.4835 -> ERA-STABLE, 0 of 5 eras
+  positive.** V3 row: **NO-PASS** (§11) on every arm — and NO-PASS here means
+  the losing verdict is the stable one across two decades.
+  (11) **WHAT SURVIVES: CLV, IN SPREAD POINTS. THE CLEANEST CLV STATEMENT THE
+  PROJECT HAS.** `clv_pts` = (close_margin - open_margin) signed toward the
+  side we took. No devig, no overround, no probability map, no SP@1.045.
+    arm         n       CLV pts    K-1 cluster-mean t (18 dof)   %>0
+    all games   22,740  +0.16623   [+0.06699,+0.26363] SIG      43.8%
+    |edge|>=1   16,705  +0.19488   [+0.07428,+0.31873] SIG      44.5%
+    |edge|>=2   11,352  +0.25299   [+0.10724,+0.41214] SIG      45.2%
+    |edge|>=3    7,148  +0.29498   [+0.11603,+0.48921] SIG      45.5%
+  **17 of 19 seasons positive** (only 2007-08 -0.073 and 2008-09 -0.006 are
+  not), and it RAMPS HARD: **OOS14 +0.0716 [+0.0225,+0.1233] SIG vs DEV5
+  +0.4241 [+0.1493,+0.6987] SIG — 5.9x**, tracking the DARKO feed ramp and the
+  modern market's larger open->close movement (D148 §2). **In cover-rate units
+  +0.166 pts is worth +0.527pp at -110 (phi(0)/12.574 = 0.03173 of probability
+  per point): real, era-persistent, and 22% of the 2.381pp the vig demands
+  above a coin flip.** This is the
+  same asset D161 measured at +0.00662 probability units and it is measured
+  here without a single convention.
+  (12) **CONTROL 1 — WITHIN-DATE PERMUTATION PLACEBO (D147's method), 400
+  draws, seed 20260804.** `p_us` permuted ACROSS GAMES ON THE SAME DATE, so the
+  slate, the price distribution and the selection mechanism survive while the
+  model's information is destroyed. **ALL FOUR ARMS: real ROI beats placebo at
+  p=0.000 and real CLV beats placebo at p=0.000.** All-games: real **-3.25% vs
+  placebo -4.85% (sd 0.44) = the model is worth +1.60pp of ROI over a
+  no-information selector, and it needs +3.25pp more to break even.**
+  **D161 §8 measured +1.67pp on the REAL-MONEYLINE frame with a completely
+  different price convention and a different bet set. +1.60 vs +1.67 is an
+  INDEPENDENT REPLICATION of the single most important number in the trading
+  lane, and it is now established twice, at K=19, on two price systems.**
+  (13) **CONTROL 2 — FAMILY-WISE (D121's 9-vs-14.4 standard).** PRIMARY FAMILY
+  PRE-REGISTERED as 4 thresholds x 5 windows = **20 ROI cells, expected 1.0
+  significant under a global null. OBSERVED SIGNIFICANTLY POSITIVE: ZERO.
+  SIGNIFICANTLY NEGATIVE: 12.** Secondary (4 x 5 K19 eras, 20 cells, expected
+  1.0): 0 positive, 4 negative. Cells overlap heavily (the same bets re-scored
+  across windows), so both counts are UPPER BOUNDS on the surprise — D121's and
+  D161's own caveat, repeated because it cuts both ways.
+  (14) **CONTROL 3 — THE D155 MATCHED-CONTROL ANALOGUE.** Control = bet the
+  MARKET FAVOURITE ATS at the open from the same (season x |open_spread| bin)
+  strata as the arm's bets, reweighted to the arm's own stratum distribution.
+    arm      n       armROI   ctrlROI   alpha    K-1 t on alpha
+    T>=0   22,742    -3.25%   -3.65%   +0.40pp  [-1.08,+1.91] ns
+    T>=1   16,707    -3.09%   -3.69%   +0.59pp  [-1.44,+2.62] ns
+    T>=2   11,353    -2.15%   -3.82%   +1.68pp  [-0.91,+4.14] ns
+    T>=3    7,148    -0.51%   -4.03%   +3.52pp  [+0.77,+6.15] **SIG**
+  The T>=3 alpha is **the only significantly positive cell anywhere in this
+  entry** — 1 of 4 in its own sub-family, against ~0.2 expected, and its ROI is
+  STILL -0.51%: it beats the control and loses money. No-model references, all
+  19 seasons: ALWAYS FAVOURITE cover 50.440% ROI -3.65% SIG NEG; ALWAYS HOME
+  49.355% / -5.69% SIG NEG; ALWAYS AWAY 50.645% / -3.26% SIG NEG. The D155
+  trajectory now reads **+6.51% close / +8.22% SIG open (D155, K=3) -> +0.90%
+  ns (D161, K=19, ML) -> +0.40% ns (D162, K=19, ATS)**.
+  (15) **THE CONTROL NOBODY ASKED FOR, AND IT IS THE HARDEST NUMBER IN THE
+  ENTRY. OUR ALL-GAMES ARM RETURNS -3.25%. "BET EVERY ROAD TEAM" RETURNS
+  -3.26%. THE PAIRED SEASON-CLUSTERED DELTA ON THE SAME 22,742 GAMES IS +0.02pp
+  [-2.17,+2.11] ns.** Decomposition, so this is not read as either more or less
+  than it is: the AWAY side is worth **+2.43pp** over the HOME side ATS in this
+  corpus (-3.26% vs -5.69%); our arm picks HOME on **48.07%** of games; a random
+  selector with our own home share would earn -4.43%, so **game-level selection
+  is worth +1.18pp** — and it buys back precisely what our residual home
+  exposure costs, no more. The placebo's home share is **48.71%, essentially
+  ours**, which is why the +1.60pp placebo gain is NOT a composition artefact:
+  it is genuine selection. **BOTH SENTENCES ARE TRUE AND THE ENTRY REFUSES TO
+  DROP EITHER: the model's information is real and replicated, and the dumbest
+  possible ATS rule matches its bottom line.** Neither clears -110.
+  (16) **D121 REPRODUCED EXACTLY, AND ITS STATISTIC EXPOSED.** On D121's own
+  frame (`ds_rt1_pergame.csv` p_full, FULL-FEED tier, 2022-23..2025-26) with
+  D121's own 6.96 scale: **n=4,882, 33 pushes, cover 52.79% i.i.d.
+  CI(51.4,54.2)** against D121's registered **52.72% CI(51.2,54.2)** — 0.07pp
+  apart, a clean harness anchor. **Its K-1 season-cluster-mean t interval is
+  [-8.15,+9.69] at K=4. Twenty percentage points wide. That number could never
+  have said anything, and this entry is what it looks like when the same
+  construction is asked at K=19: 50.458% (6.96) / 50.654% (7.2), SIG NEGATIVE.**
+  Side agreement between the 7.2 and 6.96 conventions is 97.55%, so the scale
+  choice is not doing the work. **D148 §8 IS NOT DUPLICATED AND IS NOT
+  CONTRADICTED:** its 57.99% / +10.70% cell selects on `pred_dm`, D147's
+  predicted OPEN->CLOSE LINE MOVEMENT, not on our margin — a different selector
+  and a different bet set, whose own verdict (ns under the K-1 t at K=4) stands
+  untouched. The four FROZEN F4 bet sets re-priced at -110 ATS against the open
+  (same games, same side, NO new selection, K=19) are all ns: R4_LOWT +3.03%
+  [-2.74,+11.99], T20_D03_10_W +1.95%, T20_D03_10 -1.35%, STAR_FAV_SHARPER
+  +0.07% (K=4, structurally inert before 2022-23), UNION +0.14% [-3.74,+6.30].
+  (17) **TOTALS — MEASURED, NOT MODELLED, ONE PARAGRAPH AS ASKED.** We hold
+  **22,207 opening totals across 19 seasons** (22,205 with both open and close;
+  mean 211.09; mean |open->close move| 2.176 pts; never moves 9.0%; push rate
+  against the opening total 1.067%; naive OVER covers 49.273%) and we have never
+  bet totals once. **We should not start, because the model cannot price them:**
+  the production stack emits a MARGIN — the four-factors leg is
+  `margin_neutral` by construction and the composition leg is a DIFFERENCE of
+  talent — so it has no opinion about the LEVEL of scoring at all. A totals
+  product would need genuinely new machinery: team PACE (possessions/48) and
+  separate offensive and defensive efficiency, both walk-forward; an absolute
+  points level rather than a difference; availability effects on pace as well as
+  on quality; and an era treatment for the rule changes that moved league
+  scoring (the 3PT ramp, freedom-of-movement, the take-foul rule) — none of
+  which exists in `nbapred/`. **Does the data support a future gate? YES, and
+  the bar is computable now: sd(actual total - opening total) = 18.100 points
+  against 12.574 for the spread, so a totals bettor needs 1.081 points of
+  EFFECTIVE real edge to clear -110 versus 0.751 on the spread — a 44% higher
+  bar on a 44% noisier quantity, and on the spread we currently deliver 0.206.**
+  19 seasons at K=19 would give the same power this entry has, and the same
+  clustered machinery would apply unchanged. Nothing is fitted here and nothing
+  should be until a pace/efficiency model exists that is worth gating.
+  (18) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: **K-A..K-E =
+  2007-08..2025-26**, D161's coding (§0b there), mapping onto ERAS.md as
+  E-3/E-2/E-1/E0/E2/E3/E4/E5/E6. ERA-AVAILABILITY: opening SPREADS exist in all
+  19 seasons — that is the entire point of the entry; opening MONEYLINES only in
+  E5+E6; `game_inactives` only from E4 and the 5PM report from E5, which is WHY
+  the frame runs BLIND on all 19 and why STAR_FAV_SHARPER's ATS cell is K=4.
+  ERA-STABILITY: **ERA-STABLE (I2=0.0%, Q=3.48, p=0.4835), negative in all five
+  eras.** COVID FRAME: E0/E1/E2 are included as K-D and reported separately AND
+  excluded in a parallel 17-season row — POOL19 -3.25% vs NOCOVID17 -2.98%, **no
+  verdict changes sign and no significance flag moves.** CLUSTERING: season,
+  K=19; every CI is season-clustered and the K-1 cluster-mean t is the shipping
+  statistic per §9.1(4), with the season-cluster bootstrap and the 7-day block
+  bootstrap secondary per §9.3. Measured ICC is NEGATIVE (-0.000156, DEFF 0.81),
+  so unlike D133's props arms the sides defect §9 warns about does not bite
+  here.
+  (19) **CHART** rendered and inspected, **three collision passes** (pass 1: the
+  figure title overran the left panel title, and the three reference labels
+  were being drawn OUTSIDE the axes frame — headroom added inside the axes and
+  the DEV/OOS band labels moved into a widened right gutter; pass 2: the red
+  subtitle ran into the right panel's title and was shortened and confined to
+  the left half, and the bottom-right x-label was colliding with the footnote —
+  margins raised and the footnote split into two lines; pass 3: the bar colour
+  key added to the left x-label). `charts/ats19_open.png` — LEFT the cover rate
+  for all 19 seasons against the 52.381% breakeven and the 50% coin flip with
+  the DEVELOPMENT ERA shaded and the OOS block labelled; RIGHT the pooled ROI by
+  window with K-1 t intervals and the OOS block called out, above the ROI by
+  pre-declared threshold on POOL19 vs OOS14.
+  (20) **VERDICT, PLAINLY, BECAUSE THE OWNER IS WEEKS FROM COMMITTING A SEASON.**
+  (a) **THE OPENING-SPREAD QUESTION IS NOW ANSWERED WITH POWER AND THE ANSWER IS
+  NO.** Our margin carries real information the opening line does not — 0.654pp
+  of cover rate, 0.206 points of effective edge, +1.60pp of ROI over a
+  no-information selector at p=0.000 — and that information is **2.6x too small
+  to pay -110**. On the 14 out-of-sample seasons the cover rate is not even
+  significantly above 50%. 0 of 20 pre-specified cells is significantly
+  positive; 12 are significantly negative. **This is a rejection, not a failure
+  to confirm, and it is the third independent rejection after D121's moneyline
+  arm and D161's K=19 moneyline arm.**
+  (b) **D121's HEADLINE NUMBER IS NOT WRONG, IT WAS UNPOWERED, AND THAT IS NOW
+  DEMONSTRATED RATHER THAN ASSERTED** — 52.72% reproduces to 52.79% on its own
+  frame and its honest interval is [-8.15,+9.69]. Nothing in the register should
+  cite an ATS-at-open cover rate from a 3-or-4-season frame again.
+  (c) **THE CLV ASSET IS REAL, ERA-PERSISTENT AND NOW MEASURED WITHOUT A SINGLE
+  CONVENTION: +0.166 spread points per bet, SIG at 18 dof, positive in 17 of 19
+  seasons, placebo-clean at p=0.000, and ramping 5.9x from the old era to the
+  modern one.** The CLV-farming posture of D159/D161 is the correct one and this
+  entry strengthens it with the cleanest unit available.
+  (d) **THE MOST ACTIONABLE NEW FACT IS §6's CONVERSION.** "We need more edge"
+  is now "we need 0.545 more points of effective margin edge, on top of the
+  0.206 we have, to pay -110" — a target in the model's own units, which
+  D142's line-shopping lever (worth +0.94pp of breakeven = 0.296 points on
+  this scale) covers 54% of, and nothing else in the register touches.
+  (e) **RECOMMENDATION UNCHANGED FROM D121/D126/D142/D148/D161: NO CAPITAL AT
+  OPEN OR CLOSE, ON SIDES, ON SPREADS, OR ON MONEYLINES. CLV REMAINS THE
+  YARDSTICK. TRANSACT AS EARLY AS POSSIBLE.** D158 remains the certified
+  baseline and D159 remains the trading baseline; this entry changes neither.
+  (21) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not widen the eval corpus,
+  change a default, re-run a gate or re-certify anything. It does not build,
+  fit or bet a totals model. It does not revisit D148's `pred_dm` middles lane,
+  which remains the one form that survived its own conservative bound. It does
+  not price the BLIND->full-feed tier gap on ATS (D161 §6a measured it at 54% of
+  the CLV on the moneyline frame; the same penalty presumably applies here and
+  is NOT netted out, which is why every level above is a LOWER BOUND). And it
+  does not resolve §15: whether a road-side tilt with no model in it would
+  survive out of sample on its own is a separate question this entry deliberately
+  does not answer, because answering it would be a new selection.
+  [code scripts/ats19_score.py, scripts/ats19_extra.py, scripts/ats19_chart.py
+   (all new, none under nbapred/);
+   data/ats19_prereg.md (sha256
+   d5d500800006790bcab357a8abdf9ed2f0d7fa7dbcfcbb19cf88d8302e8421f0, written
+   and hashed BEFORE scoring), data/ats19_prereg.sha256,
+   data/ats19_notes.md (full working, checkpointed as the run proceeded),
+   data/ats19.json, data/ats19_extra.json,
+   data/ats19_frame.csv.gz (22,742 scored games, availability-BLIND),
+   data/logs/ats19_score.log, data/logs/ats19_extra.log;
+   charts/ats19_open.png;
+   inputs data/k19_pergame.csv (md5 5c26fee1a56c562ed983d1d9f665794e, D161),
+   data/derived/odds_open.csv (md5 e0e9cb80c7e977b366f9b56ea5189f68),
+   data/ds_rt1_pergame.csv (the D121 anchor frame, read-only),
+   data/nba.duckdb (read_only=True, via bo_openbacktest for the frozen-rule
+   secondary only);
+   data/capstone_pergame.csv READ ONLY, backed up to
+   capstone_pergame_D158_BACKUP_ats19.csv, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged at the
+   D132 5-season / 6,148-game denomination]
+
+## 2026-08-04 — the book panel, measured
+- D163 IS THE 36% TIE RATE A VENDOR ARTIFACT? NO — AND THE REAL ANSWER IS
+  BETTER AND WORSE THAN THE HYPOTHESIS. **A TRUE DUPLICATE TIES AT 100.00%
+  (Kaggle's BetOnline/Sportsbetting, ONE OPERATOR, n=13,789, mean|diff|
+  EXACTLY 0.0000) AND SAME-OPERATOR STATE SKINS AT 91-94% (ESPN's Caesars
+  CO/TN/NJ). TEAMRANKINGS' TWO BOOKS TIE AT 36.29%, WHICH IS WITHIN NOISE OF
+  THE 36.52% GENUINE CROSS-OPERATOR RATE MEASURED ON 70 PAIRS OF 9 REAL US
+  BOOKS. THE VENDOR HYPOTHESIS IS REFUTED WITH A CONTROL, NOT AN ARGUMENT.
+  WHAT THE 36% ACTUALLY IS: A LATTICE MIXTURE. TR's `book2` QUOTES ONLY
+  HALF-POINTS (99.47% OF OPENS), `book1` QUOTES INTEGERS ON 45.12% — TIE RATE
+  ON A SHARED LATTICE 65.63%, ON A MISMATCHED LATTICE **EXACTLY 0.00%**
+  [0.00,0.18]. AND TWO REAL PANELS WERE ALREADY ON DISK, UNOPENED: 9 US RETAIL
+  OPERATORS FOR 2023-24 (with per-book JUICE) AND 9 OFFSHORE OPERATORS ACROSS
+  11 SEASONS. MEASURED ON THEM, D142's GAUSSIAN "CEILING" IS **NOT A CEILING**
+  ON THE MODERN MARKET (measured/ceiling 0.995-1.052 at k=2..8) AND IS **3x TOO
+  HIGH** ON THE OLD ONE (0.32-0.36). **VERDICT ON THE PROGRAMME QUESTION: A
+  BEST-OF-5 SHOP CLOSES D162's 0.545-pt GAP ON PAPER IN THE MODERN US RETAIL
+  MARKET AND DOES NOT CLOSE IT UNDER D142's OWN OUTLIER-REALISM HAIRCUT, AND
+  DOES NOT CLOSE IT AT ANY N ON THE ONLY ARM THAT CARRIES A SEASON-CLUSTERED
+  INTERVAL (K=11).** DIAGNOSTIC. No production default changed, no gate re-run,
+  eval corpus NOT widened, `nbapred/`, `scripts/bet_engine.py` and the frozen
+  registry UNTOUCHED, `scripts/prod_by_season.py` NOT RUN, DB opened
+  `read_only=True` and ONLY for the `nba_games` team-id crosswalk.
+  `data/capstone_pergame.csv` VERIFIED UNCHANGED, md5
+  **3b7bbbb78ac73c63273c18a8aa30013c** = D159/D161/D162's control hash.
+  (1) **PRE-REGISTRATION.** `data/multibook_prereg.md` sha256
+  **b7d93a57d513b7ce23d9053cbe31baf2d2afafc4cacd79f1a93a809914c6717f**,
+  written and hashed BEFORE any endpoint was re-scored. It fixes the panels and
+  their operator-collapse maps; the execution convention (D142 §4 PURE
+  EXECUTION — bet set frozen by the registered consensus open under D162's
+  untuned rule HOME iff `m_us > open_margin`, ONLY the transacted handicap
+  varies, and D142 §7's re-fire prohibition carried and not retested); the
+  ladder statistic; the juice conversion; the four haircuts; the 18+18 cell
+  primary family; **the admission that ESPN23 is K=1 and can never ship a
+  verdict alone**; the ex-ante MDE80 (ESPN23 cover rate **4.15pp** against a
+  1.727pp target — underpowered by 2.4x BY CONSTRUCTION; KAG **1.08pp**); and
+  the §9 decision rule in advance. Part 1's lattice finding is declared IN THE
+  PREREG as an INPUT so that it cannot become a post-hoc hypothesis.
+  (2) **PART 1 — WHAT THE TEAMRANKINGS PANEL ACTUALLY IS.** D142 §2 reproduces
+  on a frame that grew 29 games: n=4,668, mean |b1-b2| **0.6494** (D142 0.6485),
+  median 0.50, sd 0.9816, tie **36.29%** (36.2), >=1.0 27.70 (27.7), >=2.0 7.86
+  (7.8). **THE MECHANISM IS A GRID MISMATCH, NOT A COPY:** open book1 integer
+  45.12% / book2 integer **0.53%**; history book1 44.76% / book2 **0.15%**.
+  Tie by b1's value is a perfect comb — 1.0: 0.64%, 1.5: 63.08%, 2.0: 0.44%,
+  2.5: 62.67%, 3.0: 1.19%, 3.5: 67.28%, … 10.0: 0.00%, 10.5: 72.64%. Per
+  season the tie rate is 32.62 / 30.55 / 31.82 / 32.60 while book1 sits ~50%
+  on integers, then **68.00% in 2025-26 when book1 ALSO went to 0.00%
+  integers.** SYNCHRONY, against a same-date CROSS-GAME swap null that
+  preserves time-of-day AND slate news (200 draws, 4,363 games, 45,210 book2
+  changes): 1-min 12.45% obs vs 3.82% null (ratio 3.26), 5-min 35.14 vs 11.89,
+  60-min 79.29 vs 58.36; exact-timestamp collisions 4.92%. LAG CORRELATION of
+  the differenced step functions peaks at **LAG ZERO, corr 0.3552** (lag +1
+  0.079, lag -1 0.035, everything else <0.015) — contemporaneous coupling with
+  no leader/follower, and 0.355 is not 1.0. Level agreement on a 30-min grid
+  51.44%. **Two real books watching one market, on different grids.**
+  (3) **PART 2 — WHAT $0 ACTUALLY BUYS, ALL VERIFIED, NOTHING ASSUMED.**
+  **ESPN core API: 9 DISTINCT OPERATORS for 2023-24, ALREADY SCRAPED**
+  (`data/raw/sbr_ext/espn_nba_open_close_2023-24.csv`, 16,131 rows = one row
+  per event x provider, 1,284 events with an opening quote, modal 8 operators,
+  256 events at 9) — this file has been on disk since 2026-08-01 and
+  `build_odds_open.py` collapsed it to one consensus number. **Kaggle
+  `ehallmar`: 9 DISTINCT OFFSHORE OPERATORS, 2006-07..2017-18, ALSO ALREADY ON
+  DISK** — D119 §4 correctly called it useless for line MOVEMENT and therefore
+  never opened it as a PANEL. **Action Network: 5 real books** (68 DraftKings,
+  69 FanDuel, 71 BetRivers, 75 BetMGM, 76 Caesars, + 15 Consensus + 30 Open,
+  modal 6/game on 1,376 games) — NOT YET USED, and it is the ONLY multi-book
+  source for 2024-25 and 2025-26. **The Odds API free tier: `us` = 9 books,
+  `us2` = 6 more, cost measured today at 1 CREDIT PER (REGION x MARKET) PER
+  CALL against 500/month; `basketball_nba` is ABSENT from the active list in
+  the offseason**, so nothing lands before October; historical stays paid.
+  **oddsportal: robots.txt DISALLOWS every season-dated URL for all agents
+  (`Disallow: *-2024*` … `*-1998*`) plus every `*/ajax-*` odds endpoint.
+  robots.txt was the only thing fetched and the source was abandoned.** Nothing
+  was scraped in this session; 2 of our own 500 Odds-API credits were spent on
+  WNBA to confirm the book list and the per-call cost.
+  (4) **THE TRAPS THAT WOULD HAVE FAKED THE RESULT, ALL MEASURED.** ESPN
+  renders Caesars as THREE state skins that tie 91.39-93.78% (mean|d|
+  0.047-0.074) and Kaggle's BetOnline/Sportsbetting are one operator at
+  **100.00%** — counting skins as books inflates any shop number. `accuscore`
+  and `betegy` are MODELS served in the same odds array. Every `- Live Odds`
+  provider is an IN-GAME market (mean|d| 1.4-3.6 vs the pregame line). All are
+  excluded, and the operator maps are in `scripts/mb_panel.py`. Pair-level
+  coupling in ESPN23 is a LADDER, not a binary: Caesars skins 91-94% >
+  Titanbets/Caesars 82.7-84.8% (a shared trading feed) > Unibet/SugarHouse
+  64.31% (shared Kambi platform) > separate trading desks 25.67-48.70%.
+  (5) **THE MEASURED LADDER AGAINST D142's GAUSSIAN CEILING.** Statistic:
+  `gain_k = E[range of a random k-subset]/2`, in SPREAD POINTS, side-agnostic
+  and model-free; it reproduces D142's own +0.331 at N=2 by construction, and
+  D142 §5(iii)'s Gaussian equals `0.586 * E[max of k standard normals]` =
+  0.331/0.496/0.603/0.681/0.743/0.836 at k=2/3/4/5/6/8, which reproduces D142's
+  registered pp ladder at a constant 2.85 pp per point. Weights computed
+  EXACTLY (`P(min of a random k-subset = i-th order stat) = C(n-i,k-1)/C(n,k)`)
+  — a declared improvement on the prereg's 200-draw Monte Carlo, which is
+  retained as a cross-check and agrees to <=0.004 pts at every k.
+      k   ESPN23 meas   ceiling  ratio  |  KAG meas  ratio
+      2      0.3289      0.3304  0.995  |   0.1152   0.349
+      3      0.4952      0.4960  0.998  |   0.1727   0.348
+      4      0.6095      0.6033  1.010  |   0.2164   0.359
+      5      0.6982      0.6812  1.025  |   0.2194   0.322
+      6      0.7715      0.7431  1.038  |   0.2454   0.330
+      7      0.8338      0.7928  1.052  |   0.2643   0.333
+      8      0.8769      0.8355  1.049  |   0.2726   0.326
+  **ON THE MODERN US RETAIL PANEL D142's CEILING IS EXCEEDED FROM k=4 ONWARD.
+  ITS STATED REASON — "extra books copy, so E[max] overstates" — IS WRONG FOR
+  THIS MARKET: the real tail is FATTER than Gaussian and the extra mass at the
+  extreme more than pays for the spike at zero. ON THE OFFSHORE PANEL THE SAME
+  CEILING IS 3x TOO HIGH.** So the extrapolation was neither optimistic nor
+  pessimistic in general — **it was MARKET-SPECIFIC and was registered as
+  universal.** (The k=9 ESPN cell falls to 0.7529 because only 256 events carry
+  9 operators and the 9th, PointsBet, is unusually tight; it is a different
+  subsample, not a reversal.)
+  (6) **THE ENDPOINT — D162's ATS ARM RE-PRICED UNDER MEASURED BEST-OF-N.**
+  ESPN23, n=1,183, **K=1**:
+      k   gain pt  cover%    ROI%   CLVpt  | juice-adj gain  cover%    ROI%
+      1    0.0000  49.479  -5.539  0.1909  |    0.0000      49.214  -5.934
+      2    0.3297  50.497  -3.493  0.5207  |    0.3134      50.396  -3.704
+      3    0.4857  51.012  -2.416  0.6766  |    0.4577      50.972  -2.606
+      4    0.5909  51.339  -1.669  0.7819  |    0.5497      51.335  -1.878
+      5    0.6723  51.567  -1.094  0.8632  |    0.6175      51.571  -1.336
+      8    0.8434  52.344  -0.028  1.0343  |    0.7479      52.157  -0.376
+  KAG, n=12,743, **K=11, and this is the only arm with a shipping statistic**:
+      k   gain pt  cover%    ROI%    K-1 t on ROI (10 dof)
+      1    0.0000  50.634  -3.292   [-4.97,-1.66] SIG NEG
+      2    0.1002  50.853  -2.678   [-4.31,-1.10] SIG NEG
+      3    0.1527  50.982  -2.339   [-3.94,-0.79] SIG NEG
+      4    0.1924  51.061  -2.075   [-3.66,-0.54] SIG NEG
+      5    0.2254  51.130  -1.849   [-3.42,-0.33] SIG NEG
+      8    0.2920  51.468  -1.375   [-2.92,+0.12] ns
+  **KAG's k=1 cell REPRODUCES D162's POOL19 TO 0.02pp OF COVER AND 0.04pp OF
+  ROI (50.634 vs 50.654, -3.292 vs -3.25) FROM A COMPLETELY DIFFERENT PRICE
+  SOURCE — a clean independent harness anchor.** Per-season KAG gain is
+  era-stable: k=8 runs 0.2401 (2009-10) to 0.3579 (2008-09), season-clustered
+  mean **0.2926 [0.2706,0.3146]** at 10 dof.
+  (7) **THE PRE-REGISTERED CONVERSION CHECK, AND IT PASSES.** D162 §6's
+  linearisation says a handicap gain of G points must move the cover rate by
+  0.0317276*G. Realised `dcover / (0.0317276*G)`: ESPN23 raw 0.913-0.995,
+  ESPN23 juice-adjusted 1.135-1.216, ESPN23 close 1.038-1.110, KAG
+  juice-adjusted 0.807-1.027. **The points arithmetic is REAL: a shopped
+  handicap converts into cover rate at the rate D162's conversion predicts,
+  measured on 13,926 games across 12 seasons and two price systems.** (KAG's
+  RAW arm converts at only 0.268-0.437 because the offshore books shop on
+  PRICE, not on the number — see (9).)
+  (8) **THE SIMULTANEITY ARM — THE THREAT THAT DID NOT MATERIALISE (prereg
+  §6).** ESPN's per-book `open` block carries NO timestamp, so a best-of-N
+  across opens could have been exactly the non-simultaneous shop D142 §4
+  disowned in its BEST4 row. The CLOSE cross-section IS simultaneous (all books
+  pinned to tip-off) and gives 0.2971 / 0.4537 / 0.5670 / 0.6564 / **0.8284**
+  at k=2/3/4/5/8 against the open panel's 0.3297 / 0.4857 / 0.5909 / 0.6723 /
+  0.8434 — **within 2-10%.** Non-simultaneity is not inflating the ladder.
+  (9) **THE ERA RESULT, APPLES TO APPLES, AND IT IS THE MOST DURABLE THING
+  HERE.** Same statistic, same price phase (CLOSE), different market:
+      k    ESPN23 close (US retail 23-24)   KAG close (offshore 07-18)   ratio
+      2              0.2971                        0.1002              2.96x
+      5              0.6564                        0.2254              2.91x
+      8              0.8284                        0.2920              2.84x
+  **THE MODERN US RETAIL MARKET DISPERSES ~2.9x MORE THAN THE OLD OFFSHORE
+  MARKET.** Line shopping is not a constant of the game — it is a property of
+  market structure, and it became roughly three times more valuable when US
+  retail books opened. Corroborating: unanimity across >=8 operators is 3.42%
+  in ESPN23 and 20.53% in KAG; cross-operator tie rate 36.52% vs 68.22%;
+  mean pairwise |diff| 0.9778 vs 0.1982. **And the two markets shop DIFFERENT
+  THINGS: the juice adjustment REMOVES 11.1% of the ESPN23 k=8 gain (0.8434 ->
+  0.7479) and ADDS 41% to KAG's (0.2920 -> 0.4407), because offshore books
+  competed on PRICE (-104/-105) at an identical number.** KAG's juice-adjusted
+  k=1 ROI of -2.641% sits between D162 §8's -110 (-3.25%) and -105 (-1.09%)
+  rows — a third independent anchor.
+  (10) **HAIRCUTS, ALL FOUR PRE-DECLARED.**
+      arm                                     k=2     k=5     k=8
+      ESPN23 open, raw                      0.3297  0.6723  0.8434
+      ESPN23 open, +JUICE                   0.3134  0.6175  0.7479   -11%
+      ESPN23 open, +OUTLIER REALISM         0.2037  0.4261  0.4848   **-42%**
+      ESPN23 open, +JUICE +OUTLIER          0.1974  0.4028  0.4454   **-47%**
+      ESPN23 close, +JUICE +OUTLIER         0.2249  0.4925  0.5479
+      KAG close, +JUICE +OUTLIER (K=11)     0.1456  0.3355  0.4119
+  The outlier haircut is D142 §5(ii)'s, tightened to "more than 1.5 pts from
+  the panel MEDIAN"; weight is redistributed onto the surviving quotes and no
+  game is ever dropped, because dropping breaks the paired arrays. It is the
+  binding haircut and it more than doubles the effect of the juice one.
+  (11) **ADVERSE SELECTION AT N=8 — CLEAN, AND IT CUTS AGAINST THE HAIRCUT'S
+  USUAL JUSTIFICATION.** ESPN23 n=1,114 corr(shop gain, cover) **+0.0707**;
+  gain quartiles cover 51.22 / 49.66 / 48.27 / **59.40%**. KAG n=9,178 corr
+  **+0.0422**; top gain quartile 54.44% vs 50.32%. **The biggest shop gains are
+  NOT stale prices that lose — they win MORE.** D142 §5(i)'s null replicates at
+  N=8 on two independent panels. **THEREFORE THE OUTLIER HAIRCUT IS JUSTIFIED
+  BY LIMITS, NOT BY INFORMATION, AND THIS ENTRY SAYS SO RATHER THAN LETTING THE
+  HAIRCUT BORROW AN ADVERSE-SELECTION STORY THE DATA REFUSES.**
+  (12) **D142 §6's BINDING CAVEAT DOES NOT BITE HERE, AND THAT IS CHECKED
+  RATHER THAN ASSUMED.** D142's 2-book panel covered 73.6% of its frame and was
+  measured on the WORSE half (-3.47pp vs +3.48pp). ESPN23 covers **1,175 of
+  1,214 = 96.8%** of 2023-24 and is unbiased within it: full season cover
+  49.259%, panel 49.277%, not-in-panel 48.718%. **What it is NOT is a random
+  SEASON:** 2023-24 covers 49.26% against D162's POOL19 50.654%, i.e. the
+  model's effective edge on this panel is **-0.164 pts, not +0.206**. The GAIN
+  transfers; the LEVEL does not — D142 §6's rule, now confirmed instead of
+  feared, and it is why the ESPN23 k=8 arm lands at 52.16-52.34% cover rather
+  than clearing 52.381%.
+  (13) **THE ARITHMETIC THE OWNER ASKED FOR: HOW MANY INDEPENDENT BOOKS?**
+  D162 §6: effective edge **0.206**, -110 needs **0.751**, gap **0.545**.
+      basis                                          required N   plausible?
+      D142's own Gaussian (sigma=0.586)                 ~3.6 -> 4    YES
+      MEASURED ESPN23 raw handicap, open                ~3.6 -> 4    YES
+      MEASURED ESPN23 juice-adjusted                    ~3.9 -> 4    YES
+      MEASURED ESPN23 + outlier realism           **NEVER** (saturates 0.485)
+      MEASURED ESPN23 + juice + outlier           **NEVER** (saturates 0.445)
+      MEASURED KAG offshore, raw, K=11            **NEVER** (saturates 0.292)
+      MEASURED KAG offshore + juice + outlier     **NEVER** (saturates 0.412)
+  and the same table in edge units:
+      arm                                    0.206+g(k=5)  0.206+g(k=8)  clears .751
+      ESPN23 open, raw                          0.878         1.049      YES at k=5
+      ESPN23 open, +juice                       0.824         0.954      YES at k=5
+      ESPN23 close, raw (simultaneous)          0.862         1.034      YES at k=5
+      ESPN23 open, +outlier                     0.632         0.691      **NO**
+      ESPN23 open, +juice +outlier              0.609         0.651      **NO**
+      ESPN23 close, +juice +outlier             0.699         0.754      YES at k=8
+      KAG close, raw (K=11)                     0.431         0.498      **NO**
+      KAG close, +juice +outlier (K=11)         0.542         0.618      **NO**
+  **FOUR BOOKS IS ENTIRELY PLAUSIBLE — most retail bettors hold more. SO THE
+  ANSWER TURNS ENTIRELY ON THE OUTLIER HAIRCUT AND ON WHICH MARKET YOU ARE IN,
+  AND BOTH OF THOSE ARE NOW MEASURED RATHER THAN ASSERTED.**
+  (14) **FAMILY-WISE (D121's standard).** Primary family pre-registered as
+  6 k-values x 3 panels = 18 ladder cells and 18 ROI cells, 0.9 expected
+  significant per family under a global null. **ROI cells significantly
+  POSITIVE: ZERO.** Significantly negative: 5 (KAG k=1..5). Every ESPN cell is
+  K=1 and carries no interval at all, by prereg. Cells overlap heavily (the
+  same bets re-scored at different k), so both counts are UPPER BOUNDS.
+  (15) **CLV.** ESPN23 spread-point CLV: one book **+0.1909**, best-of-8
+  **+1.0343** (+0.8434). Against D162 §11's all-games CLV of **+0.166 pts**, an
+  8-book shop is worth **5.1x the entire measured CLV asset**. D159 §10's
+  price-panel rule is REINFORCED and should be read as stronger than it was
+  written: at 8 books the shop premium dwarfs the model, so **scoring monthly
+  CLV against the D159 bands at anything other than a single CONSENSUS price
+  would measure the shop and call it the model.** As D142 §8 established, this
+  gain is ARITHMETIC, not information, and is never a second confirmation.
+  (16) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: KAG = 2007-08..
+  2017-18 = **K-A/K-B/K-C** on D161's coding (E-3..E1 on ERAS.md); ESPN23 =
+  2023-24 = **K-E** (E5). ERA-AVAILABILITY: per-book panels exist ONLY in those
+  two blocks — 2018-19..2022-23 has no multi-book source at all, and 2024-25/
+  2025-26 has one only in the unexploited Action Network payload. **THE ERA GAP
+  IS THE PANEL'S BIGGEST STRUCTURAL LIMIT AND IT IS ALSO WHERE THE 2.9x
+  TRANSITION MUST HAVE HAPPENED, WHICH THIS ENTRY CANNOT DATE.** ERA-STABILITY:
+  WITHIN KAG the gain is stable (k=8 range 0.240-0.358 over 11 seasons, t
+  [0.271,0.315]); ACROSS the two panels it is NOT — 2.84-2.96x, and that
+  instability is the finding, not a defect. CLUSTERING: season; KAG K=11 with
+  the K-1 t at 10 dof as the shipping statistic per §9.1(4); **ESPN23 K=1, no
+  interval exists and the prereg said so in advance.** COVID FRAME: no COVID
+  season enters either panel.
+  (17) **VERDICT, PLAINLY.**
+  (a) **THE OWNER'S HYPOTHESIS IS REFUTED IN ITS STATED FORM.** The 36% is not
+  one vendor rendered twice; a duplicate ties at 100.00% and TR's books sit on
+  incompatible lattices, which a duplicate cannot do.
+  (b) **BUT HIS INSTINCT THAT THE NUMBER WAS AN ARTIFACT WAS RIGHT — AND IT
+  POINTS THE OTHER WAY.** The pooled 36.29% is a lattice mixture of 65.63%
+  (shared grid) and 0.00% (mismatched grid), and when TR's book1 moved to the
+  half-point grid in 2025-26 the tie rate went to 68.00%. The two sources agree
+  MORE than 36%, not less.
+  (c) **HIS SECOND PREDICTION — that independence is only partial — IS
+  CONFIRMED AND QUANTIFIED.** ESPN23's pair-level tie rate runs a continuous
+  ladder from 93.78% (same operator) through 84.8% (shared trading feed) and
+  64.3% (shared platform) to 25.67% (separate desks). "Independent" is a
+  spectrum and the panel measures where each pair sits on it.
+  (d) **DOES REAL MULTI-BOOK SHOPPING CLOSE THE 0.545-pt GAP? ON PAPER, YES,
+  AT FOUR TO FIVE BOOKS IN THE MODERN US RETAIL MARKET — AND NO UNDER D142's
+  OWN OUTLIER-REALISM HAIRCUT, AND NO AT ANY N ON THE ONLY ARM IN THIS ENTRY
+  THAT CARRIES A SEASON-CLUSTERED INTERVAL.** The arm that says YES is one
+  season at K=1 with an MDE80 of 4.15pp against a 1.727pp target, whose own
+  one-book baseline is a LOSING 49.48% cover. **THIS IS NOT A LICENCE TO BET.**
+  (e) **RECOMMENDATION UNCHANGED FROM D121/D126/D142/D148/D161/D162: NO CAPITAL
+  AT OPEN OR CLOSE. CLV REMAINS THE YARDSTICK.** What changes is the size and
+  the SHAPE of the shopping lever: D142's +0.94pp at 2 books is a floor, the
+  modern-market ladder is steeper than D142's ceiling, and the whole thing is
+  worth ~3x less in the era where most of D162's evidence lives.
+  (f) **THE LARGEST UNQUANTIFIED RISK IS UNCHANGED AND IS NOT MODELLED
+  ANYWHERE HERE: LIMITS.** Best-of-8 is by construction always transacted at
+  the most offside book in the market; 11.6% of ESPN23 games carry a best-worst
+  range above 3 points, 4.8% above 5 and 1.2% above 10 (max 29.5, some of which
+  is certainly an ESPN parse error rather than a real quote). **No number above
+  accounts for being limited or restricted, and the prereg said so before the
+  numbers existed.**
+  (18) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not re-run any gate, widen
+  the eval corpus, change a default or re-certify anything. It does not build
+  the Action Network multi-book panel for 2024-25/2025-26 (identified, not
+  built). It does not capture anything live — `basketball_nba` is absent from
+  The Odds API's active list in the offseason. It does not resolve when between
+  2018 and 2023 the 2.9x dispersion transition happened, because no panel
+  exists for those five seasons. And it does not price limits.
+  [code scripts/mb_diag.py, scripts/mb_panel.py, scripts/mb_score.py,
+   scripts/mb_extra.py (all new, none under nbapred/);
+   data/multibook_prereg.md (sha256
+   b7d93a57d513b7ce23d9053cbe31baf2d2afafc4cacd79f1a93a809914c6717f, written
+   and hashed BEFORE scoring), data/multibook_prereg.sha256,
+   data/multibook_notes.md (full working, checkpointed as the run proceeded),
+   data/mb_diag.json, data/mb_panel.json, data/mb_score.json, data/mb_extra.json,
+   data/mb_panel_espn.json, data/mb_panel_kag.json,
+   data/logs/mb_diag.log, data/logs/mb_panel.log, data/logs/mb_score.log,
+   data/logs/mb_extra.log;
+   docs/OPENING_LINES.md updated (new §7 oddsportal, new MULTI-BOOK PANELS
+   section, the skin/model/live-odds traps and the unexploited sources);
+   inputs data/raw/teamrankings/spread_movement.jsonl,
+   data/raw/sbr_ext/espn_nba_open_close_2023-24.csv (md5
+   66449d5902e43db4249f44100c18a612),
+   data/raw/sbr_ext/an_nba_odds_raw_2023-24.jsonl,
+   data/raw/kaggle/ehallmar__nba-historical-stats-and-betting-data/
+   nba_betting_spread.csv (md5 deed795409ffd30a4efc00b19d74f8a4),
+   data/ats19_frame.csv.gz (md5 b9e59afdd54247083184256e2d10a112, D162),
+   data/derived/odds_open.csv (md5 e0e9cb80c7e977b366f9b56ea5189f68),
+   data/nba.duckdb (read_only=True, `nba_games` team-id crosswalk ONLY);
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged]
+- D164 OVERFITTING CAPACITY, AND WALK-FORWARD CONFIG SELECTION — **THE OWNER'S
+  CLAIM IS CONFIRMED WITHOUT A SINGLE EXCEPTION AND THEN DESTROYED BY ITS OWN
+  CONTROL: TUNING TO ANY ONE OF THE 19 SEASONS PRODUCES POSITIVE IN-SAMPLE ATS
+  ROI 19 TIMES OUT OF 19 (mean +15.79%, min +4.84%, max +34.11%), THOSE SAME
+  FROZEN CONFIGURATIONS RETURN -1.13% ON THE OTHER 18 SEASONS, AND THE DECAY —
+  **THE OVERFITTING CAPACITY — IS +16.92 ROI POINTS [+13.65,+20.19] AT 18 DOF.
+  RUNNING THE IDENTICAL LOOP ON PERMUTED PREDICTIONS MANUFACTURES +17.46, SO
+  THE CAPACITY NET OF NOISE IS -0.55 POINTS AT p=0.685: EVERY POINT OF IT IS
+  SEARCH, NONE OF IT IS MODEL.** EVEN A SIX-CELL SEARCH (choose one of six
+  thresholds, nothing else) MANUFACTURES **+3.08 POINTS** — which is 96% of
+  2024-25's ENTIRE +3.22% AND 2.1x D162's DEV5/OOS14 GAP. **THE PRIMARY ARM,
+  WALK-FORWARD SELECTION (tune on seasons 1..k, freeze, score on k+1, roll),
+  RETURNS +1.66% POOLED ON 14 GENUINELY UNSEEN SEASONS AND 1,553 BETS — THE
+  FIRST POSITIVE OUT-OF-SAMPLE ROI THIS PROGRAM HAS PRODUCED AT K>4 — BUT ITS
+  K-1=13 dof INTERVAL IS [-4.85,+7.26] ns AGAINST A REALISED MDE80 OF 7.86
+  POINTS, SO IT IS **NO-PASS** ON THE PRE-REGISTERED RULE. IT DOES CLEAR THE
+  NOISE FLOOR DECISIVELY: THE SAME PROCEDURE ON PERMUTED PREDICTIONS RETURNS
+  -4.01% AND REAL BEATS ALL 200 DRAWS, p=0.000, NET +5.67 POINTS.** AND THE
+  SEASON-PHASE QUESTION IS SETTLED AT K=19: **NO PHASE IS POSITIVE (EARLY
+  -2.37% ns, MID -3.33% SIG NEG, LATE -4.04% SIG NEG; positive in 4/4/3 of 19
+  seasons) AND THE SEASON-TO-SEASON PHASE-PROFILE CORRELATION IS r = -0.013
+  OVER 171 PAIRS — indistinguishable from zero and BELOW the permutation
+  reference of +0.071. PHASE PERFORMANCE IS A LOTTERY THAT RE-ROLLS EVERY
+  YEAR.** **DIAGNOSTIC. Nothing ships. No production default changed, no gate
+  re-run, eval corpus NOT widened, `nbapred/` and `scripts/bet_engine.py`
+  UNTOUCHED, `scripts/prod_by_season.py` NOT RUN, `data/nba.duckdb` NEVER
+  OPENED (the frame already carries `margin_actual`).**
+  `data/capstone_pergame.csv` md5 **3b7bbbb78ac73c63273c18a8aa30013c** verified
+  at the START and again at the END — it is not an input to any arm.
+  (0) **WHY THIS ENTRY EXISTS, IN THE OWNER'S WORDS.** *"24-25 is the best
+  tuned (we basically spent everything tuning it there)... what if we tuned to
+  other seasons? i'm sure we would get positive roi too."* He is right, and
+  that is precisely why it had to be measured rather than argued: if tuning to
+  an ARBITRARY season reliably manufactures positive in-sample ROI, then every
+  positive number this project has produced on a development season is bounded
+  above by that manufacturing capacity. This entry puts the number on it.
+  (0a) **PRE-REGISTRATION, WRITTEN AND HASHED BEFORE ANY SCORING CODE RAN.**
+  `data/overfit_capacity_prereg.md` sha256
+  **c0ec86dfe86ace509024f966b5a7943d83470136efb772009cd2de5153c53d00**
+  (`data/overfit_capacity_prereg.sha256`). **THE PREREG WAS EXTENDED MID-RUN AT
+  THE OWNER'S DIRECTION TO ADD THE WALK-FORWARD ARM AS PRIMARY, AND THE
+  EXTENSION WAS WRITTEN AND RE-HASHED BEFORE THE SCORING SCRIPT WAS EXECUTED
+  FOR THE FIRST TIME — no arm of this run had produced a number when ARM B was
+  added.** That fact is recorded in the prereg itself, in its own EXTENSION
+  NOTE, and is stated here because the whole entry is about selection honesty
+  and the reader is entitled to audit the sequence.
+  (0b) **HARNESS ANCHOR — D162 REPRODUCED TO THE DIGIT.** Cell 1 of the 600 is
+  D162's primary. This run: POOL19 ROI **-3.25%**, cover **50.654%**, DEV5
+  **-2.16%**, OOS14 **-3.64%**, 2024-25 cover **54.065%**, T>=3 **-0.51%** —
+  every one identical to D162 §4/§7. Same 22,742 games, same 351 pushes
+  (1.5434%), same -110, pushes in the ROI denominator and out of the cover rate.
+  (1) **THE SEARCH SPACE, CARDINALITY 600, DECLARED BEFORE SCORING AND NOT
+  EXPANDED AFTERWARDS.** 6 edge thresholds (T in 0..5 points on
+  `|m_us - open_margin|`) x 5 side restrictions (ALL / HOME / AWAY / FAV / DOG,
+  where FAV/DOG are defined by the side WE take and the 450 pick'em games are
+  excluded from both) x 4 season-phase windows (ALL / EARLY / MID / LATE, equal-
+  count terciles of the within-season chronological game index) x 5 model-
+  confidence bands on `|p_us - 0.5|` (ALL / <=.08 / (.08,.18] / >.18 / >.08).
+  **These are the same KIND of choices the project actually made historically —
+  a points threshold, a side restriction, a season window, a confidence band —
+  which is what makes the capacity estimate honest rather than a strawman.**
+  Eligibility guard: **>= 100 bets per season** in the selection window (8.1% of
+  a slate, just below the F4 rules' historical 6-13% firing rate). Selection
+  criterion: max ROI at -110 among eligible cells, deterministic tie-break.
+  (2) **ARM A (CONTROL) — CAPACITY. TUNE ON ONE SEASON, THEN LOOK ELSEWHERE.**
+    season   best config on that season   IS ROI    n    OOS ROI   decay  OOS+/18
+    2007-08  T2/ALL/EARLY/c<=.08          +16.45%  100    -0.21%  +16.67    9/18
+    2008-09  T0/AWAY/EARLY/c>.18          +13.41%  101    -1.00%  +14.41   10/18
+    2009-10  T2/AWAY/MID/ALL              +24.75%  101    -0.89%  +25.64    9/18
+    2010-11  T3/DOG/ALL/c>.18             +21.58%  107    +2.96%  +18.62    9/18
+    2011-12  T1/AWAY/MID/ALL              +14.61%  145    -1.74%  +16.35    6/18
+    2012-13  T1/FAV/ALL/c>.08             +10.97%  111    -0.53%  +11.51   10/18
+    2013-14  T3/AWAY/ALL/c>.08            +15.97%  140    +3.85%  +12.13   10/18
+    2014-15  T2/ALL/MID/c>.08             +18.38%  138    +1.01%  +17.37    9/18
+    2015-16  T3/ALL/MID/ALL               +17.48%  104    -0.06%  +17.55    9/18
+    2016-17  T0/ALL/LATE/c<=.08           +20.00%  125    -8.76%  +28.76    3/18
+    2017-18  T2/DOG/MID/ALL               +11.26%  109    -1.72%  +12.98    4/18
+    2018-19  T0/FAV/MID/ALL                +7.04%  133    -3.41%  +10.45    5/18
+    2019-20  T4/ALL/ALL/c>.08             +12.69%  106    -0.07%  +12.76    8/18
+    2020-21  T0/AWAY/ALL/c<=.08            +4.84%  122    -2.72%   +7.56    8/18
+    2021-22  T0/FAV/ALL/(.08,.18]          +8.20%  143    +0.18%   +8.02   12/18
+    2022-23  T1/ALL/LATE/c>.18            +19.40%  112    -2.61%  +22.01    7/18
+    2023-24  T4/ALL/LATE/ALL              +12.49%  107    -4.19%  +16.68    6/18
+    2024-25  T3/ALL/EARLY/c>.08           +34.11%  121    +0.41%  +33.70    9/18
+    2025-26  T2/DOG/MID/ALL               +16.36%  105    -1.90%  +18.27    4/18
+  **mean IS +15.79% | mean OOS -1.13% | CAPACITY = +16.92 ROI POINTS, K-1 t
+  [+13.65,+20.19] at 18 dof, sd 6.79, jackknife [15.98,17.44].** **HIT RATE:
+  the in-sample-best configuration is POSITIVE out of sample in 5 OF 19.**
+  18 of the 19 tuning targets pick a DIFFERENT configuration. **DECLARED
+  CAVEAT, from the prereg and repeated here: the 19 decay values share their OOS
+  data, so that interval is ANTI-CONSERVATIVE and the jackknife is the honest
+  bound.**
+  (3) **AND THE NULL SAYS IT IS ALL SEARCH.** 200 within-date permutations of
+  the PAIR `(m_us, p_us)` — they move together because `m_us = 7.2*logit(p_us)`
+  is an identity and permuting them separately would break the frame — through
+  the IDENTICAL loop, seed 20260804:
+    quantity              real       null (200 draws)
+    mean IS ROI          +15.79%    **+13.29%** (sd 1.00)
+    mean OOS ROI          -1.13%     -4.18%
+    **CAPACITY**         **+16.92**  **+17.46** (sd 1.04, p05 +15.68, p95 +19.29)
+    hit rate              5/19        0.56/19 (p95 = 3)
+  **CAPACITY NET OF NOISE = -0.55 POINTS, p = 0.685. PURE NOISE MANUFACTURES AS
+  MUCH IN-SAMPLE ROI AS OUR REAL PREDICTIONS DO — very slightly more.** The
+  capacity is not a property of the model; it is a property of the SEARCH, and
+  it is the same size whether the predictions carry information or not. The two
+  places real DOES beat noise: the OOS LEVEL (-1.13% vs -4.18% = **+3.05pp**,
+  the same information premium D162 §12 measured at +1.60pp and D161 §8 at
+  +1.67pp, here on a selected rather than an all-games population) and the hit
+  rate (5/19 against a null p95 of 3/19).
+  (4) **CAPACITY SCALES WITH THE SEARCH, NOT WITH THE MODEL** (post-hoc, and
+  labelled as such — the prereg fixed 600 cells and a 100-bet guard):
+    search space              cells   mean IS   mean OOS   CAPACITY   hit
+    T only                       6     +2.16%    -0.92%     +3.08    6/19
+    T x SIDE                    30     +8.62%    +0.73%     +7.89   10/19
+    T x SIDE x PHASE           120    +13.62%    -1.15%    +14.76    5/19
+    FULL                       600    +15.79%    -1.13%    +16.92    5/19
+  **CHOOSING ONE OF SIX THRESHOLDS ON ONE SEASON — the smallest search anyone
+  could call tuning — MANUFACTURES +3.08 POINTS OF ROI THAT DO NOT TRANSFER.**
+  Guard sensitivity, real vs null at each level (post-hoc, 60 null draws each):
+    guard  mean sel n   CAPACITY    null     NET   hit    WF ROI   WF null
+      50       61        +26.48   +25.98   +0.50  8/19    +0.76%   -3.78%
+     100      117        +16.92   +17.49   -0.57  5/19    +1.66%   -4.04%
+     200      245        +10.91   +10.66   +0.24  3/19    +1.18%   -4.11%
+     300      384         +6.52    +7.37   -0.85  0/19    -1.42%   -4.13%
+     500      603         +3.84    +3.65   +0.19  0/19    -2.34%   -4.21%
+  **AT EVERY GUARD THE REAL CAPACITY EQUALS THE NOISE CAPACITY.** Even the
+  coarsest selector on the grid (603 bets/season, half the slate) manufactures
+  +3.84 points.
+  (5) **ARM B (PRIMARY) — WALK-FORWARD CONFIG SELECTION, THE THING THE REGISTER
+  HAS NEVER TESTED.** Every rolling-origin result in D161/D162/D163 fits
+  COEFFICIENTS walk-forward while the FEATURE SET and the RULES were chosen once
+  with full-sample knowledge (D111's exact point: "pre-registration protected
+  our PARAMETER choices, never our HYPOTHESIS choices"). **HERE SELECTION IS
+  INSIDE THE LOOP.** MIN_HISTORY = 5 (declared), so k = 5..18 and the scored
+  track is 14 seasons, 2012-13..2025-26:
+     k  select thru  frozen config          sel ROI  test season  test ROI    n
+     5  2011-12      T3/AWAY/ALL/c>.18      +10.09%  2012-13        +1.38%   66
+     6  2012-13      T3/AWAY/ALL/c>.18       +9.15%  2013-14       +22.19%   68
+     7  2013-14      T3/DOG/ALL/c>.18        +8.94%  2014-15        -2.35%   89
+     8  2014-15      T3/DOG/ALL/c>.18        +7.70%  2015-16        -5.93%   69
+     9  2015-16      T3/ALL/ALL/c>.18        +6.72%  2016-17        +6.93%   84
+    10  2016-17      T3/ALL/ALL/c>.18        +6.74%  2017-18        +2.54%  111
+    11  2017-18      T3/ALL/ALL/c>.18        +6.36%  2018-19       -15.84%  101
+    12  2018-19      T3/AWAY/ALL/c>.08       +4.97%  2019-20       +13.17%   87
+    13  2019-20      T3/AWAY/ALL/c>.08       +5.35%  2020-21        -1.25%   58
+    14  2020-21      T3/AWAY/ALL/c>.08       +5.16%  2021-22        -8.77%  113
+    15  2021-22      T3/AWAY/ALL/c>.08       +4.39%  2022-23        -4.55%  102
+    16  2022-23      T3/ALL/ALL/c>.18        +4.17%  2023-24        +4.69%  188
+    17  2023-24      T3/ALL/ALL/c>.18        +4.22%  2024-25       +14.70%  243
+    18  2024-25      T3/ALL/ALL/c>.18        +5.38%  2025-26       -10.03%  174
+  **POOLED: ROI +1.66%, n = 1,553, COVER 53.259% AGAINST A 52.381% BREAKEVEN
+  (+0.878pp). K-1 = 13 dof CLUSTER-MEAN t [-4.85%,+7.26%] — NOT SIGNIFICANT.**
+  7 of 14 seasons positive; ex-COVID +1.07%.
+  **THE THREE PRE-DECLARED COMPARATORS.** (a) **BREAKEVEN:** ROI is positive,
+  +1.66%, but the interval straddles zero. (b) **THE SHIPPED FIXED
+  CONFIGURATION on the SAME 14 scored seasons: -3.15% [-4.79,-1.61] SIG NEG.
+  Paired delta walk-forward minus fixed = +4.40 POINTS [-1.51,+10.32] ns**
+  (secondary fixed reference T>=3/ALL/ALL/ALL: -0.29% ns). (c) **THE NOISE
+  FLOOR — the identical walk-forward loop on permuted predictions: -4.01%
+  (sd 1.94, p95 -0.81%, max +0.84%). REAL +1.66% BEATS ALL 200 NULL DRAWS,
+  p = 0.000, NET OF NULL +5.67 POINTS.**
+  **PREREG §8 VERDICT: NO-PASS.** Condition (ii) passes decisively; condition
+  (i) fails. Both were required and both were written down first.
+  (5a) **SELECTION STABILITY IS THE SURPRISE, AND IT CUTS THE OTHER WAY FROM
+  ARM A: 4 CHANGES IN 13 TRANSITIONS, 4 DISTINCT CONFIGURATIONS OUT OF 600,
+  AND EVERY SINGLE STEP PICKS T = 3 WITH A NON-TRIVIAL CONFIDENCE BAND.** The
+  procedure is not thrashing. Given 5+ seasons instead of 1, the selector
+  converges on ONE family — big model-vs-market disagreement, model not near a
+  coin flip — which is the same direction D162 §7 found monotone and D162 §14
+  found carried the only significantly positive matched-control alpha in that
+  entry (T>=3, +3.52pp SIG, on an arm still returning -0.51%). **The
+  single-season selector picks 18 different configs out of 19; the multi-season
+  selector picks 4 out of 14. THE INSTABILITY IS A FUNCTION OF THE SELECTION
+  WINDOW, NOT OF THE SPACE.**
+  (5b) **THE HONEST ASYMMETRY, RESOLVED BY THE PRE-DECLARED DISCRIMINATOR
+  (prereg §7).** Walk-forward selection uses less data per decision than our
+  historical process did, so a weak result is ambiguous between "selection does
+  not transfer" and "selection needs more history". Fixed in advance: regress
+  per-step ROI on k and compare blocks. **Early block (k=5..11) +1.27%, late
+  block (k=12..18) +1.14%, OLS slope -0.48 points per step. FLAT-TO-NEGATIVE ->
+  EXPLANATION (i), NOT (ii): the procedure is not data-starved and more history
+  does not help it.** Min-history sensitivity confirms the shape — the LEVEL
+  moves (minhist 3 +2.99%, 4 +1.79%, 5 +1.66%, 6 +1.67%, 8 +0.89%, 10 +0.86%)
+  while the real-minus-null gap is nearly constant (+6.91/+5.97/+5.70/+5.60/
+  +4.92/+5.21) and every interval is ns.
+  (5c) **POWER, DECLARED IN ADVANCE AND WORSE THAN DECLARED.** Prereg MDE80 for
+  ARM B was 4.79 ROI points on an assumed 6.4pp per-season sd. **The realised
+  per-season sd is 10.49pp, so the realised MDE80 is 7.86 POINTS.** +1.66%
+  could never have been established by this test, and the prereg says so in
+  those words before the number existed. **ARM B can reject "the procedure
+  works" and cannot establish a small positive. It did neither.**
+  (6) **ARM D — THE SEASON-PHASE QUESTION, AT K=19.** Fixed all-games
+  configuration; no selection enters this arm at all.
+    phase      n     cover%    ROI%    K-1 t (18 dof)      seasons +
+    EARLY   7,583   51.120    -2.37    [-5.19,+0.36] ns      4/19
+    MID     7,581   50.610    -3.33    [-5.47,-1.20] SIG-    4/19
+    LATE    7,578   50.234    -4.04    [-6.39,-1.72] SIG-    3/19
+  By month: Oct -1.65% ns, Nov -2.05% ns, Dec -3.22% SIG NEG, Jan -3.83% SIG
+  NEG, Feb -3.82% SIG NEG, Mar -2.11% ns, **Apr -6.77% [-9.90,-3.09] SIG NEG**
+  (May/Jul/Aug thin, K<=1, no verdict per prereg §5). **NO PHASE IS RELIABLY
+  POSITIVE AND NONE IS EVEN POSITIVE ON AVERAGE.** The best of them, EARLY, is
+  negative, positive in 4 of 19 seasons, and its interval touches zero only from
+  below.
+  **THE SINGLE NUMBER THAT ANSWERS THE OWNER'S QUESTION: the mean pairwise
+  season-to-season Pearson correlation of the (EARLY, MID, LATE) ROI profile
+  over all 171 season pairs is r = -0.0128** (median -0.038, sd 0.711, 50.9% of
+  pairs negative), against a permutation reference of **+0.0714
+  [p05 -0.033, p95 +0.190]**. **THE REAL PHASE PROFILE IS LESS PERSISTENT THAN
+  NOISE. PHASE PERFORMANCE IS A LOTTERY THAT RE-ROLLS EVERY YEAR, AND "TRADE
+  ONLY PART OF THE SEASON" HAS NOTHING TO SELECT ON.**
+  (6a) **D98 IS NOT OVERTURNED, IT IS EXPLAINED.** D98 reported phase-profile
+  correlations of -0.915 / -0.033 / +0.265 on 3 seasons and read them as
+  ANTI-correlation. Recomputed on this ATS profile the same three pairs are
+  **2023-24|2024-25 +0.839, 2024-25|2025-26 -0.978, 2023-24|2025-26 -0.934** —
+  the statistic ranges from +0.84 to -0.98 across three adjacent seasons.
+  **THAT IS WHY A K=3 PROFILE CORRELATION COULD NEVER HAVE MEANT ANYTHING.** At
+  K=19 the answer is not "anti-correlated", it is **ZERO**, and D98's
+  operational conclusion — never select a window on one season's outperformance
+  — is CONFIRMED with a proper estimate behind it.
+  (7) **WHAT FRACTION OF THE REGISTER'S NUMBERS DOES CAPACITY EXPLAIN? PLAINLY,
+  AS ASKED.**
+  (a) **2024-25's +3.22% (cover 54.065%; the brief and D159-era notes cite
+  +3.16%, same cell).** It is cell 1 of 600, PRE-DECLARED, carrying NO
+  selection — so **capacity does not mechanically explain it; ORDINARY SEASON
+  VARIANCE does.** Against a 19-season per-season mean of -3.27% with sd
+  2.47pp, 2024-25 sits **+2.62 season-sd above the mean** — a season outlier,
+  not a selection artefact, and the distinction matters. What capacity says
+  about it is the SIZE: **the capacity (+16.92) is 5.26x the whole 2024-25
+  number, which is 19.0% of it; and even the six-cell capacity (+3.08) is 96%
+  of it.** (b) **What tuning to 2024-25 ACTUALLY produces: IS +34.11%, OOS
+  +0.41% — 98.8% of it is manufacturing.** That is the direct answer to "we
+  spent everything tuning it there". (c) **D162's DEV5/OOS14 gap = -2.16% -
+  (-3.64%) = 1.48 points: 8.7% of capacity; capacity exceeds it 11.4x; it is
+  48% of the SIX-CELL capacity.** (d) **D161's rule DEV/OOS gap (UNION -2.14%
+  dev vs -5.60% OOS_DEEP) = 3.46 points: 20.4% of capacity.**
+  **THEREFORE, STATED WITHOUT HEDGING: EVERY DEV-VERSUS-OOS GAP IN THIS
+  REGISTER IS SMALLER THAN WHAT A MODEST GRID SEARCH ON ONE SEASON MANUFACTURES
+  OUT OF THIN AIR. NONE OF THEM REQUIRES A REAL-EFFECT EXPLANATION AND NONE OF
+  THEM IS EVIDENCE OF ONE.** The corollary is the useful part: the register's
+  practice of quoting a development-season ROI has a measured error bar of
+  ~17 points, and its practice of quoting a K<=5 dev/oos gap as evidence of
+  overfitting was directionally right and quantitatively meaningless.
+  (8) **IS THE CAPACITY LARGE? YES, AND HERE IS THE SIZE IN THE FORM THE OWNER
+  ASKED FOR.** Prereg §8 declared capacity LARGE iff the mean decay net of the
+  null is >= 3.0 points. **NET OF THE NULL IT IS -0.55, SO BY THE LETTER OF THE
+  RULE THE CAPACITY IS NOT "LARGE" — IT IS TOTAL.** The gross figure is +16.92
+  points and 100.0% of it is reproducible from predictions that contain no
+  information whatsoever. **Tuning to any season reliably manufactures roughly
+  17 points of ATS ROI, 19 times out of 19, and approximately none of it
+  transfers. That is the answer to the owner's question and it is not a
+  close call.**
+  (9) **FAMILY-WISE (D121's standard, pre-registered).** PRIMARY FAMILY: **1
+  cell** (ARM B's pooled walk-forward ROI), 0.05 expected significant under a
+  global null; **observed significant: ZERO.** SECONDARY FAMILY: 19 ARM-A OOS
+  cells + 3 ARM-D phase cells = **22 cells, 1.1 expected**; observed
+  significantly POSITIVE **ZERO**, significantly negative 2 (MID, LATE). The
+  600 in-sample selection cells are NOT a test family — they are the selector's
+  own search, and treating the max of 600 as a test result is precisely the
+  error this entry quantifies.
+  (10) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: **K-A..K-E =
+  2007-08..2025-26** on D161 §0b's coding = E-3/E-2/E-1/E0/E2/E3/E4/E5/E6 on
+  ERAS.md; ARM B's selection windows start in K-A and its SCORED track is
+  2012-13..2025-26 = K-B..K-E. ERA-AVAILABILITY: every input consumed
+  (`m_us`, `p_us`, `open_margin`, `margin_actual`, `game_date`) exists in all
+  19 seasons — opening SPREADS are the only price series that does, which is
+  why D162's frame is the substrate; **no cell is structurally inert anywhere
+  and no availability-gated feature enters any arm.** AVAILABILITY TIER: BLIND
+  on all 19, empty OUT sets, inherited from D161/D162 — **every level here is a
+  LOWER BOUND and no played-set oracle exists in any code path.**
+  ERA-STABILITY: ARM D's phase verdict is negative in every phase and the
+  profile carries no season-to-season structure at all, which is **ERA-STABLE
+  in the only sense that applies (the null holds everywhere)**; ARM B's 14-season
+  track is too noisy per season (sd 10.49pp) to support a DerSimonian-Laird
+  decomposition and none is claimed. COVID FRAME: 2019-20 and 2020-21 are both
+  inside the 19 and both are SCORED ARM-B seasons; **ex-COVID ARM B is +1.07%
+  against +1.66% with them, and ARM A's capacity is unchanged in shape (their
+  own decays are +12.76 and +7.56, the two lowest-but-one in the table).**
+  (11) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not treat any in-sample
+  number as evidence of an edge — that is the quantity being debunked. It does
+  not present the 600-cell maximum as a test result. It does not convert ARM B's
+  +1.66% into a recommendation: it is ns, its realised MDE80 is 7.86 points,
+  it rests on 1,553 bets, and **the standing recommendation of D121/D126/D142/
+  D148/D161/D162/D163 — NO CAPITAL AT OPEN OR CLOSE, CLV REMAINS THE
+  YARDSTICK — is not in scope here and is not changed by this entry.** What
+  ARM B does earn is a place on the fresh-season confirmation list (V2 §6):
+  the procedure is fully specified, deterministic, and its next decision
+  (select through 2025-26, score 2026-27) is already computable.
+  [code scripts/oc_capacity.py, scripts/oc_robust.py, scripts/oc_chart.py
+   (all new, none under nbapred/);
+   data/overfit_capacity_prereg.md (sha256
+   c0ec86dfe86ace509024f966b5a7943d83470136efb772009cd2de5153c53d00, written
+   and hashed BEFORE scoring; ARM B extension hashed BEFORE first execution),
+   data/overfit_capacity_prereg.sha256,
+   data/overfit_capacity_notes.md (full working, checkpointed as the run
+   proceeded), data/oc_capacity.json, data/oc_robust.json,
+   data/logs/oc_capacity.log, data/logs/oc_capacity.err;
+   charts/overfit_capacity.png;
+   input data/ats19_frame.csv.gz (D162, 22,742 rows, 19 seasons) ONLY —
+   `data/nba.duckdb` NEVER OPENED (the frame carries `margin_actual`);
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged]

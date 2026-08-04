@@ -161,6 +161,51 @@ because commission scales with the payout and these rules are 68% favourites.
 **None of these cells survives the three-season significance bound**, so they
 are reported as point estimates and a direction, not as a result.
 
+### The one thing that clears the vig: walk-forward *selection*
+
+Everything above holds a configuration **fixed** and asks whether it profits. A
+different question is whether *choosing* the configuration from history alone,
+and applying it to the next unseen season, profits — re-selecting each year the
+way you actually would in practice.
+
+Select on seasons 1..k from a pre-declared 600-cell space, freeze, score season
+k+1, roll forward. **Fourteen unseen seasons:**
+
+| | |
+|---|---|
+| **Pooled ROI** | **+1.66%** (cover 53.26% vs 52.38% break-even) |
+| vs the shipped fixed configuration, same seasons | shipped −3.15% → **+4.40 pts better** |
+| **vs the identical loop run on permuted predictions** | noise −4.01%; real beats **all 200 draws, p = 0.000** |
+| 13-dof confidence interval | **[−4.85, +7.26] — not significant** |
+
+**This is the only result in the repository that clears the vig and is cleanly
+separable from noise.** It is *not* separable from zero: the smallest effect
+this test could have established is 7.86 points and the effect is 1.66. So it
+is a candidate, not a finding.
+
+Two things make it more interesting than a lucky cell. The selection is
+**stable** — 4 changes across 13 transitions, 4 distinct configurations out of
+600, and every single step chooses the same edge threshold plus a confidence
+band; procedures chasing noise do not converge like that. And it beats the noise
+control **decisively**, which nothing else here does.
+
+### The number that keeps everything else honest: manufacturing capacity
+
+Tuning to a single season yields positive in-sample ROI on **19 of 19 seasons,
+without exception** — mean **+15.79%** in sample, **−1.13%** out of sample, a
+decay of **16.92 ROI points.**
+
+Run the identical procedure on **pure noise** and capacity is **+17.46**. Ours,
+net of noise, is **−0.55 (p = 0.685)**. *All* of it is search; none of it is
+model.
+
+That number is the yardstick for this whole repository: **every
+development-versus-out-of-sample gap in the register is smaller than what a
+modest grid search manufactures from nothing.** The betting rules' 3.46-point
+gap is 20% of capacity; the spread model's 1.48-point gap is 9%. It is also why
+the walk-forward result above is reported as a candidate — with a 600-cell space
+in play, only the noise control makes its +1.66% legible at all.
+
 The honest summary of the trading work: *our margin carries real information —
 it beats a coin flip against the opening line, and it beats a no-information
 selector by +1.6pp on two independent price frames — but it is rejected as a
@@ -244,6 +289,44 @@ python -m pytest tests/ -q
 **Not included:** the 13 GB DuckDB corpus, raw API captures, and all
 credentials. The ingest scripts rebuild the corpus from public sources; raw
 files are ground truth and the database is derived and rebuildable by design.
+
+## Where this goes next
+
+Ranked by what the evidence actually supports, not by appetite.
+
+1. **Pressure-test the walk-forward selection result.** It is the only candidate
+   that clears the vig and beats its noise control. The open questions are
+   whether recency-weighted selection (tune on the last season or three, rather
+   than all history) beats all-history selection, whether the gates can adapt
+   *within* a season, and whether the effect survives a smaller search space —
+   with a 600-cell space, capacity dominates and the noise control is doing all
+   the interpretive work. **A 1.66% effect needs ~8 points of resolution to
+   establish; more seasons cannot be manufactured, so this may only ever be
+   settled live.**
+2. **Capture at least two books at the open, from opening night.** Measured:
+   best-of-two lifts closing-line value ~49%, and taking the *worse* book
+   erases essentially all of it. Our own multi-book logger has never run during
+   a season. This is free and it is the highest-value operational change
+   available.
+3. **Closing-line value as the live yardstick.** +0.166 spread points per bet,
+   significant across 19 seasons, positive in 17 of them, in units that need no
+   devig convention. It resolves in weeks where ROI needs decades.
+4. **Exchange access, if it ever becomes available.** Cost over fair falls from
+   ~3.00 points at one retail book to ~0.41 on an exchange, because commission
+   is charged on winnings rather than baked into every price. It is the largest
+   single lever measured anywhere in this project — and it is an access problem,
+   not a modelling one.
+5. **Props, not sides.** Both shipped improvements of the last cycle came from
+   the props engine, and the second was found by generalising a bug from the
+   first (an estimator that learned player role only from games actually played,
+   and was therefore blind to absence). Soft books are softer than the sides
+   market.
+
+Explicitly **not** next: more feature search on the sides model. Nineteen
+seasons, an exhaustion audit, a 49-feature battery, a possession-level rebuild
+and a full re-examination of the rejected pile all point the same way, and the
+capacity number above explains why marginal features keep looking real and
+failing to transfer.
 
 ## Status
 
