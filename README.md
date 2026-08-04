@@ -123,11 +123,11 @@ assumed commission, never executed. Treat both as arithmetic, not evidence.
 
 ### Closing prices vs opening prices
 
-Those headline ROIs are struck at the **close**, where market odds exist for all
-19 seasons. You would never actually bet there — the close is the market's final
-and best answer. The interesting price is the **open**, and it is a weaker test
-for an unavoidable reason: real opening moneylines only exist in our data for
-**three seasons**, which is two degrees of freedom and cannot reject anything.
+The **close** is the market's final and best answer, and not a price anyone
+would choose to bet into. The **open** is where you would actually transact, so
+it is the frame that matters. We can now test it properly: real opening
+*spreads* exist for all 19 seasons, even though opening *moneylines* exist for
+only three.
 
 | frame | seasons | union ROI | verdict |
 |---|---|---|---|
@@ -137,8 +137,12 @@ for an unavoidable reason: real opening moneylines only exist in our data for
 | Open, ATS, 14 seasons never seen | 14 | **−3.64%** | **significantly negative** |
 | Open, real moneylines, live injury feed | 3 | −0.66% | not significant (2 dof) |
 
-So: **at the close we can prove the rules lose. At the open we can prove
-nothing** — the point estimate is roughly breakeven and the interval swallows it.
+So: **the rules lose at the close, and they lose at the open too.** The
+19-season spread test is the decisive one — it is the only open-price frame with
+enough seasons to reject anything, and it rejects. The lone near-breakeven row
+is the 3-season moneyline test, which has two degrees of freedom and cannot
+settle the question in either direction; it is kept for continuity, not as
+counter-evidence.
 
 Execution is the larger lever, and it is an access problem rather than a
 modelling one. Holding the model fixed and varying only where the bet is placed
@@ -157,9 +161,11 @@ because commission scales with the payout and these rules are 68% favourites.
 **None of these cells survives the three-season significance bound**, so they
 are reported as point estimates and a direction, not as a result.
 
-The honest summary of the trading work: *the rules are rejected where we have
-power to test them; at the price we would actually pay they are indistinguishable
-from breakeven; and the only lever large enough to matter is transaction cost.*
+The honest summary of the trading work: *our margin carries real information —
+it beats a coin flip against the opening line, and it beats a no-information
+selector by +1.6pp on two independent price frames — but it is rejected as a
+profitable strategy at both the open and the close, and the only lever large
+enough to change that is transaction cost, which we do not control.*
 
 The betting rules are *rejected*, not merely unconfirmed — they look least bad
 precisely on the seasons they were selected from, which is the overfitting
