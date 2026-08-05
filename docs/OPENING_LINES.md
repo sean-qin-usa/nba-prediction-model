@@ -271,6 +271,160 @@ help for 2023-24+: SBR never published those pages, so there is nothing
 archived to recover. Per-game line-history pages at covers/oddsshark/
 vegasinsider are not captured densely enough to reconstruct a season.
 
+### 7. oddsportal.com — **DISALLOWED BY ITS OWN robots.txt. NOT SCRAPED.**
+Checked 2026-08-04 (D163). `https://www.oddsportal.com/robots.txt` carries,
+under `User-agent: *`, an explicit
+`Disallow: *-2024*` … `Disallow: *-1998*` — **every season-dated URL, which is
+every historical odds page on the site** — plus `Disallow: */ajax-*` covering
+the endpoints that actually serve the odds payloads. Only `robots.txt` itself
+was fetched. **Do not re-litigate this: the site says no, and that is the end
+of it.**
+
+---
+
+## MULTI-BOOK PANELS (added 2026-08-04, D163)
+
+**Two real per-book panels were already on disk and had never been opened as
+panels.** Both are $0 and neither needed a new scrape.
+
+| panel | file | books | seasons | phase | joins |
+|---|---|---|---|---|---|
+| **ESPN23** | `data/raw/sbr_ext/espn_nba_open_close_2023-24.csv` | **9 distinct operators** (espnbet, draftkings, mgm, unibet, titanbets, betfair, caesars, sugarhouse, pointsbet); modal 8/event | 2023-24 only | **open AND close, with per-book JUICE** | 1,190 of 1,214 (96.8%) |
+| **KAG** | `data/raw/kaggle/ehallmar__…/nba_betting_spread.csv` | **9 distinct offshore operators** (pinnacle, 5dimes, bookmaker, bovada, betonline, justbet, intertops, youwager, heritage); modal 9 | 2006-07..2017-18 | **CLOSE** (80.3% exact vs our `close_margin`, 18.1% vs the open) | 12,745 games, **11 seasons, K=11** |
+
+Traps, all measured:
+
+1. **Skins are not books.** ESPN renders Caesars as three state skins
+   (CO/TN/NJ) which tie **91-94%** of the time, and Kaggle's `BetOnline` /
+   `Sportsbetting` are one operator that ties **100.00%** on n=13,789 with
+   mean|diff| exactly 0.0000. Counting skins as independent books inflates any
+   line-shopping number. Collapse to one skin per operator — the maps live in
+   `scripts/mb_panel.py::OPERATOR` / `KAG_OPERATOR`.
+2. **`accuscore` and `betegy` are MODELS, not books**, and ESPN serves them in
+   the same odds array.
+3. **Every `- Live Odds` provider is an IN-GAME market**, not a pregame
+   duplicate (mean|diff| 1.4-3.6 pts against the pregame line). Exclude.
+4. **ESPN's per-book `open` block carries no timestamp**, so a best-of-N across
+   opens is not provably simultaneous. The CLOSE cross-section is simultaneous
+   and gives the same ladder to within 2-10%, so this did not turn out to
+   matter — but the check is required, not optional.
+5. **TeamRankings' `book2` quotes ONLY half-points** (99.5%) while `book1`
+   quotes integers 45% of the time. Their exact-tie rate is **0.00%** on a
+   mismatched lattice and **65.6%** on a shared one; the pooled 36.29% is the
+   mixture. In 2025-26 book1 also moved to half-points and the tie rate jumped
+   to 68.00%. **Never read a cross-book tie rate without checking the lattice.**
+
+### Multi-book sources — EXPLOITED AND RE-MEASURED (2026-08-05, D174)
+
+D163 registered Action Network as "5 real books ... the ONLY multi-book source
+for 2024-25 and 2025-26". **It was built, and the registration needs three
+corrections.** Panels are now in `data/bkp_panel_rows.csv.gz`
+(`scripts/bkp_panel.py`, `scripts/bkp_ladder.py`).
+
+1. **Caesars is book_id 49, not 76**, and only **THREE** AN books are dense
+   (68 DraftKings, 69 FanDuel, 71 BetRivers). BetMGM covers 7-24% of games and
+   Caesars 0-7%. **The usable AN panel is k=3, not k=5.**
+2. **Action Network carries NO per-book OPENING price.** book_id 30 "Open" is a
+   single CONSENSUS opener. Its per-book numbers are a single snapshot taken at
+   scrape time, i.e. the **CLOSE** — verified, not assumed: AN[DraftKings] vs
+   ESPN[DraftKings] ties **81.54%** (2023-24) / **96.45%** (2025-26) at ESPN's
+   CLOSE and only **13.99% / 25.71%** at ESPN's OPEN.
+3. **ESPN's multi-book panel is a 2023-24-only artefact.** Counted from the raw
+   jsonl: **16 providers in 2023-24, 2 in 2024-25 (ESPN BET + its own live
+   feed), 4 in 2025-26.** ESPN stopped syndicating rival books when ESPN BET
+   launched. The csv is not dropping anything; the payload collapses.
+
+**CONSEQUENCE — THE COVERAGE TABLE THAT MATTERS:**
+
+| season | panel at the OPEN | panel at the CLOSE |
+|---|---|---|
+| 2012-13..2017-18 | none | **MEASURED** 9 offshore ops (KAG) + 5 (erichqiu, independent replication) |
+| **2018-19** | none | **MEASURED — NEW.** 5 offshore ops (`erichqiu`, 1,307 games, modal 5/game) |
+| 2019-20..2022-23 | none | **NONE — stays EXTRAPOLATED (legal, not technical: see §8)** |
+| 2023-24 | **MEASURED** 9 ops, modal 8 | **MEASURED** 11 ops, modal 10 |
+| 2024-25 | **1 operator — NO PANEL EXISTS** | **MEASURED** 5 ops, modal 4 |
+| 2025-26 | 2 ops on 44 games — **NO PANEL** | **MEASURED** 6 ops, modal 3 |
+
+**A MEASURED MULTI-BOOK PANEL FOR 2024-25/2025-26 EXISTS ONLY AT THE CLOSE.
+At the OPEN — the phase D167 decided to bet — there is exactly one operator.**
+The only bridge is D174 §6's measured open/close ratio on matched games AND
+matched operators in 2023-24: **1.13 / 1.13 / 1.11 / 1.10 at k=2/3/5/8.**
+
+**DEDUP RULE (one operator per game, whatever the feed or skin):** at the OPEN
+ESPN wins a shared operator (only true per-book open); at the CLOSE Action
+Network wins (real book snapshot in one HTTP response). Games are keyed through
+`odds_market`'s unordered pair join **with +/-1 day tolerance** — ESPN dates are
+UTC and AN's are ET, and without the tolerance **75% of the cross-feed join
+silently fails** and the two feeds look independent because they never meet.
+
+**THE CONFOUND THAT NEARLY FAKED THE ERA RESULT.** Naively the CLOSE ladder
+falls 0.2569 -> 0.1702 -> 0.1431 (k=2) across the three modern seasons, which
+reads as a collapsing market. It is not. On the FIXED basket of the three books
+AN carries in all three seasons, the gain is **0.1435 / 0.1392 / 0.1418** —
+flat to **3.0%**. **The market did not change; the observable panel shrank.**
+Never compare a ladder across seasons without fixing the operator set.
+
+**CONTEMPORANEOUS DISPERSION.** The AN cross-section is simultaneous BY
+CONSTRUCTION (one HTTP response), which settles D163 trap 4. A contemporaneous
+2-book gain is **0.1533 / 0.1503 / 0.1464** against the **0.3247** that D142
+priced from TeamRankings' two books opening a median **2.9h apart** — i.e.
+**45-47%, reproduced independently in all three seasons. Roughly half of the
+2-book "opening dispersion" was TIME, not disagreement.** This does not
+retro-discount the ESPN panel, whose CLOSE arm is simultaneous and lands within
+11% of its OPEN arm.
+
+### Still NOT exploited
+
+- **The Odds API** free tier: `us` returns **9 books** (BetMGM, BetOnline.ag,
+  BetRivers, BetUS, Bovada, DraftKings, FanDuel, LowVig.ag, MyBookie.ag) and
+  `us2` **6 more** (Bally Bet, BetAnything, betPARX, theScore Bet, Fliff, Hard
+  Rock Bet). Cost measured 2026-08-04: **1 credit per (region x market) per
+  call**, 500/month. Historical remains paid (§5 above still holds).
+  **`basketball_nba` is absent from the active-sports list in the offseason**,
+  so nothing can be captured until October — but 500 credits buys ~16 polls a
+  day on one region, or 8 on both.
+  Note LowVig.ag is BetOnline.ag's reduced-juice skin — one operator.
+  **This is now the ONLY route to a per-book OPENING panel for a live season.**
+
+---
+
+## §8 THE 2018-19..2022-23 HOLE — AUDITED AND CLOSED AS FAR AS IT CAN BE (D174)
+
+Full audit: `data/hole_2018_2023_sources.md`. robots.txt was fetched and read
+for **every** host before any content request.
+
+- **`erichqiu` (Kaggle, already on disk) CLOSES 2018-19** — 5 offshore
+  operators, 1,307 games. It stops there.
+- **Action Network back-history: BLOCKED.** `api.actionnetwork.com/robots.txt`
+  is 25 bytes — `User-agent: *` / `Disallow: /`. The highest-value single test
+  could not legitimately be run and was NOT sent.
+- **ESPN core API back-history: HAS THE DATA, ToS FORBIDS IT.** Per-provider
+  panels exist for all five seasons (4 real operators/game in 2018-19 rising to
+  10 by 2022-23, 98/98 probed games). robots.txt is absent (HTTP 403), but the
+  Disney Terms of Use prohibit automated access "including … data mining or web
+  scraping" and building "any collection of data, data set or database", and
+  `www.espn.com/robots.txt` names **`anthropic-ai` / `Disallow: /`**.
+  **RECORDED AS ToS-BLOCKED AND STOPPED — no extraction performed.**
+- **Wayback (VegasInsider 380 snapshot-days, SBR 191, Covers 131, DonBest 64):
+  TOO SPARSE** — ~1,500 phase-ambiguous observations against ~5,800 games, at
+  arbitrary intraday timestamps aligning to neither open nor close.
+- **oddsportal: NOT FETCHED, not even via Wayback** — pulling the identical
+  blocked pages from an archive mirror evades the publisher's own rule. D163's
+  stop is upheld and extended.
+
+**VERDICT: 2019-20..2022-23 MUST STAY EXTRAPOLATED, and the reason is LEGAL,
+NOT TECHNICAL.** The audit did establish, from a ~98-game evaluation sample
+that was NOT extracted or stored as a panel, that the cross-book tie rate runs
+**50.00% (2018-19) -> 58.67 -> 55.23 -> 44.62 -> 34.22% (2022-23)** against
+D163's anchors of 68.22% offshore and 36.52% for 2023-24 retail — so **D163
+§16's undatable offshore->retail transition is datable, GRADUAL, and completes
+in 2022-23.** Reported as an audit observation only; nothing downstream uses it.
+
+**FLAGGED FOR THE OWNER, NOT ACTED ON:** the ESPN and Action Network files
+already on disk were collected from those same hosts under those same rules — a
+**pre-existing compliance exposure**. Nothing in D174 deletes, re-scrapes or
+extends them.
+
 ---
 
 ## Known limits — do not paper over these
