@@ -13866,3 +13866,54 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/d182_month_filter.json` NEW; `docs/SIM_REPORT.md` monthly section
   annotated; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; no month filter
   added anywhere; DB not touched]
+
+- D183 **THE SHARPE ANNUALISATION BASIS — OWNER PROPOSED TRADES RATHER THAN
+  SESSIONS. HE IS RIGHT THAT IT IS A VALID (ARGUABLY BETTER) BASIS, IT GIVES THE
+  SAME ANSWER, AND THE FACT THAT IT DOES IS WHAT PROVES sqrt(252) WRONG.** Owner
+  challenged D181's sqrt(54): "i dont see why not sharpe sqrt(252) - we should do
+  on amount of trades, not sessions traded, right?"
+
+  **THE QUESTION IS CHECKABLE, NOT A CONVENTION.** Annualising = per-period Sharpe
+  x sqrt(periods per YEAR). Two natural bases must therefore agree, since both
+  estimate the same annual quantity:
+
+  | route | per-period Sharpe | x sqrt(periods/yr) | annualised |
+  |---|---|---|---|
+  | per SESSION | +0.07458 | sqrt(54.1) | **0.549** |
+  | per TRADE | +0.04949 | sqrt(123.8) | **0.551** |
+
+  **They agree to 0.0019 (0.3%).** They agree because the implied mean
+  intra-session correlation is **+0.0054** — var(session) observed 2.01519 against
+  2.00127 predicted under independence, ratio 1.0070, on 456/758 sessions carrying
+  more than one bet. Same-night bets are effectively independent, so trades and
+  sessions are two ways of counting the same year.
+
+  **THE DECISIVE POINT: sqrt(252) BREAKS THE AGREEMENT.** Applied per-session it
+  gives **1.184**; applied per-trade it gives **0.786**. If 252 were the right
+  period count both routes would STILL have to agree — annualisation cannot depend
+  on which valid basis you pick. That they disagree by 1.5x is a self-contained
+  proof that a year of this strategy does not contain 252 periods. It contains
+  ~54 sessions, equivalently ~124 trades. sqrt(252) overstates the session route
+  by 2.16x and the trade route by 1.43x.
+
+  **OWNER'S BASIS PREFERENCE ADOPTED where it is finer-grained**: per-trade is the
+  better unit (it does not throw away within-night dispersion, and it is robust to
+  slate size drifting). It changes the reported number by +0.002. `docs/SIM_REPORT.md`
+  now shows BOTH routes side by side rather than one, because the agreement is
+  itself the evidence.
+
+  **ADDITIONAL, AND IT CUTS THE OTHER WAY FROM THE OWNER'S PROPOSAL:** the betting
+  window spans a mean **88 calendar days of 365**, so capital is idle **76%** of
+  the year. An annualised Sharpe computed only over active periods does not charge
+  for that idleness, so 0.55 is itself generous as a description of what a
+  full-year capital allocation would experience.
+
+  **HALL OF SHAME (methodological):** an annualisation factor is not a style
+  choice, and the way to catch a wrong one is to recompute on a second valid basis
+  and check the two agree. Any Sharpe quoted in this project must state its period
+  count, and where two bases exist, both.
+
+  [SCOPE: `scripts/d183_sharpe_basis.py` NEW (read-only);
+  `data/d183_sharpe.json` NEW; `docs/SIM_REPORT.md` Sharpe caveat rewritten to
+  show both routes; headline Sharpe UNCHANGED at 0.5; NO GATE RUN; NO PRODUCTION
+  MODEL DEFAULT CHANGED; DB not touched]

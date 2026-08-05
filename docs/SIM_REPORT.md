@@ -155,10 +155,28 @@ the season-clustered 95% confidence interval on pooled ROI is
   points off the next book, precisely the prices that get limited or voided —
   takes the full window from **+4.63% to +3.65%** and cuts net PnL from $802k to
   $633k. That is the more realistic number.
-- **Sharpe is 0.5, not 5.** It is annualised from daily net PnL over the ~54
-  sessions this strategy actually trades per season. Using the conventional √252
-  would report 1.2, which would be wrong: it assumes 252 independent trading days
-  where there are 54. Neither figure is remotely institutional-grade.
+- **Sharpe is 0.5, not 5, and the basis does not change that.** Annualising means
+  scaling a per-period Sharpe by √(periods per **year**). Both natural bases give
+  the same answer, which is the check that matters:
+
+  | route | per-period Sharpe | × √(periods/yr) | annualised |
+  |---|---|---|---|
+  | per **session** | +0.0746 | √54 | **0.549** |
+  | per **trade** | +0.0495 | √124 | **0.551** |
+
+  They agree to 0.3% because the implied intra-session correlation is **+0.005** —
+  bets on the same night are effectively independent, so the two routes are two
+  ways of counting the same year.
+
+  **√252 is not a third convention, it is the wrong period count, and it breaks
+  that agreement:** applied to sessions it gives 1.184, applied to trades it gives
+  0.786. If 252 were correct the two routes would still have to agree. They do
+  not, which is a self-contained proof that a year of this strategy does not
+  contain 252 periods — it contains ~54 sessions, equivalently ~124 trades.
+
+  Even 0.55 is generous: the betting window spans **88 calendar days**, so capital
+  is idle 76% of the year and an annualised figure computed only on active days
+  does not charge for that idleness. (`D183`)
 - **Win days are 47%** — below half. The strategy is profitable because winning
   days are larger, not more frequent, which is the opposite of the profile a
   market-making book produces and implies materially fatter tails.
