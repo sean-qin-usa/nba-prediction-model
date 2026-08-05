@@ -51,8 +51,9 @@ the project.
 | Market beats the model in | **18 of 19 seasons** — we beat it in 2008-09 |
 | Normalized gap, certified 5-season corpus | **12.87%** of the market's skill-above-coinflip |
 | Normalized gap, all 19 seasons | **9.53%** |
-| Frozen betting rules, 15 unseen seasons | **−5.60% ROI, significantly negative** |
-| Closing-line value (CLV) | **+0.0066/bet, significant, era-stable, placebo p=0.000** |
+| Frozen betting rules, out of sample | **not proven either way** — the rejection did not survive better data |
+| ATS at the opening spread, 19 seasons | cover **52.02%** vs 52.38% break-even, ROI −0.68% (ns) |
+| Closing-line value (CLV) | **+0.320 spread points/bet, significant** (doubled on complete data) |
 | Model's worth over a no-information bettor | **+1.67pp of ROI** |
 | Needed to break even after vig | **≈ +3.4pp more** |
 

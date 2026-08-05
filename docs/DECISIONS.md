@@ -11720,3 +11720,516 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
    DB data/nba.duckdb READ-ONLY THROUGHOUT — retry_s=60 on every connect, ZERO
    writes, no table altered; scripts/k19_model.py, k19_analyze.py, k19_rules.py,
    ats19_score.py, wf_equity.py, sl_components.py, el_eralocal.py NOT RUN]
+
+- D172 THE FULL TEAM-NAME JOIN AUDIT (THIRD INSTANCE OF THE BUG CLASS), AND
+  COACH / OWNERSHIP MEASURED RATHER THAN OPINED. **HEADLINE: THE JOIN AUDIT
+  FINDS NO FOURTH CLIPPERS — THE ONLY REAL ROW LOSS ANYWHERE IN THE REPO IS
+  D171's KNOWN `da Silva, Tristan` PARSER ARTEFACT (30 ROWS). COACH IS DEAD:
+  THE IN-SEASON COACH-CHANGE EFFECT IS 100% MEAN REVERSION (MATCHED DiD
+  -0.181 pts [-1.137,+0.774] p=0.694) AND THE EFFECT DOES NOT TRAVEL WITH THE
+  MAN (lag-1 r=+0.0009 vs THE MARKET). OWNERSHIP PRODUCES ONE SURVIVOR
+  (-0.948 pts/game [-1.554,-0.343] p=0.0049 IN A NEW OWNER'S FIRST FULL
+  SEASON) WHICH IS **PRE-REGISTERED AND BLOCKED, NOT GATED**, BECAUSE ITS
+  OWNERSHIP TABLE IS HAND-BUILT AND UNSOURCED.** NO PRODUCTION DEFAULT
+  CHANGED. NO CERTIFIED ARTIFACT TOUCHED. NO GATE RUN.
+  (1) **THE AUDIT, EVERY SURFACE, BOTH DIRECTIONS** (`d172_join_audit.py`,
+  READ-ONLY; `data/d172_surfaces.csv`, `d172_unresolved.csv`). 22 surfaces
+  enumerated: `nba_games.team_abbrev` (the spine), `odds_market`/`odds_open`/
+  `odds_hist_sbr`, `injury_reports_pit`, `schedule_features`, `epm_history`(+
+  `_daily`), `ratings_2k`, `data/arenas.csv`, `game_officials`, the
+  TeamRankings jsonl, the ESPN and Action Network per-season csvs, and five
+  Kaggle sources. **`nba_games` carries 131 distinct abbreviations over 30
+  seasons: 30 modern, 6 era, and 95 that are NOT NBA FRANCHISES.**
+  (2) **THE SIX ERA CODES ARE FULLY COVERED AND THE D161 CROSSWALK IS
+  COMPLETE.** NJN 1,396 / SEA 1,021 / NOH 802 / CHH 495 / VAN 378 / NOK 178
+  = **4,270 team-game rows** (2,135 games); `team_id` disagrees with
+  `team_abbrev` on exactly those 6 pairs and nowhere else; after the map the
+  set difference (nba_games − odds codes) is **empty on every season and every
+  odds table**. Without it those 4,270 rows have no market price — D161's bug,
+  re-measured from scratch and confirmed fixed. **WSB is the one relocation
+  code we do NOT need** (nba_games back-stamps the 1996-97 Bullets as WAS);
+  `data/arenas.csv` carries a WSB row that joins to nothing, documented not
+  deleted.
+  (3) **A NEW FINDING: 95 NON-NBA "TEAMS", 315 ROWS, QUARANTINED BY LUCK NOT
+  BY DESIGN.** 167 All-Star rows (`003`: Team Chuck/Shaq/Kenny/Candace,
+  EST/WST, USA/WLD) and 148 preseason rows (`001`: Real Madrid, Maccabi,
+  Barcelona, Fenerbahce, Melbourne, Adelaide, Sydney, Perth, Alba, Bayern,
+  Flamengo, Guangzhou …), 146 of them paired against a real NBA team. Every
+  production consumer filters `game_id LIKE '002%'` — **except
+  `nbapred/engine/slate.py:52`, the LIVE path**, which does `SELECT DISTINCT
+  team_id FROM nba_games WHERE game_date = ?` with no game-type filter.
+  **FLAGGED, NOT CHANGED** (it is the LIVE path and the owner's call).
+  (4) **THE UNRESOLVED-NAME TABLE.** After classifying every unmatched value,
+  exactly ONE is a real row of real data being dropped: **`da Silva, Tristan`,
+  30 rows in `injury_reports_pit.team`** — D171's known parser artefact, still
+  unfixed, and `teams.py` REPORTS it rather than dropping it silently, which
+  is the D171 design working as intended. Everything else is (a) an All-Star /
+  exhibition entity correctly absent from a franchise map (ESPN 82 rows,
+  ActionNetwork 68), (b) a defunct pre-1996 franchise in an out-of-corpus
+  Kaggle file (SYR/MNL/PHW/STL/ROC/FTW/CIN — 106,774 rows, never ingested), or
+  (c) a vendor short code that IS mapped (`odds_hist_sbr`'s 35 SBR city
+  strings all resolve via `build_odds_open.TEAMS`, zero unmapped; ESPN's
+  `GS/NO/NY/SA/UTAH/WSH` 8,171 rows all resolve via `ABBR`). **`game_officials`
+  joins by `game_id` at 100.00% and is not a name-join risk at all.**
+  `ratings_2k.team_slug` and `epm_history_daily.team_alias` (98.9% NULL) are
+  CARRIED BUT NEVER JOINED — a coverage note, not a defect.
+  (5) **WHAT WAS ROUTED THROUGH `nbapred/teams.py`, AND WHAT DELIBERATELY WAS
+  NOT.** ADDED: `teams.FRANCHISE` (the era crosswalk, canonical),
+  `teams.modern()` (idempotent), `teams.BBREF_TO_US`. **The crosswalk had
+  existed as THREE byte-identical inline copies** (`k19_model.py`, `k19_t2.py`,
+  `ats19_score.py`) **and in no importable module.** Those three are **NOT
+  EDITED** — they produce certified artifacts, and routing them is a provable
+  no-op that still re-touches a scored script. Guarded instead by
+  `tests/test_teams_canon.py` (8 tests, all green), which asserts each inline
+  dict equals the canonical one, so divergence goes red without re-running a
+  certification. NOT ROUTED, with reason: `build_odds_open.TEAMS/TR_TEAMS`,
+  `bo_lineshop.TR_TEAMS`, `build_nba_open_close.ABBR`, `kaggle_odds.TEAM_MAP`,
+  `cm_arb.TR_TEAMS` — these map VENDOR vocabularies, not NBA full names, so
+  the nickname-suffix resolver does not apply; all are measured at 100% on
+  live data. **`TR_TEAMS` is duplicated in 3 files and `ABBR` is a 6-key
+  subset of the 8-key `TR_TEAMS` doing the same job — a divergence waiting to
+  happen, FLAGGED, not merged** (touching `build_odds_open.py` rebuilds
+  `odds_open`).
+  (6) **COACH DATA, $0, AND A NEW DATA-QUALITY FINDING: nba_api's COACH FEED
+  IS NOT POINT-IN-TIME AND WAS REJECTED.** `commonteamroster`'s Coaches result
+  set returns Mike D'Antoni for HOU 2015-16 and Kenny Atkinson for BKN 2015-16
+  — both 2016-17 hires — while the men who actually coached (McHale/
+  Bickerstaff, Hollins/Brown) are absent. Quantified over all 30x30 (807 rows,
+  **799 of 892 team-seasons, 93 missing outright**): **EXACT match on the
+  head-coach set 78.6%; MISSES a coach who really coached 21.0%; NAMES a coach
+  who did not 12.1%**; worst on 1996-2000 at **50.7%**. Kept as a cross-check
+  artifact only. **SOURCE OF TRUTH: Basketball-Reference `NBA_<end>_coaches`,
+  free, cached to `data/raw/ext_bbref/coaches/`** — one row per (coach, team,
+  season) with that coach's regular-season G, in chronological order within a
+  team, so the cumulative game count locates each change EXACTLY in the
+  schedule. **COVERAGE: 30/30 seasons 1996-97..2025-26, 1,013 coach-team-
+  seasons, 191 coaches, 121 in-season changes; BBRef G-sum vs nba_games game
+  count mismatches on 0 of 892 team-seasons; a coach is assigned to 71,092 /
+  71,092 = 100.00% of regular-season team-games; team vocabulary resolves 100%
+  both directions** (BBRef's BRK/CHO/PHO/WSB crosswalked — a FOURTH team
+  vocabulary, handled at the door).
+  (7) **MEASURE BEFORE MODELLING — WHAT A COACH DEMONSTRABLY MOVES.** Jump AT
+  the in-season change (same roster, same season, n=118, season-clustered):
+```
+    behaviour               pre     post    delta   95% CI               p
+    players used / game  10.393   10.186   -0.211  [-0.327,-0.095]  0.0009
+    top-5 churn / game    1.105    1.234   +0.164  [+0.084,+0.244]  0.0002
+    top-8 minute share   0.9199   0.9249  +0.0041  [-0.0006,+0.0088] 0.086
+    minutes Herfindahl   0.1203   0.1212  +0.0004  [-0.0008,+0.0016] 0.464
+    pace (possessions)    96.08    95.87   -0.055  [-0.632,+0.521]  0.846
+```
+  **A new coach shortens the rotation and churns the starting five. He does
+  not change pace or minute concentration.** Both survive BH. **A FIRST-PASS
+  VARIANCE DECOMPOSITION IS RETRACTED IN THIS ENTRY:** "coach spell explains
+  1.5-2.0% more than team-season" was reported without a null; against a
+  permutation null that keeps spell count and lengths and randomises the
+  boundaries, **4 of 5 behaviours are indistinguishable from a random split**
+  (perm p 0.070-0.365). Splitting always explains more — D164's lesson applied
+  to my own statistic.
+  (8) **THE COACH-CHANGE EVENT STUDY — AND A SECOND SELF-RETRACTION.** Frame:
+  `ats19_frame.csv.gz`, 19 seasons, 22,742 games, `m_us` COACH-BLIND; 45,484
+  team-games joined; **62 changes in frame, 52 with >=10 games each side.**
+  FIRST PASS SAID post-minus-pre **+1.78 pts vs the market, p=0.012,
+  "unpriced". THAT IS WRONG AND IS RETRACTED HERE.** Two defects, both mine:
+  the placebo was NOT matched (it cut non-event seasons whose pre-window
+  residual was ~0, against events at -2.28), and **post-minus-pre is the wrong
+  statistic** — a coach is fired AFTER a bad run, so pre is negative by
+  selection and the delta is mechanically positive. CORRECTED:
+```
+    quantity                              mean   95% CI              p
+    PRE-change  residual vs MARKET      -2.208  [-2.941,-1.474]  0.0000
+    POST-change residual vs MARKET      -0.429  [-1.371,+0.513]  0.350
+    POST first 20 games  vs MARKET      -0.482  [-1.601,+0.638]  0.377
+    PRE-change  residual vs OUR MODEL   -2.005  [-2.684,-1.326]  0.0000
+    POST-change residual vs OUR MODEL   -0.682  [-1.714,+0.351]  0.182
+```
+  MATCHED DiD (calliper 0.75 pts on the pre-window market residual, mean 89
+  controls per event, **52/52 matched**): fired-coach teams went **-2.23 ->
+  -0.22 (+2.013)**; teams that ran EQUALLY BADLY and KEPT the coach went
+  **-2.15 -> -0.19 (+1.960)**. **DiD -0.181 [-1.137,+0.774] p=0.694 vs the
+  market; -0.551 [-1.423,+0.320] p=0.200 vs our model. THE COACH-CHANGE EFFECT
+  IS MEAN REVERSION.**
+  (9) **PERSISTENCE — D137's TEST, DECOMPOSED, AND IT IS THE TEAM'S MEMORY:**
+```
+    contrast                          vs OUR MODEL      vs the MARKET
+    SAME coach, same team (n=378)   +0.400 (p<1e-15)   +0.120 (p=0.020)
+    DIFFERENT coach, same team(159) +0.071 (p=0.375)   -0.130 (p=0.103)
+    SAME coach, DIFFERENT team (29) +0.180 (p=0.351)  +0.0009 (p=0.996)
+```
+  Signal share: vs our model tau **1.559 pts / 50.9%**; vs the MARKET tau
+  **0.665 pts / 16.4%** (D137's home advantage: tau 1.80, 26%). **The +0.400
+  is our own model's team-level miscalibration persisting through roster
+  continuity — it collapses to +0.120 against the market and to +0.0009 when
+  the coach changes team, which is the only coach-specific persistence test
+  there is. A coach effect with no memory is a description, not a feature —
+  and this one has none.**
+  (10) **OWNERSHIP. THE TABLE IS HAND-BUILT AND SAYS SO.** `OWNER_SPELLS` in
+  `d172_ownership.py`: control ownership only, 73 spells over 30 teams,
+  892/892 team-seasons assigned, **built by the agent from its own public
+  knowledge — not scraped, not machine-verified**; 4 events spot-checked
+  against Wikipedia, 4/4 correct. **STRUCTURALLY, OWNER IS BARELY A DIFFERENT
+  VARIABLE FROM TEAM:** 73 levels for 892 team-seasons nested in 30 teams = a
+  team dummy with 43 extra splits; **mean spell 12.2 seasons**; 65.2% of
+  team-seasons sit in their team's modal spell. D70/D137 already killed the
+  team dummy. **THE DIRECT "ON TOP OF D73" TEST CANNOT BE RUN AND THIS ENTRY
+  SAYS SO PLAINLY:** the tank composite exists on **4 seasons only**
+  (2022-23..2025-26, 120 team-seasons) on which just 6 teams have more than one
+  owner — on that window owner and team ARE the same variable. Tested instead
+  against a tank-outcome proxy on all 30 seasons (share of minutes to players
+  within 2 years of their draft, comp-A's own direction): owner's marginal
+  variance share **18.68% against a permutation null whose MEAN is 24.20%
+  (p95 33.68%) -> perm p = 0.8705.** **The real split explains LESS than a
+  random split of the same shape. Dead.** Youth share at an ownership change
+  -0.0415 [-0.0918,+0.0089] p=0.102, also null.
+  (11) **THE ONE SURVIVOR, AND WHY IT IS NOT GATED.** First FULL season under
+  a new control owner (the closing season excluded from both sides), n=27
+  events with a clean pre and post, K=14 seasons:
+```
+    season BEFORE the sale,      vs MARKET  +0.362 [-0.331,+1.054] p=0.279
+    first FULL season new owner, vs MARKET  -0.948 [-1.554,-0.343] p=0.0049
+    first FULL season new owner, vs MODEL   -1.247 [-1.970,-0.523] p=0.0026
+    MATCHED-PLACEBO DiD,         vs MARKET  -0.918 [-1.489,-0.347] p=0.0041
+```
+  **It is not regression to the mean — the pre-sale season is
+  indistinguishable from zero.** Leave-one-event-out -1.126..-1.489;
+  leave-one-season-out the same range. **BH over the whole D172 family (m=31,
+  FDR 0.05) rejects 9**: coach spell-variance perm `poss`; coach lag-1
+  same-coach-same-team vs model; coach PRE-change residual vs market and vs
+  model; coach behaviour jump `t5_turnover` and `n_used`; owner clean change
+  vs model and vs market; owner placebo DiD vs market. **Every coach rejection
+  is a selection artifact, a roster confound, or a rotation-shape description
+  nobody can price. Not one is a feature.** The ownership survivor is
+  pre-registered in **`data/coach_prereg.md` (sha256
+  `972a7ea7b0d17ea57ff897418c40f489bf6cec34d22110bce4c68d1ddc77b803`)** with
+  **at most 2 arms** (NEW_OWNER_Y1; NEW_OWNER_Y1 residualised on the D73 tank
+  composite) and the full GATE_POLICY_V2 §8-§11 design — rolling-origin, LOSO,
+  era decomposition with COVID as separate strata, season-clustered K-1 dof t
+  interval as the shipping statistic, calibration veto, BH against the
+  extended family, **and the D164 permutation null run alongside as a
+  mandatory arm**. **IT IS BLOCKED AND NOT RUN.** The blocker is not date
+  error (which attenuates toward zero) but **recall bias in which sales were
+  remembered at all**: if the agent's memory of franchise sales correlates
+  with the sale having been followed by a memorable collapse, the estimate is
+  manufactured and no within-sample stress test can detect it. Clearance
+  requires re-deriving every row from a citable source WITHOUT reference to
+  the current table, reporting the count of sales the agent failed to recall,
+  and discarding the result outright if that exceeds 15%.
+  (12) **ERA STATEMENT (GATE_POLICY_V2 §10).** Audit universe: the FULL corpus
+  **1996-97..2025-26, 80,267 team-game rows, 30 seasons** — wider than any
+  scored frame, deliberately, because a join hole hides where nobody scores.
+  Coach panel: the same 30 seasons, 71,092 regular-season team-games. Coach and
+  ownership EFFECTS: the 19-season frame **2007-08..2025-26, 22,742 games**,
+  because that is where `m_us` and an opening market price both exist.
+  **COVID: 2019-20 and 2020-21 appear only as separate season clusters and are
+  never pooled into a headline.** CLUSTERING: season throughout, K=18-19 on the
+  event studies and K=14 on the ownership contrast — **K=14 at n=27 is small
+  and every ownership number should be read with that in front of it.**
+  AVAILABILITY TIER: not applicable — no arm of D172 consumes an out-set.
+  (13) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not claim a coach does not
+  matter to a basketball team; it claims that **against the market, net of the
+  roster, a coach effect is not measurable, does not persist, and does not
+  travel with the man** — a confounded shadow of roster quality, which is the
+  answer the brief expected and it is now measured rather than opined. It does
+  not re-run any gate, move any certified number, or change any production
+  default. It does not fix `da Silva, Tristan`, the `slate.py` game-type
+  filter, or the duplicated `TR_TEAMS`/`ABBR` maps — all three are FLAGGED for
+  the owner. It does not gate the ownership result and explicitly forbids
+  doing so until the table is sourced. And it supersedes NOTHING: the prior
+  "coach fixed effects low-value (confounded with roster; the W5 window
+  suffices)" register opinion is now **CONFIRMED BY MEASUREMENT** rather than
+  asserted.
+  [code nbapred/teams.py MODIFIED (ADDITIVE ONLY: FRANCHISE, modern(),
+   BBREF_TO_US — no existing call site changes behaviour);
+   tests/test_teams_canon.py (NEW, 8 tests, green);
+   scripts/d172_join_audit.py, d172_coach_pull.py, d172_coach_bbref.py,
+   d172_coach_measure.py, d172_coach_decompose.py, d172_ownership.py,
+   d172_nulls.py, d172_stress.py, d172_chart.py (all NEW);
+   data/coach_notes.md (full working, checkpointed as the run proceeded),
+   data/coach_prereg.md + .sha256 (PRE-REGISTERED, BLOCKED, NOT RUN);
+   data/d172_surfaces.csv, d172_unresolved.csv, d172_coach_bbref.csv,
+   d172_coach_nbaapi.csv, d172_behaviour.csv.gz, d172_coach_seasons.csv,
+   d172_events.csv, d172_event_rows.csv, d172_matched.csv,
+   d172_owner_spells.csv, d172_owner_events.csv, d172_measure.json,
+   d172_decompose.json, d172_ownership.json, d172_nulls.json,
+   d172_stress.json;
+   data/raw/ext_bbref/coaches/NBA_1997..2026_coaches.html (30 cached pages);
+   data/logs/d172_coach_pull.log;
+   charts/coach_effects.png (NEW, 150dpi, rendered and inspected — four
+   label-collision fixes made by looking at the render: panel A's DiD value
+   collided with its own error bar, panel B's annotations were clipped at the
+   left axis limit, panel C's near-zero bars had no room for their labels on
+   their own side, and the two-line footer was clipped off the canvas);
+   scripts/k19_model.py, k19_t2.py, ats19_score.py NOT MODIFIED AND NOT RUN;
+   NO GATE RUN; NO PRODUCTION DEFAULT CHANGED; NO CERTIFIED ARTIFACT TOUCHED;
+   DB data/nba.duckdb READ-ONLY THROUGHOUT — read_only=True with retry_s=60 on
+   every connect, ZERO writes, no table created or altered]
+- D173 **THE BETTING/ROI STUDIES RE-RUN ON D170/D171's BACKFILLED DATA, AS D171
+  §9 RANKED THEM — AND TWO OF THE REGISTER'S THREE NEGATIVE HEADLINES DO NOT
+  SURVIVE. D162's ATS REJECTION IS GONE (-3.25% [-4.46,-2.08] SIG NEG ->
+  -0.68% [-2.13,+0.70] ns; 13 significantly-negative cells -> ZERO). D168's
+  STRUCTURAL-CONTAMINATION EXPLANATION IS GONE (the ablation ladder no longer
+  decays: V4_STRIPPED -3.70% -> +3.91%, and the -6.31 SIG paired delta that
+  carried the argument becomes +0.82 ns). D161's RULES ARE RESCUED ON 19
+  SEASONS (-5.60% SIG NEG -> -0.88% ns) BUT REMAIN **REJECTED ON THE OWNER'S
+  PRIMARY FRAME AT THE OPEN: UNION -4.20% [-8.66,-0.36] SIG NEG, K=8**. D166
+  and D159 are UNCHANGED in kind (+3.54% -> +3.35% ns; CLV +0.01197 ->
+  +0.01228 SIG).** NOT A NEW GATE: every config, rule, threshold, window, band
+  and seed is carried exactly as frozen and NOTHING was re-selected. No
+  production default changed, eval corpus not widened, `nbapred/` and
+  `scripts/bet_engine.py` UNTOUCHED, DB `read_only=True` retry_s=60, ZERO
+  writes. Full working checkpointed in `data/rerun_notes.md`.
+  (0) **CONTROL-HASH FIELD (D134 rule).** `data/capstone_pergame.csv` md5
+  **695d40a3545e889267cad403b7acdce8** BEFORE and AFTER, i.e. UNCHANGED — this
+  entry never runs `prod_by_season.py`. `capstone_pergame_D158.csv` preserved
+  at **3b7bbbb78ac73c63273c18a8aa30013c**. Copied aside first:
+  `capstone_pergame_D173_BACKUP_rerun.csv`, `ats19_frame_D162.csv.gz`,
+  `ats19_D162.json`, `k19_rules_D161.json`, `wf_equity_D166.json`,
+  `sl_components_D168.{json,csv.gz}`, `hc_honestclv_D159.json`,
+  `k19_model_stats_D161.json`.
+  (0a) **THE TWO FRAMES, THE OWNER'S SCOPING DECISION, APPLIED EVERYWHERE.**
+  **PRIMARY = the report era 2018-19..2025-26, 8 seasons, tier T2** (5PM injury
+  report UNION official pregame inactives) — injury reports begin **2018-12-17**
+  and are central to the strategy, so this is the frame that matches how the
+  model will run live. K=8 -> **7 dof**. Carried caveat: 2018-19 has report
+  coverage on **788/1230** games, so it is T2 but not uniformly so.
+  **SECONDARY = 19 seasons at best-available tier**, T2i (official inactives)
+  2007-08..2017-18 and T2 2018-19..2025-26, K=19 -> 18 dof, for continuity with
+  D161/D162/D166. **TIERS ARE NEVER POOLED SILENTLY (D158's lesson); n and tier
+  are stated per season in every table in `data/rerun_notes.md`.**
+  (1) **HARNESSES REUSED, NOT REBUILT; DEFAULTS BYTE-IDENTICAL.** The only
+  edits are env-gated path overrides, all off by default: `ats19_score.py`
+  (ATS19_K19/ATS19_TAG/ATS19_REPORT_ERA), `k19_rules.py`
+  (K19_PERGAME/K19_RULES_TAG/K19_REPORT_ERA), `oc_capacity.py`
+  (OC_FRAME/OC_TAG), `as_adaptive.py` (AS_TAG), `wf_equity.py`
+  (WF_TAG/AS_TAG/WF_PERBET), `sl_components.py` (SL_TIER, default `blind` =
+  D168 exactly), `sl_score.py` (SL_TAG/SL_SCORE_TAG), `hc_honestclv.py`
+  (HC_HONEST/HC_PBS/HC_TAG). `sl_components.py`'s `t2` branch is the out-set
+  builder from `k19_t2.py::season_run` VERBATIM. **ONE STATISTICAL FIX:**
+  `ats19_score.py::mde80_clustered`'s t-table was sparse and fell back to dof
+  18's 2.101 for any dof it did not list, which UNDERSTATES MDE80 at the K=8
+  frame (dof 7 -> 2.365); completed to match `lb_longshot.cluster_mean_t`.
+  Reporting statistic only — no point estimate or CI moves.
+  (2) **CONTROLS. TWO PASS EXACTLY; THE THIRD CANNOT AND THAT IS ITSELF THE
+  FINDING.** (a) **ATS19 vs D162: PASSES.** Re-run on the old `k19_pergame.csv`
+  reproduces `ats19_D162.json` with exactly three classes of difference — the
+  3 `mde80_clustered` fields the t-table fix corrects, the 2 capstone md5
+  fields, and 42 `frozen_rules_ats` fields (that block reads
+  `capstone_pergame.csv`, already D171's). **Every ATS statistic — cover, ROI,
+  CI, CLV, placebo, era, battery — is bit-identical.** (b) **wf_equity vs D166:
+  PASSES** — prints `ANCHOR D162 POOL19 ROI -3.245% cover 50.654%`, all five
+  window arms reproduce D165 `EXACT`, headline `+3.54% / +54.9u`. (c)
+  **hc_honestclv vs D159: PASSES** — on `capstone_pergame_D158.csv` it returns
+  UNION honest **+0.01197 [+0.01099,+0.01295]** and matched-control alpha at
+  the open **+4.93% ns**, D159's registered numbers to five decimals. (d)
+  **k19_rules vs D161 CANNOT be exact**: the rule bet SETS are built from live
+  DB features (`star_out_map` reads the availability tables), so D170's
+  backfill changes which games fire. Carried as a DECOMPOSITION arm (old
+  probabilities + new DB), not a control. Its signature: **STAR_FAV_SHARPER
+  goes from K=4 seasons to K=19** — the rule could not fire before 2022-23
+  because no inactives existed.
+  (3) **STUDY 1 — D162, ATS AT THE OPENING SPREAD. THE REJECTION IS LIFTED ON
+  EVERY WINDOW.** T=0 (ALL GAMES, NO SELECTION, the pre-registered PRIMARY),
+  breakeven 52.3810%:
+
+        window        arm      n    cover%    ROI%      [K-1 t CI]    sig   K  MDE80
+        REPORT8       OLD   9469   50.662   -3.25  [ -6.24, -0.41]  SIG-   8   3.95
+        REPORT8       NEW   9469   51.473   -1.71  [ -4.90, +1.30]    ns   8   4.20
+        POOL19        OLD  22742   50.654   -3.25  [ -4.46, -2.08]  SIG-  19   1.67
+        POOL19        NEW  22742   52.021   -0.68  [ -2.13, +0.70]    ns  19   1.98
+        OOS14         OLD  16634   50.438   -3.64  [ -4.76, -2.56]  SIG-  14   1.53
+        OOS14         NEW  16634   52.097   -0.53  [ -2.08, +0.91]    ns  14   2.08
+        OOS_DEEP15    NEW  17858   52.047   -0.63  [ -2.07, +0.73]    ns  15   1.94
+        NOCOVID17     NEW  20611   52.225   -0.29  [ -1.66, +1.09]    ns  17   1.92
+
+  **Family-wise, the cleanest statement of the flip: 13 significantly-NEGATIVE
+  primary ROI cells become ZERO; 0 of 20 are significantly positive against 1.0
+  expected; exactly 1 of 20 SECONDARY cells is significantly positive — the
+  chance rate exactly.** Seasons covering >52.381%: 1/19 -> 8/19; >50.000%:
+  13/19 -> 17/19. **THE VERDICT MOVES FROM REJECTED TO NOT PROVEN EITHER WAY.
+  It is NOT replaced by a positive result:** cover 52.021% is still below
+  breakeven and no window's ROI interval excludes zero from below.
+  Spread-point CLV roughly DOUBLES and stays SIG+ on every window: POOL19
+  **+0.16623 [+0.06699,+0.26363] -> +0.32001 [+0.20244,+0.43467]**, REPORT8
+  +0.31958 -> **+0.51563 [+0.29855,+0.72388]**. It is still worth far less than
+  the vig.
+  (4) **STUDY 2 — D161, THE FROZEN-RULES LADDER. THE ANSWER IS FRAME-DEPENDENT
+  AND BOTH HALVES MATTER.** UNION:
+
+        arm / window          OLD                       NEW
+        CLOSE|ML POOL19       -3.40 [-7.87,-0.53] SIG-  -0.92 [-3.24,+1.54] ns
+        CLOSE|ML OOS_DEEP     -5.60 [-9.60,-0.74] SIG-  -0.88 [-3.84,+1.68] ns
+        CLOSE|ML REPORT8      (not run)                 -2.89 [-7.16,+1.93] ns
+        OPEN|SP  POOL19       -4.97 [-7.23,-1.23] SIG-  -1.67 [-4.08,+0.23] ns
+        OPEN|SP  OOS_DEEP     -5.03 [-7.91,-0.19] SIG-  -1.32 [-4.33,+0.87] ns
+        OPEN|SP  REPORT8      (not run)                 -4.20 [-8.66,-0.36] SIG-
+
+  **On the 19-season SECONDARY frame the rejection is lifted at both prices,
+  including D161's headline OOS_DEEP -5.60% -> -0.88% ns. On the owner's
+  PRIMARY report-era frame the rejection SURVIVES AT THE OPEN** — UNION -4.20%
+  SIG NEG at K=8, with `T20_D03_10` -4.16% SIG- and `STAR_FAV_SHARPER` -5.11%
+  SIG-; at the close the same frame is -2.89% ns. **THE RULES ARE THEREFORE
+  STILL REJECTED WHERE IT COUNTS: priced at the open, in the era the strategy
+  will actually run.** The 19-season rescue is real but is driven by the 11
+  pre-report seasons. Family-wise: **0 of 115 pre-specified ROI cells SIG
+  POSITIVE against 5.75 expected, 16 SIG NEGATIVE** (D161: 0 / 92 / 23); CLV
+  cells SIG positive 37 of 110 (D161: 19 of 88). The union's bet count nearly
+  doubles (2,954 -> 5,706 at the close) because the out-sets now exist.
+  (5) **STUDY 3a — D166, THE EQUITY PATH. CONCLUSION UNCHANGED, PRECISION MUCH
+  BETTER.** k=5 measured+haircut (the firm default) **+3.54% [-3.51,+8.98] ->
+  +3.35% [-1.12,+8.04]**, cum +54.9u -> +58.1u; k=1 +1.66% -> +1.83%; k=8 raw
+  +4.92% -> +4.58%. Still NOT SIGNIFICANT. What improves is resolution:
+  **MDE80 8.10pp -> 5.94pp**, seasons-to-resolve 36 -> 22, seasons positive
+  7/14 -> 10/14. The window-choice rule picks **ALL-HISTORY** in both runs. The
+  only SIG cell is the exchange arm, which D166 already labels ARITHMETIC ONLY
+  (we hold zero exchange data) — not a result. **PRIMARY FRAME (report era, 8
+  of the 14 scored seasons, K=8 -> 7 dof): pooled +2.01% on 1,132 bets,
+  season-clustered mean +1.06% [-4.58,+6.70] ns, sd 6.7pp, cum +22.8u** —
+  BELOW the 14-season track and still not significant.
+  (6) **STUDY 3b — D168, THE STRUCTURAL LADDER. THIS ONE FLIPS, AND IT IS THE
+  MOST IMPORTANT THING IN THIS ENTRY AFTER §3.**
+
+        variant                      OLD ROI%  OLD paired-vs-V0      NEW ROI%  NEW paired-vs-V0
+        V0_FULL                        +3.54   —                       +3.35   —
+        V1_noTANK                      +1.68   -1.03 [-2.44,+0.39]     +3.49   +0.42 [-1.51,+2.35]
+        V2_noTANK_noBRIDGE             +1.35   -1.02 [-3.42,+1.38]     +3.02   +0.39 [-2.57,+3.35]
+        V3_..._noCARRY                 -0.16   -2.15 [-4.68,+0.38]     +4.08   +1.32 [-0.94,+3.58]
+        V4_STRIPPED                    -3.70   -6.31 [-12.30,-0.32]SIG +3.91   +0.82 [-5.78,+7.42]
+        V5_FF_ONLY                     -1.79   -3.85 [-10.64,+2.94]    -1.79   -4.57 [-10.30,+1.16]
+        V6_NOHOME                      -2.32   -4.71 [-10.73,+1.30]    +3.42   +0.41 [-5.73,+6.55]
+
+  **D168's headline was that structural contamination explains ALL of D166's
+  +3.54%: the ladder decayed monotonically to -3.70% as the era-specific terms
+  were stripped, and V4_STRIPPED vs V0 was -6.31 SIG. ON THE BACKFILLED DATA
+  THE LADDER DOES NOT DECAY AT ALL.** V4_STRIPPED is **+3.91%**, ABOVE the full
+  stack; every paired delta except V5 is positive-signed and NONE is
+  significant, including the one that was. The result no longer depends on the
+  terms whose gates were era-specific, so **the contamination mechanism D168
+  proposed is NOT SUPPORTED on the better data. THIS IS NOT A POSITIVE FINDING
+  AND MUST NOT BE READ AS ONE** — every 13-dof interval in the NEW column spans
+  zero except V6_NOHOME (+3.42% [+1.18,+6.56]), 1 SIG cell of 7 pre-specified
+  variants against 0.35 expected. What died is D168's EXPLANATION, not the
+  absence of an edge. ANCHOR: `sl_score` V0 vs the ATS frame max |dp| =
+  **1.910e-14** on 22,742 games (EXACT); the T2 component pass reproduces
+  `k19_d171_t2.json`'s per-season `ll_us`; the linear-sum property of
+  `production.Predictor.margin` that made this cheap still holds.
+  (7) **STUDY 4 — D159, THE HONEST CLV BASELINE. CONCLUSION UNCHANGED.** UNION
+  CLV honest at the open **+0.01197 [+0.01099,+0.01295] -> +0.01228
+  [+0.01009,+0.01452]** (+2.6%), still SIG; the leak falls from **13.4% to
+  11.1%** of the leaky level; matched-control alpha at the open **+4.93% ns ->
+  +5.82% ns**, at the close +3.19% ns both times. D159's verdict stands in
+  every particular. D159's ML corpus (2023-24..2025-26) sits ENTIRELY inside
+  the report era, so PRIMARY and SECONDARY coincide here; **K=3 is the binding
+  limitation, not the data**. Caveat now carried on the chart: the LEAKY arm is
+  still the frozen D158 oracle-ceiling vintage, so honest-minus-leaky is no
+  longer a same-vintage pair and **the leak share is an UPPER bound**.
+  (8) **WHAT WAS DELIBERATELY NOT RE-RUN.** **D163's line-shopping / execution
+  panels — SKIPPED**, ranked last by D171 §9 because they price the MARKET not
+  us, and `bo_lineshop.py` sources its probabilities from the frozen
+  `ds_rt1_pergame.csv` vintage, so re-running would not pick up the new model
+  probabilities without a structural change to that harness. The LEFT panel of
+  `status_trading_h2h.png` is therefore still D163's and is LABELLED
+  not-re-run ON THE CHART; the RIGHT (CLV) panel IS re-sourced onto this
+  entry's honest re-run. **D169's era-local selection — SKIPPED** (a null
+  result; confirmatory not corrective). The two red `test_tanking.py` fixtures
+  D171 left are NOT re-pinned — still D170 collateral, still the owner's call.
+  (9) **CHARTS — THE DELIVERABLE, ALL RENDERED AND VISUALLY INSPECTED, house
+  style per `make_status_charts.py`.** `charts/walkforward_equity.png`
+  (rebuilt: cumulative P&L by execution tier, ROI-by-season bars with the
+  pooled mean and +-1sd band, the window-choice panel, and a NEW panel (d) for
+  the report-era-only PRIMARY frame); `charts/recent_equity_perbet.png` (NEW,
+  the owner's direct request: BET-BY-BET cumulative equity across 2024-25 and
+  2025-26 only, n=321, x = sequential bet in date order, with a 50-bet rolling
+  mean over the unsmoothed raw path); `charts/ats19_open.png`;
+  `charts/k19_model_and_rules.png` (its RULES panels were labelled STALE by
+  D171 and are now re-run); `charts/status_trading_h2h.png`;
+  `charts/honest_clv.png`. **THE D171 CHARTING BUG CLASS WAS AUDITED
+  EVERYWHERE and three live instances were fixed:** `hc_chart.py`'s two
+  hard-coded `set_ylim(0, ...)` and one `set_ylim(-0.017, ...)` are now
+  data-driven; `k19_chart.py` now ASSERTS that no ROI or CLV POINT estimate
+  falls outside its (deliberately clamped, and flagged) whisker window. **A
+  REAL BUG WAS FOUND AND FIXED IN THE NEW WORK ITSELF:** the report-era mean
+  line in `walkforward_equity.png` panel (b) was drawn as a FRACTION on a
+  percent axis, putting a +1.06% line on top of the zero line — caught by
+  looking at the rendered image, not the code. Stale hard-coded verdict prose
+  ("SIGNIFICANTLY NEGATIVE", "ROI -3.25% [-4.46,-2.08] SIG NEG", "0 of 92
+  cells") is now COMPUTED FROM THE DATA in both `ats19_chart.py` and
+  `k19_chart.py`, so a chart cannot again assert a conclusion its own numbers
+  contradict.
+  (9a) **THE LOG-LOSS CHARTS ARE CURRENT — VERIFIED, NOT ASSUMED.** This entry
+  never rewrites `capstone_pergame.csv` or `k19_d171_t2.json`, so the inputs to
+  `logloss_by_season_normalized.png`, `logloss_continuous_current.png`,
+  `history_normalized_gap.png` and `history_logloss_by_season.png` are
+  unchanged. Re-ran `make_charts_cert.py` and `d171_history_charts.py` and
+  diffed: **all four PNGs byte-identical.** 2008-09's **-2.01%** renders below
+  the zero line with the "we BEAT the market below this line" rule visible —
+  the D171 clipping bug is confirmed fixed on the current data.
+  (10) **D-NUMBER COLLISION, HANDLED.** D172 was claimed IN FLIGHT by a
+  concurrent coach-effects study (`scripts/d172_*.py`, `data/d172_*`,
+  `charts/coach_effects.png`) while this work was running; it appended to the
+  register first. This entry therefore took **D173** and its artifact tags were
+  renamed `_D172` -> `_D173` to match. No file collision occurred (their prefix
+  is lower-case `d172_`, this entry's suffix was upper-case `_D172`).
+  (11) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe UNCHANGED and NOT
+  widened: 19-season frame 2007-08..2025-26, 22,804 model games / 22,742 with
+  an opening spread; certified corpus untouched at 6,148. AVAILABILITY TIER
+  best-available and LABELLED per season — T2i 2007-08..2017-18, T2
+  2018-19..2025-26 — never silently pooled. NO PLAYED-SET ORACLE anywhere:
+  `ORACLE_PLAYED_OUTS` unset in every arm; `TANK_SEASON_FLOOR=2020-21` pinned;
+  `player_game_stats` never used to build an out set. COVID FRAME: 2019-20 and
+  2020-21 scored and labelled as separate strata, never pooled into a headline.
+  CLUSTERING: season, K=19 (18 dof) on the secondary frame, K=8 (7 dof) on the
+  primary, K=14 (13 dof) on the walk-forward scored track, K=3 (2 dof) on
+  D159's ML frame.
+  (12) **DISCIPLINE, RESTATED WHEREVER A POSITIVE NUMBER APPEARS.** **D165's
+  family-wise burden: +2.13pp for 7 procedures. D164's manufacturing capacity:
+  +16.92 ROI points, 100% search artifact.** Both exceed every positive number
+  in this entry. MDE80: ATS19 T=0 POOL19 1.67 -> 1.98pp and REPORT8 3.95 ->
+  4.20pp; wf_equity k=5+haircut 8.10 -> 5.94pp; **the 2-season window on
+  `recent_equity_perbet.png` has MDE80 = 61 ROI points at K=2 -> 1 dof, larger
+  than any effect anyone has claimed for this model, and the chart says so on
+  its face.** That chart also states that 2024-25 alone carries **38.8%** of
+  the 14-season result (it was **76.3%** pre-backfill, so the backfill roughly
+  HALVED the single-season dependence but did not remove it) and that D171
+  measured 60.3% of that season's apparent superiority as data completeness.
+  (13) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not claim the model is
+  profitable: not one pre-specified ROI cell on either frame is significantly
+  positive, and the ATS cover rate (52.021%) is still below the 52.381%
+  breakeven. It does not claim the frozen rules work — on the PRIMARY frame at
+  the open they are still significantly negative. It does not re-select,
+  re-gate, widen the corpus, or change a default. It does not re-run D163 or
+  D169. It does not refresh `bo_lineshop.json`, `history_analysis.json`
+  (superseded for these charts by `d171_history_analysis.json`), or the D153
+  ablation battery behind `history_feature_by_era.png`. It does not re-pin the
+  two failing tanking fixtures. **It changes the sign of the evidence on D162
+  and D168 and it does not pretend that is the same thing as an edge.**
+  [code scripts/ats19_score.py, k19_rules.py, oc_capacity.py, as_adaptive.py,
+   wf_equity.py, sl_components.py, sl_score.py, hc_honestclv.py MODIFIED
+   (env-gated path overrides + the one MDE80 t-table completion; defaults
+   byte-identical);
+   scripts/wf_equity_chart.py, ats19_chart.py, k19_chart.py, hc_chart.py,
+   make_status_charts.py MODIFIED (new panels, data-driven verdicts,
+   data-driven axis limits, collision fixes);
+   scripts/d173_perbet_chart.py NEW;
+   data/rerun_notes.md NEW (full working, checkpointed as the run proceeded);
+   data/ats19_frame.csv.gz REBUILT from the new capstone
+   (md5 78bbba1fa9cf14e6dc9563aab73bdc0f; the D162 vintage preserved as
+   ats19_frame_D162.csv.gz, md5 b9e59afdd54247083184256e2d10a112);
+   data/ats19_D173.json, ats19_frame_D173.csv.gz, ats19_D173blind.json,
+   ats19_frame_D173blind.csv.gz (the tier-matched blind arm),
+   ats19_D162repro.json, ats19_D162repro8.json (the controls),
+   k19_rules_D173.json, k19_rules_D161repro.json, k19_rules_D161repro8.json,
+   as_adaptive_D173.json, wf_equity_D173.json, wf_perbet_D173.json,
+   sl_components_D173.{json,csv.gz}, sl_score_D173.json, sl_frames_D173/,
+   hc_honestclv_D173.json, hc_honestclv_D159repro.json;
+   data/logs/d173_*.log (15 files);
+   charts/walkforward_equity.png, recent_equity_perbet.png (NEW),
+   ats19_open.png, k19_model_and_rules.png, status_trading_h2h.png,
+   status_logloss_h2h.png, honest_clv.png REGENERATED;
+   charts/logloss_by_season_normalized.png, logloss_continuous_current.png,
+   history_normalized_gap.png, history_logloss_by_season.png RE-RUN AND
+   VERIFIED BYTE-IDENTICAL (already current);
+   data/capstone_pergame.csv NOT WRITTEN (md5 695d40a3545e889267cad403b7acdce8
+   before and after); scripts/prod_by_season.py, k19_t2.py, k19_model.py,
+   bo_lineshop.py, el_eralocal.py NOT RUN;
+   DB data/nba.duckdb READ-ONLY THROUGHOUT — read_only=True with retry_s=60 on
+   every connect, ZERO writes, no table created or altered]
