@@ -1,7 +1,7 @@
 # NBA Prediction Model
 
 A market-blind NBA win-probability model, and the full research record behind
-it: **161 registered decisions, most of them rejections.**
+it: **a register that runs to D178, most entries rejections.**
 
 The model is the smaller half of this repository. The larger half is
 `docs/DECISIONS.md` — an append-only register in which every experiment was
@@ -9,6 +9,29 @@ pre-registered, gated out-of-sample, and written down whether it worked or not.
 Several of the most useful entries document mistakes we made and caught.
 
 ---
+
+## Read this first: the two frames
+
+Most of the confusion in a project like this comes from quoting a number without
+saying which slice of history produced it. This repository reports two frames,
+and each is defined by **what data exists**, never by which window looked best.
+
+| | frame | why this window | what it is not |
+|---|---|---|---|
+| **Model accuracy** | **2018-19 onward** | The daily injury report — the input the availability leg is built on — begins **2018-12-17**. Before that the shipped model cannot run as designed. | Not the best-scoring window. It is the *worst* one. See below. |
+| **Betting** | **2023-24 → 2025-26** | The only seasons with a **measured multi-book price panel**. Earlier seasons infer the multi-book price from a shopping law rather than observing it. | Not a profitable-window selection. It includes the flattest of the three seasons. |
+
+**The model frame is the less flattering choice, and that is the point.** Pooled
+over the seasons before the injury feed exists, the model sits **6.81%** behind
+the market. Over the injury-report era it sits **13.22%** behind. We report
+13.22%.
+
+The reason is not modesty, it is that the two numbers measure different models.
+Pre-2018 the availability leg runs on inputs it was never designed to have, so
+those seasons score a crippled variant. Post-2018 scores the stack we would
+actually deploy. Blending them into one 9.05% headline — which earlier versions
+of this README did — averages two different systems and flatters the one we
+would run.
 
 ## What the model is
 
@@ -24,7 +47,8 @@ Two independent estimates of team strength, averaged, plus additive context:
   rebounding and free-throw rate, mapped to points by a fitted linear map.
 - **Availability composition** — Σ over *available* players of
   `DARKO_talent × trailing_minutes / 48`. This is the leg that reacts to
-  injuries, and it is why the model is market-blind but not uninformed.
+  injuries, and it is why the model is market-blind but not uninformed. **It is
+  also why the evaluation frame starts in 2018-19.**
 - **Schedule layer** — home edge, back-to-backs, dead-team flags, estimated
   walk-forward with shrinkage toward a prior. The only component that has ever
   survived strict out-of-sample testing on every split we have tried.
@@ -40,57 +64,153 @@ usage and props fits.
 at bet time; the model may not. That rule is what makes the comparisons below
 mean anything.
 
-## What the record actually shows
+## Which games are in the model
 
-Stated plainly, because the point of the register is that it does not flatter
-the project.
+A model of NBA team strength should be fit on games teams are actually trying to
+win. Every model surface filters on the `002` game-id prefix; everything else is
+excluded by construction.
+
+| prefix | what it is | games | in the model? |
+|---|---|---|---|
+| `002` | **regular season** | 35,546 | **yes** |
+| `004` | playoffs | 2,440 | no — different rotations, different effort |
+| `001` | preseason | 2,019 | no |
+| `003` | **All-Star weekend** (All-Star Game, Rising Stars) | 83 | **no** |
+| `005` | play-in tournament | 37 | no |
+| `006` | **NBA Cup championship final** | 3 | no — it does not count in the standings |
+
+So the All-Star Game is not in the model, and never was. There was, however, a
+**live-path hole**: `todays_games()` read the day's scoreboard with no filter at
+all, so on an actual February All-Star date the bet engine would have been handed
+exhibition games with non-franchise team ids. It never fired — the entry point
+has only ever run in the offseason — and it is now filtered at two chokepoints
+with a regression test that pushes an All-Star game through the engine and
+asserts the model layer never sees it. (`D178`)
+
+### NBA Cup games are in, and we tested whether that is a problem
+
+The Cup's group-stage and quarter/semi-final games carry the `002` prefix
+because they **count in the regular-season standings**. They are already in the
+model whether we like it or not. Only the championship final is exempt (`006`),
+and it is excluded.
+
+So the question is not whether Cup games are in, but whether the added
+motivation makes them behave differently enough to hurt us. Difference-in-
+differences, pre-registered before scoring — Nov 1–Dec 20 (Cup) against
+Jan 15–Mar 31 (no Cup), in Cup seasons (2023-26) against pre-Cup seasons
+(2018-23):
+
+| statistic | diff-in-diff | z | verdict |
+|---|---|---|---|
+| signed home margin | −0.16 pts | −0.20 | ns |
+| mean abs. margin | −0.93 pts | −1.18 | ns |
+| dispersion (sd) | −1.10 pts | −1.40 | ns |
+
+**No detectable Cup effect.** All three point the same way — Cup-window games
+slightly *tighter* than the seasonal norm, which is the direction raised effort
+would predict — but none is significant, and the three statistics are computed
+on the same games, so the agreement is one piece of evidence, not three. The
+design's smallest detectable effect is **2.21 points**, so this rules out a large
+effect and nothing smaller. Cup games stay in, unflagged. (`D179`)
+
+## What the record shows, on the model frame
 
 | | |
 |---|---|
-| Seasons evaluated | **19** (2007-08 … 2025-26), contiguous |
-| Market beats the model in | **18 of 19 seasons** — we beat it in 2008-09 |
-| Normalized gap, certified 5-season corpus | **12.87%** of the market's skill-above-coinflip |
-| Normalized gap, all 19 seasons | **9.53%** |
-| Frozen betting rules, out of sample | **not proven either way** — the rejection did not survive better data |
-| ATS at the opening spread, 19 seasons | cover **52.02%** vs 52.38% break-even, ROI −0.68% (ns) |
-| Closing-line value (CLV) | **+0.320 spread points/bet, significant** (doubled on complete data) |
-| Model's worth over a no-information bettor | **+1.67pp of ROI** |
-| Needed to break even after vig | **≈ +3.4pp more** |
+| Frame | **2018-19 onward** — the injury-report era |
+| Seasons | **6** (2018-19, 2021-22 … 2025-26; COVID seasons excluded) |
+| Games | **7,378** |
+| Normalized gap behind the market | **13.22%** of the market's skill-above-coinflip |
+| Best / worst season | 2024-25 at 6.43% / 2021-22 at 16.95% |
+| Market beats the model in | **every season of this frame** |
 
-The last two lines are the whole finding: **the information is real, it is
-measurable, and it is smaller than the vig.**
+For continuity, the wider windows: 6.81% across the ten pre-injury-feed seasons,
+9.05% pooled over all 16 poolable seasons, and 12.88% on the certified 2021-26
+corpus. **The 13.22% figure is the one that describes the shipped model.**
 
-### We beat the opening line. We do not beat the price of betting it.
+"Normalized gap" is the share of the market's skill-above-a-coinflip that we
+fail to capture: `(ll_us − ll_mkt) / (ln2 − ll_mkt)`. Zero means we match the
+market. We do not.
 
-Tested on **22,742 games across 19 seasons** against the real opening spread —
-the largest and cleanest test in this repository, and one with no probability
-conversion anywhere in it (see *For non-bettors* below for what these terms
-mean):
+## The betting record, on the betting frame
+
+### We beat the opening line. We do not clearly beat the price of betting it.
+
+Against the real opening spread, the largest and cleanest test here — and one
+with no probability conversion anywhere in it:
 
 | our margin vs the opening spread | result |
 |---|---|
 | beats a coin flip (50%)? | **yes — 50.65%, +0.65pp, significant** |
 | beats the break-even a bookmaker charges (52.38%)? | **no — short by 1.73pp, significant** |
 
-Both statements are true at once, and the second one is what decides whether
-money is made. On the 14 seasons the model has never seen, the edge over a coin
-flip is positive but **not** statistically significant, so the honest version of
-"we beat the open" is: *demonstrated over the full 19 seasons, not demonstrated
-on out-of-sample data alone, and never large enough to pay for itself.*
+Both are true at once, and the second decides whether money is made.
 
 **How small is the edge, concretely?** We disagree with the opening line by
 **2.455 points** per game on average. If that disagreement were entirely real
-information, we would cover 57.6% of the time. We cover 50.65%. So the genuine
-content of our disagreement is **0.206 points — 8.4% of what we claim, and the
-rest is noise.** Breaking even requires 0.751 points. **We deliver 27% of the
-edge needed.**
+information we would cover 57.6% of the time. We cover 50.65%. So the genuine
+content of our disagreement is **0.206 points — 8.4% of what we claim.**
+Breaking even requires 0.751 points. **We deliver 27% of the edge needed.**
 
-For scale, a fair comparison nobody asked for and we ran anyway: *betting every
-road team* returns −3.26%. We return −3.25%. Our selection genuinely adds
-+1.18pp over a composition-matched random selector — it simply spends that
-advantage buying back the road exposure the trivial strategy gets for free.
+### The walk-forward result on the measured-panel window
 
-### For non-bettors: the four terms that matter
+Select the betting configuration on seasons 1..k from a pre-declared space,
+freeze it, score season k+1, roll forward — re-selecting each year the way you
+actually would. Scored at the opening spread under measured five-book execution
+with the outlier-realism haircut:
+
+| season | bets | P&L | ROI |
+|---|---|---|---|
+| 2023-24 | 179 | +0.66u | **+0.37%** |
+| 2024-25 | 186 | +22.54u | **+12.12%** |
+| 2025-26 | 135 | +4.20u | **+3.11%** |
+| **2023-26 pooled** | **500** | **+27.40u** | **+5.48%** |
+
+**And here is the interval, which is the part that matters:**
+
+| window | pooled ROI | 95% CI (season-clustered) | MDE80 |
+|---|---|---|---|
+| **2023-26 (K=3)** | **+5.48%** | **[−9.79%, +20.75%]** | 18.3pp |
+| 2024-26 (K=2) | +8.33% | [−48.89%, +65.55%] | 61.0pp |
+
+**This is why the window is 2023-26 and not 2024-26.** Dropping 2023-24 raises
+the point estimate to +8.33% and widens the interval to ±57 points — an interval
+that could not detect a 60-point edge, which is not a measurement. Three seasons
+is already too few; two is arithmetic wearing a percent sign.
+
+**Read the 2023-26 row honestly:** the point estimate is positive, the interval
+contains zero, and **2024-25 alone supplies 82% of the P&L.** One good season
+inside a three-season window is not an edge, and with K=3 the confidence interval
+is 30 points wide. This is a candidate, not a result.
+
+### Why the model looks era-specific
+
+The walk-forward loop re-selects the *betting configuration* honestly, but the
+*model architecture* was chosen on a 2021-26 corpus and handed to every step as
+fixed. Ablating the era-specific terms:
+
+| model | firm-tier ROI | share surviving |
+|---|---|---|
+| full shipped stack | +3.54% | 1.00 |
+| − tank term | +1.68% | **0.48** |
+| − tank − bridge − carry | **−0.16%** | **0.00** |
+| stripped to four-factors + composition | **−3.70%** | sign flips |
+
+Confirmed by difference-in-differences: the shipped stack is the **only** variant
+on a six-rung ladder more accurate where it was designed than where it was not,
+and the era-specific terms deliver **+7.22 ROI points on the block they were
+gated on against +0.79 on the block nobody had in hand — 9.1×.** **Zero shipped
+components can be dated to a gate that used only pre-2021 data.**
+
+Building one model per era was tested and fails the same way: era-local selection
+beats global by +5.18 points, which sits at the **94th percentile of its own
+noise distribution**, and a fixed five-season window with no era structure does
+just as well. What is being measured is window length, not era.
+
+The first season on which the model's *structure* is genuinely out of sample is
+**2026-27**.
+
+## For non-bettors: the four terms that matter
 
 - **The spread** is a handicap that makes an uneven game a coin flip. "Lakers
   −6.5" means back the Lakers and they must win by 7+ for you to collect. It is
@@ -98,61 +218,26 @@ advantage buying back the road exposure the trivial strategy gets for free.
   comparing our margin to the spread is the most direct test of the model there
   is, with no probability maths in between.
 - **The vig** (or juice) is the bookmaker's fee, charged by making both sides
-  pay less than even money. Standard is −110: risk $110 to win $100 on either
-  side. That's why break-even is **52.38%**, not 50% — you must be right 52.38%
-  of the time just to stand still. The vig is why a real edge can still lose
-  money, and it is the single most important number in this repository.
+  pay less than even money. Standard is −110: risk $110 to win $100 either way.
+  That is why break-even is **52.38%**, not 50% — you must be right 52.38% of
+  the time just to stand still. The vig is why a real edge can still lose money,
+  and it is the single most important number in this repository.
 - **Line shopping** is placing each bet at whichever bookmaker offers the best
   number. Books disagree — one may post −6.5 while another posts −6 — and since
-  our edge is roughly the size of the fee, a half-point of price is material.
-  More books means more chances to find the best number. *Caveat measured here:*
-  36% of the time our two books post exactly the same number, so extra books
-  duplicate rather than add, and the benefit flattens fast.
-- **An exchange** (Betfair, Sporttrade, Prophet X) is a marketplace where you
-  bet against other people instead of against the house. The difference is how
-  it charges: a bookmaker bakes its fee into every price, win or lose, while an
-  exchange takes commission **only on net winnings**. That cuts the cost of
-  trading from about 3.00 points to about 0.41 — which is why it is the largest
-  single lever in this project, and it is an access problem rather than a
-  modelling one.
+  our edge is roughly the size of the fee, a half-point is material. *Caveat
+  measured here:* 36% of the time our two books post exactly the same number, so
+  extra books duplicate rather than add, and the benefit flattens fast.
+- **An exchange** (Betfair, Sporttrade, Prophet X) is a marketplace where you bet
+  against other people instead of the house. A bookmaker bakes its fee into every
+  price; an exchange takes commission **only on net winnings**. That cuts the cost
+  of trading from ~3.00 points to ~0.41 — the largest single lever in this
+  project, and an access problem rather than a modelling one.
 
-**What data we actually hold for those last two, stated plainly:** two books,
-historically, for 2021-26. Our own multi-book logger can pull eight or more US
-books but **has never run during a season**. We hold **no exchange data at
-all** — the exchange figures below are our existing bets repriced under an
-assumed commission, never executed. Treat both as arithmetic, not evidence.
+## Execution, at firm-grade access
 
-### Closing prices vs opening prices
-
-The **close** is the market's final and best answer, and not a price anyone
-would choose to bet into. The **open** is where you would actually transact, so
-it is the frame that matters. We can now test it properly: real opening
-*spreads* exist for all 19 seasons, even though opening *moneylines* exist for
-only three.
-
-| frame | seasons | union ROI | verdict |
-|---|---|---|---|
-| **Close**, real moneylines | **19** | **−3.40%** | **significantly negative** |
-| Close, 15 seasons no gate ever saw | 15 | **−5.60%** | **significantly negative** |
-| **Open, real spreads (ATS)** | **19** | **−3.25%** | **significantly negative** |
-| Open, ATS, 14 seasons never seen | 14 | **−3.64%** | **significantly negative** |
-| Open, real moneylines, live injury feed | 3 | −0.66% | not significant (2 dof) |
-
-So: **the rules lose at the close, and they lose at the open too.** The
-19-season spread test is the decisive one — it is the only open-price frame with
-enough seasons to reject anything, and it rejects. The lone near-breakeven row
-is the 3-season moneyline test, which has two degrees of freedom and cannot
-settle the question in either direction; it is kept for continuity, not as
-counter-evidence.
-
-### Execution, at firm-grade access
-
-Execution is the larger lever, and it is an access problem rather than a
-modelling one. **The table below is presented under a stated assumption: that
-access is a professional multi-book operation rather than a single retail
-account.** One book is shown as the degenerate reference, not the baseline.
-Holding the model fixed and varying only where the bet is placed (fully-equipped
-model tier, at the open):
+**Presented under a stated assumption: that access is a professional multi-book
+operation, not a single retail account.** Holding the model fixed and varying
+only where the bet is placed:
 
 | execution | cost over fair | union ROI | |
 |---|---|---|---|
@@ -162,101 +247,25 @@ model tier, at the open):
 | 8 books | 0.67 pts | +2.39% | optimistic bound |
 | exchange, 2% commission | **0.41 pts** | **+2.69%** | arithmetic — we hold no exchange data |
 
-A single exchange account structurally beats an eight-book shop, because
-commission scales with the payout and these rules are ~68% favourites.
+**What data we hold, plainly:** a measured multi-book panel for 2023-26 only;
+earlier seasons infer it. Our own multi-book logger can pull eight US books but
+**has never run during a season** — `odds_quotes` is empty. We hold **no exchange
+data at all.**
 
-**What the firm assumption also buys you, and what it costs.** Granting
-firm-grade *execution* without firm-grade *friction* would flatter every row
-above, so the frictions are named rather than omitted:
+**What the firm assumption costs:**
 
 - **Limits.** Best-of-N always transacts at whichever book is furthest offside.
-  11.6% of games carry a >3-point best-worst range and 8.1% of best prices sit
-  >1.5 points off the next book — precisely the prices that get limited,
-  lowered, or voided. Nothing in this table charges for that.
-- **Our own flow moves the line.** The closing-line value measured here
-  (+0.166 spread points) is a price-taker's number at zero size. A firm betting
-  meaningful stake into a soft opening line is *part of* the flow that closes
-  that gap, so some of the measured edge is mechanically unavailable to anyone
-  large enough to want it.
-- **Paid data buys almost nothing.** Measured, not assumed: the whole purchasable
-  stack — professional minutes projections, tracking feeds, premium talent
-  ratings — is worth **+0.0012 of log loss combined, not significant.** 80% of
-  everything purchasable is free public data (the 5PM injury report and the T-30
-  inactive list). A firm's data budget does not help here.
+  8.1% of best prices sit >1.5 points off the next book — precisely the prices
+  that get limited, lowered, or voided.
+- **Our own flow moves the line.** The CLV measured here is a price-taker's
+  number at zero size. A firm betting real stake into a soft opening line is
+  *part of* the flow that closes that gap.
+- **Paid data buys almost nothing.** Measured: the whole purchasable stack —
+  professional minutes projections, tracking feeds, premium talent ratings — is
+  worth **+0.0012 of log loss combined, not significant.** 80% of everything
+  purchasable is free public data.
 
-**None of these cells survives its significance bound**, so they are point
-estimates and a direction, not a result.
-
-### The result that clears the vig — and why it does not survive audit
-
-Everything above holds a configuration **fixed** and asks whether it profits. A
-different question is whether *choosing* the configuration from history alone,
-and applying it to the next unseen season, profits — re-selecting each year the
-way you actually would in practice.
-
-Select on seasons 1..k from a pre-declared 600-cell space, freeze, score season
-k+1, roll forward. Fourteen unseen seasons, priced at the opening spread under
-measured five-book execution with the outlier-realism haircut:
-
-| | |
-|---|---|
-| Pooled ROI | **+3.54%** (cover 54.24% vs 52.38% break-even) |
-| Cumulative | **+54.9 units**, curve never below flat at a season boundary |
-| vs the identical loop on permuted predictions | noise −4.01%; real beats **all 200 draws, p = 0.000** |
-| 13-dof confidence interval | **[−3.51%, +8.98%] — not significant** |
-
-**Then we audited the model underneath it, and the result did not survive.** The
-walk-forward loop re-selects the *betting configuration* honestly, but the
-*model architecture* was chosen on a 2021-26 corpus and handed to every step as
-fixed. Ablating the era-specific terms:
-
-| model | firm-tier ROI | share of +3.54% surviving |
-|---|---|---|
-| full shipped stack | +3.54% | 1.00 |
-| − tank term | +1.68% | **0.48** |
-| − tank − bridge − carry | **−0.16%** | **0.00** |
-| stripped to four-factors + composition | **−3.70%** | sign flips |
-
-The mechanism is confirmed by difference-in-differences, not merely correlated:
-the shipped stack is the **only** variant on a six-rung ladder that is more
-accurate where it was designed than where it was not, and the era-specific terms
-deliver **+7.22 ROI points on the block they were gated on against +0.79 on the
-block nobody had in hand — a 9.1× ratio** (5.3× in the model's own accuracy
-metric). **Zero shipped components can be dated to a gate that used only
-pre-2021 data.**
-
-An obvious response — if the model is era-specific, build one per era — was
-tested and fails the same way. Era-local selection, evaluated on held-out
-seasons *within* each era, beats global selection by +5.18 points, which sits at
-the **94th percentile of its own noise distribution**; the model-selection half
-of it is worth **−0.03 points**, and a fixed five-season window with no era
-structure does just as well. What is being measured is window length, not era.
-
-**Honest reading: +3.54% is a property of an architecture selected on 2021-26,
-not evidence of a transferable edge.** The counterfactual is bounded rather than
-clean — no rung of that ablation ladder is lookahead-free either — so the number
-is neither validated nor replaced by −3.70%. The first season on which the
-model's *structure* is genuinely out of sample is 2026-27.
-
-### The modern era, stated accurately
-
-Under the walk-forward procedure the five modern seasons (2021-22 → 2025-26)
-return **+3.88% ROI on 820 bets, +31.9 units** at five-book execution (+1.53% at
-one book), against **+3.15% and +23.1 units** on the nine earlier scored seasons.
-
-**These modern numbers are not an out-of-sample result and should not be quoted
-as one.** The architecture being scored — the carry term, the tank term, the
-October bridge, the schedule layer, the 50/50 blend, the 7.2 scale — was chosen
-on a 2021-26 corpus, so the block being measured is the block that selected the
-structure. The one clean comparison available points the wrong way for the
-modern figure: the era-specific terms are worth 9.1× more on the seasons they
-were gated on than on the seasons nobody had in hand.
-
-The full 14-season interval spans zero at every execution tier, the design's
-smallest detectable effect is ~8 ROI points, and resolving +3.54% would take
-**~36 seasons**. We have 14. That is why 2026-27 — the first season on which the
-model's structure is genuinely out of sample — is worth more than any further
-backtesting.
+## Three things we got wrong about our own method
 
 ### CLV is a monitor, not an objective
 
@@ -268,69 +277,53 @@ explicitly CLV-targeted selector bought **essentially no extra CLV (+0.004) and
 the most ROI**. The two are separable by selector. A green CLV month is evidence
 the prices are good; it is not evidence the strategy is profitable.
 
-### A reporting defect we found in our own method
+### "Beats its own null" is necessary, not sufficient
 
-Several results in this register were reported as "beats its own permutation
-null". That test is **necessary but not sufficient**, and reporting it alone is
-misleading. When three new selectors were tested, all three beat their own nulls
-(p ≤ 0.048, surviving multiple-comparison correction) **and all three lost to
-the incumbent** — one showed +6.29 net-of-null on a paired estimate of −0.43.
-A permutation null only asks whether a selector beats a scrambled copy of
-itself, which the incumbent also does. Every net-of-null figure must be reported
-against the incumbent benchmark as well.
+Several results here were reported as beating their own permutation null. When
+three new selectors were tested, all three beat their nulls (p ≤ 0.048, surviving
+multiple-comparison correction) **and all three lost to the incumbent** — one
+showed +6.29 net-of-null on a paired estimate of −0.43. A permutation null only
+asks whether a selector beats a scrambled copy of itself, which the incumbent
+also does. Every net-of-null figure must be reported against the incumbent too.
 
-### The number that keeps everything else honest: manufacturing capacity
+### Manufacturing capacity — the number that keeps everything else honest
 
 Tuning to a single season yields positive in-sample ROI on **19 of 19 seasons,
-without exception** — mean **+15.79%** in sample, **−1.13%** out of sample, a
-decay of **16.92 ROI points.**
+without exception** — mean **+15.79%** in sample, **−1.13%** out, a decay of
+**16.92 ROI points.**
 
 Run the identical procedure on **pure noise** and capacity is **+17.46**. Ours,
 net of noise, is **−0.55 (p = 0.685)**. *All* of it is search; none of it is
 model.
 
-That number is the yardstick for this whole repository: **every
-development-versus-out-of-sample gap in the register is smaller than what a
-modest grid search manufactures from nothing.** The betting rules' 3.46-point
-gap is 20% of capacity; the spread model's 1.48-point gap is 9%. It is also why
-the walk-forward result above is reported as a candidate — with a 600-cell space
-in play, only the noise control makes its +1.66% legible at all.
+That is the yardstick for this whole repository: **every development-versus-
+out-of-sample gap in the register is smaller than what a modest grid search
+manufactures from nothing.**
 
-The honest summary of the trading work: *our margin carries real information —
-it beats a coin flip against the opening line, and it beats a no-information
-selector by +1.6pp on two independent price frames — but it is rejected as a
-profitable strategy at both the open and the close, and the only lever large
-enough to change that is transaction cost, which we do not control.*
-
-The betting rules are *rejected*, not merely unconfirmed — they look least bad
-precisely on the seasons they were selected from, which is the overfitting
-signature. Closing-line value survives everything we have thrown at it,
-including a two-decade out-of-sample frame and a within-date permutation
-placebo, so it is the only quantity here worth tracking live.
-
-## What we got wrong, and caught
-
-These are in the register with numbers; they are listed here because they are
-the most transferable part of the project.
+## What else we got wrong, and caught
 
 - **An availability leak in the certified backtest.** The capstone built injury
-  lists from *tonight's box score*. The live path was clean, so this never made
-  a prediction wrong — it made our published expectation too good, by 3.8
-  points of normalized gap. Found by a ceiling study, not by a test. (`D158`)
-- **A switch named after a hypothesis it did not implement.** We nearly shipped
-  a registered *loser* because an environment flag's name matched a term that
-  had passed, while the code behind it was a different construction. (`D141`)
-- **A "significant" coefficient that existed only because of COVID.** Travel and
-  schedule-density effects were significant on a frame that included the 2020
-  bubble — where travel was structurally zero and our code assigned 1,505 km.
-  On scorable seasons they are null. (`D136`, `D140`)
+  lists from *tonight's box score*. The live path was clean, so this never made a
+  prediction wrong — it made our published expectation too good, by 3.8 points of
+  normalized gap. Found by a ceiling study, not a test. (`D158`)
+- **A switch named after a hypothesis it did not implement.** We nearly shipped a
+  registered *loser* because a flag's name matched a term that had passed, while
+  the code behind it was a different construction. (`D141`)
+- **A "significant" coefficient that existed only because of COVID.** Travel
+  effects were significant on a frame including the 2020 bubble — where travel
+  was structurally zero and our code assigned 1,505 km. (`D136`, `D140`)
 - **Confidence intervals that were too narrow.** Every sides gate used an i.i.d.
   bootstrap where per-game deltas share fitted coefficients. Correcting to
-  season-clustered inference reproduces, from inference alone, the two terms we
-  had already reverted for other reasons. (`D139`)
-- **Season literals and derived floors that moved under us.** A corpus backfill
-  silently changed a data-derived constant and invalidated a certified table
-  twice. It is now pinned, with a drift detector. (`D131`, `D153`, `D155`)
+  season-clustered inference reproduced, from inference alone, two terms we had
+  already reverted for other reasons. (`D139`)
+- **A team-name join that silently dropped rows — four times.** "LA Clippers" vs
+  "Los Angeles Clippers" kept 2,514 rows out of every injury out-set, across five
+  consumers including the live path. The fix was a resolver that **reports**
+  unresolvable names instead of dropping them; on the fourth instance it caught
+  28 of 30 franchises failing in a new feed, loudly. (`D171`, `D177`)
+- **A chart axis that hid the one season we won.** A hard-coded `ylim(0, …)`
+  clipped 2008-09's −2.01% off the bottom of the frame. Three more instances were
+  found afterwards. (`D171`)
 
 ## Layout
 
@@ -343,13 +336,13 @@ nbapred/            the model
 docs/               the research record — start with DECISIONS.md
 scripts/            gate scripts, backtests, backfills, the paper bet engine
 charts/             current results only
-tests/              129 tests, including leakage and reproducibility guards
+tests/              153 tests, including leakage and reproducibility guards
 ```
 
 Suggested reading order: `docs/DECISIONS.md` (the register),
 `docs/GATE_POLICY_V2.md` (how a change earns its way in), `docs/LEAKAGE.md`
-(what counts as legitimate information and what does not), and
-`docs/LIMITATIONS.md`.
+(what counts as legitimate information), `docs/OCTOBER_RUNBOOK.md` (how the live
+path is meant to run), and `docs/LIMITATIONS.md`.
 
 ## Method
 
@@ -362,8 +355,8 @@ calibration veto — and several changes that passed six of seven conditions wer
 still declined.
 
 Two rules carry most of the weight: **hypotheses come before configurations**
-(no blind grids), and **a term whose fitted sign contradicts its stated
-mechanism is a null, however significant it looks.**
+(no blind grids), and **a term whose fitted sign contradicts its stated mechanism
+is a null, however significant it looks.**
 
 ## Running it
 
@@ -377,49 +370,34 @@ python -m pytest tests/ -q
 ```
 
 **Not included:** the 13 GB DuckDB corpus, raw API captures, and all
-credentials. The ingest scripts rebuild the corpus from public sources; raw
-files are ground truth and the database is derived and rebuildable by design.
+credentials. The ingest scripts rebuild the corpus from public sources; raw files
+are ground truth and the database is derived and rebuildable by design.
 
 ## Where this goes next
 
-Ranked by what the evidence actually supports, not by appetite.
+Ranked by what the evidence supports, not by appetite.
 
-0. **Read the results under the access you actually have.** Every trading number
-   in this repository is reported at two access levels, because they give
-   materially different answers: a single retail account (cost over fair ~3.00
-   points) and a professional multi-book operation (~1.10 at five books, ~0.41
-   on an exchange). Our own edge is roughly the size of that difference, which is
-   why *where* the bet is placed matters more here than any remaining modelling
-   choice. What the firm assumption does **not** buy is information — the entire
-   purchasable data stack is worth +0.0012 of log loss, not significant.
-
-1. **Pressure-test the walk-forward selection result.** It is the only candidate
-   that clears the vig and beats its noise control. The open questions are
-   whether recency-weighted selection (tune on the last season or three, rather
-   than all history) beats all-history selection, whether the gates can adapt
-   *within* a season, and whether the effect survives a smaller search space —
-   with a 600-cell space, capacity dominates and the noise control is doing all
-   the interpretive work. **A 1.66% effect needs ~8 points of resolution to
-   establish; more seasons cannot be manufactured, so this may only ever be
-   settled live.**
-2. **Capture at least two books at the open, from opening night.** Measured:
-   best-of-two lifts closing-line value ~49%, and taking the *worse* book
-   erases essentially all of it. Our own multi-book logger has never run during
-   a season. This is free and it is the highest-value operational change
-   available.
-3. **Closing-line value as the live yardstick.** +0.166 spread points per bet,
-   significant across 19 seasons, positive in 17 of them, in units that need no
-   devig convention. It resolves in weeks where ROI needs decades.
+1. **Capture at least two books at the open, from opening night.** Measured:
+   best-of-two lifts CLV ~49%, and taking the *worse* book erases essentially all
+   of it. Our multi-book logger has never run in-season and `odds_quotes` is
+   empty — **if that job is not up on opening night, the entire open-price CLV
+   record for the season is lost and cannot be reconstructed.** This is free, and
+   it is the highest-value operational change available.
+2. **Pressure-test the walk-forward selection result.** It is the only candidate
+   that clears the vig and beats its noise control. Open questions: whether
+   recency-weighted selection beats all-history, whether gates can adapt *within*
+   a season, and whether the effect survives a smaller search space. **Resolving
+   an effect this size needs ~36 seasons. We have 14, and only 3 on the measured
+   panel — so this may only ever be settled live.**
+3. **CLV as the live yardstick, with the caveat above.** Significant across 19
+   seasons and positive in 17, in units needing no devig convention. Track it —
+   but do not select on it.
 4. **Exchange access, if it ever becomes available.** Cost over fair falls from
-   ~3.00 points at one retail book to ~0.41 on an exchange, because commission
-   is charged on winnings rather than baked into every price. It is the largest
-   single lever measured anywhere in this project — and it is an access problem,
-   not a modelling one.
-5. **Props, not sides.** Both shipped improvements of the last cycle came from
-   the props engine, and the second was found by generalising a bug from the
-   first (an estimator that learned player role only from games actually played,
-   and was therefore blind to absence). Soft books are softer than the sides
-   market.
+   ~3.00 points to ~0.41. The largest single lever measured anywhere here, and an
+   access problem rather than a modelling one.
+5. **Props, not sides.** Both shipped improvements of the last cycle came from the
+   props engine, and the second was found by generalising a bug from the first.
+   Soft books are softer than the sides market.
 
 Explicitly **not** next: more feature search on the sides model. Nineteen
 seasons, an exhaustion audit, a 49-feature battery, a possession-level rebuild
@@ -431,10 +409,11 @@ failing to transfer.
 
 Research is complete; the model is not in production and no capital has been
 deployed. The open question is whether closing-line value measured live —
-against opening prices, with at least two books captured — behaves the way
-nineteen backtested seasons say it should.
+against opening prices, with at least two books captured — behaves the way the
+backtest says it should.
 
 ## Licence & disclaimer
 
 For research and educational purposes. Nothing here is betting advice, and the
-project's own conclusion is that these rules lose money at retail prices.
+project's own conclusion is that these rules do not have a demonstrated edge at
+retail prices.

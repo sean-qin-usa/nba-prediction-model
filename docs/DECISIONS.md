@@ -13569,9 +13569,11 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   refusals. It does not re-specify the real-stakes TRIGGER. It does not reload
   `injury_reports_pit`, regenerate `apr_tank_stats.csv`, or move
   `PINNED_SEASON_FLOOR`. It does not measure the Odds API's live per-book depth
-  — that is unmeasurable until the season starts. **FULL TEST SUITE: 118
-  passed, 0 failed** (the two known-red `test_tanking.py` fixtures are now
-  green and 14 new tests were added).
+  — that is unmeasurable until the season starts. **FULL TEST SUITE: 153
+  passed, 0 FAILED, 0 errors** (226s). The two known-red `test_tanking.py`
+  fixtures are now GREEN — `test_tanking.py` alone is 6/6 — and this entry adds
+  **13 new tests**: 5 for the game-type filter (incl. the emit-path regression),
+  3 for the >=2-book rule, 3 for the bands, 2 for the parser.
   [code nbapred/engine/slate.py (game-type filter x2 chokepoints, `b2b_teams`
    extracted and filtered), nbapred/ingest/injury_pdf.py (`PLAYER_RX` widened
    + reporting backstop), scripts/bet_engine.py (`MIN_BOOKS_OPEN`, `CLV_BAND`,
@@ -13588,3 +13590,88 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
    REGENERATED; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; eval corpus
    unchanged; DB data/nba.duckdb READ-ONLY THROUGHOUT — read_only=True with
    retry_s=60 on every connect, ZERO writes, no table created or altered]
+
+- D179 **WHICH GAMES ARE IN THE MODEL — A CENSUS, AND AN NBA CUP MOTIVATION
+  TEST. ALL-STAR WAS NEVER IN THE MODEL; CUP GROUP PLAY ALWAYS WAS, AND IS
+  MEASURABLY HARMLESS. THE REPORTING FRAMES ARE RE-CUT TO POST-2018 (MODEL) AND
+  2023-26 (BETTING), BOTH CHOSEN BY DATA AVAILABILITY AND BOTH LESS FLATTERING
+  THAN WHAT THEY REPLACE.** Owner asked three things: whether the All-Star game
+  is in the model, which games we use at all, and whether in-season-tournament
+  motivation needs a test.
+
+  **Q1 CENSUS (`scripts/d179_cup_motivation.py` -> `data/d179_gametypes.json`).**
+  Spine holds 40,128 games across six `game_id` prefixes: `002` regular season
+  35,546 (88.58%), `004` playoffs 2,440, `001` preseason 2,019, `003` All-Star
+  weekend 83, `005` play-in 37, `006` NBA Cup FINAL 3 (2023-12-09, 2024-12-17,
+  2025-12-16). **Every model surface filters `002%`** — verified by grep across
+  `nbapred/` and `scripts/`: 23 files touch `nba_games` without the filter and
+  ALL are ingest, audit or utility paths. The one that needed checking was
+  `nbapred/model/rapm.py`, which has no prefix constraint of its own — but it is
+  not in the production margin (no `rapm` reference in `production.py`,
+  `slate.py` or `prod_by_season.py`) and its live consumer
+  `nbapred/features/defense_zone.py:113` applies `002%` itself, as does
+  `def_rapm.collect_shots(only_002=)`. **ANSWER: the All-Star game has never
+  been in the model.** The exposure was live-only and is already closed by D178
+  FIX 1 (`todays_games()` had NO filter, so a February All-Star date would have
+  handed the bet engine exhibition games with non-franchise team ids; never
+  fired, entry point has only run in the offseason).
+
+  **Q2 CUP MOTIVATION — ns, AND THE FRAMING MATTERS.** Cup group-stage and
+  quarter/semi-final games carry `002` **because they count in the standings**,
+  so they are in the model and cannot be removed without removing real
+  regular-season games. Only the final is exempt (`006`) and is already out.
+  Pre-registered diff-in-diff, design stated before scoring: TREAT window
+  Nov 1-Dec 20, CONTROL window Jan 15-Mar 31, Cup seasons 2023-26 vs pre-Cup
+  2018-23 (COVID seasons naturally absent from the pre-Cup arm's Nov window).
+  n = 1,013 / 1,598 / 1,446 / 2,435.
+
+  | statistic | Cup Nov-Dec less Jan-Mar | pre-Cup same | DiD | se | z |
+  |---|---|---|---|---|---|
+  | signed home margin | +0.694 | +0.849 | **-0.156** | 0.789 | -0.20 |
+  | mean abs margin | -1.075 | -0.147 | **-0.927** | 0.789 | -1.18 |
+  | sd of margin | -1.229 | -0.125 | **-1.104** | 0.789 | -1.40 |
+
+  **MDE80 = 2.209 pts, stated before scoring.** All three ns and all three
+  inside the noise floor. All three share a sign — Cup-window games marginally
+  TIGHTER than the seasonal norm, the direction raised effort predicts — but
+  **the three statistics are computed on the same games, so the agreement is one
+  piece of evidence, not three**, and the honest statement is that we can rule
+  out a Cup effect larger than ~2.2 points and nothing smaller. **DECISION: Cup
+  games stay in, unflagged. No default changed.**
+
+  **Q3 REPORTING FRAMES RE-CUT.** Owner asked to report the model post-2018
+  (injury reports begin 2018-12-17) and betting on 2023-26 or 2024-26. Both
+  re-cuts were made on data availability and **both are worse than what they
+  replace**, which is the reason to trust them.
+  - **Model frame -> 2018-19 onward.** Pooled normalized gap **13.22%** (K=6,
+    n=7,378: 2018-19, 2021-22..2025-26). Pre-injury-feed seasons pool to
+    **6.81%** (K=10) and the all-poolable blend to **9.05%**. The post-2018
+    figure is the WORSE one. It is nonetheless the right one because the two
+    windows measure different models: before the feed exists the availability
+    leg runs on inputs it was never designed to have, so those seasons score a
+    crippled variant, and the 9.05% blend averages two systems and flatters the
+    one we would deploy. Per-season post-2018: 14.98 / 16.95 / 13.21 / 16.34 /
+    6.43 / 12.43.
+  - **Betting frame -> 2023-26, NOT 2024-26.** This is the only window with a
+    MEASURED multi-book panel (earlier seasons infer it from a shopping law;
+    D177 showed that law was ~1.25x too generous mid-corpus). At the firm
+    default (k=5 +haircut): 2023-24 +0.37%, 2024-25 +12.12%, 2025-26 +3.11%;
+    pooled **+5.48%** on 500 bets, **season-clustered 95% CI [-9.79%, +20.75%],
+    MDE80 18.3pp.** Dropping 2023-24 raises the point estimate to +8.33% and
+    widens the interval to **[-48.89%, +65.55%], MDE80 61.0pp** — an interval
+    that cannot detect a 60-point edge is not a measurement, so **K=2 is
+    rejected on power, not on preference.** Recorded plainly in the README:
+    the interval contains zero and **2024-25 alone supplies 82% of the pooled
+    P&L**, so this remains a candidate, not a result.
+
+  **HALL OF SHAME ADDITION (methodological, applies backwards):** a window
+  chosen after seeing which one scores best is a selection, however principled
+  the story told afterwards. Both frames here were fixed by asking "where does
+  the input exist?" before looking at the endpoint, and both landed on the less
+  flattering answer. That is the only evidence that the question was asked in
+  the right order.
+
+  [SCOPE: `scripts/d179_cup_motivation.py` NEW (read-only);
+  `data/d179_gametypes.json` NEW; README reporting frames re-cut; NO GATE RUN;
+  NO PRODUCTION MODEL DEFAULT CHANGED; no feature added or removed; Cup games
+  explicitly LEFT IN; DB data/nba.duckdb READ-ONLY THROUGHOUT, zero writes]
