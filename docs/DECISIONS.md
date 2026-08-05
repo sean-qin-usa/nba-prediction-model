@@ -13989,3 +13989,104 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/d184_december.json` NEW; NO GATE RUN; NO PRODUCTION MODEL DEFAULT
   CHANGED; no month filter implemented in code — this entry records a
   pre-commitment, not a change; DB READ-ONLY]
+
+- D186 **THE FRAME WAS WRONG BY ONE SEASON: 2018-19 IS ONLY 63.7% INJURY-COVERED.
+  CORRECTED TO 2019-20+ AND STAMPED ON EVERY PUBLISHED DOC.** Owner: "only post
+  2018 is trustworthy (actually should be 2019-26 then, since injury reports
+  happened in 2018-2019 season, right?)". **Correct, and D179's frame was sloppy.**
+
+  Measured coverage — share of regular-season game DATES carrying any injury
+  report: 2017-18 **0.0%**; **2018-19 63.7%** (first report 2018-12-17, i.e. a
+  third of the way into the season); 2019-20 100%; 2020-21 96.4%; 2021-22 99.4%;
+  2022-23 99.4%; 2023-24 100%; 2024-25 100%; 2025-26 95.1%. **2019-20 is the
+  first fully-covered season.** Including 2018-19 put a partially-blind season
+  inside the very frame that exists to guarantee the model is not blind.
+
+  | frame | K | n | normalized gap |
+  |---|---|---|---|
+  | pre-feed 2007-08..2017-18 | 10 | 12,298 | 6.81% |
+  | ~~2018-19+ (D179, one partial season)~~ | 8 | 9,516 | ~~13.78%~~ |
+  | **2019-20+ FULLY COVERED (corrected)** | **7** | **8,286** | **13.59%** |
+  | 2019-20+ excluding COVID (= certified corpus) | 5 | 6,148 | 12.88% |
+
+  Every doc in the public repo now carries a DATA-COVERAGE CAVEAT header naming
+  the 2018-12-17 start, the per-season coverage, and the fact that any 14- or
+  19-season figure blends two different models.
+
+- D187 **THE POST-2019 FRAME IS TOO SHORT TO OPTIMISE ON — AND THAT KILLS THE
+  DECEMBER SKIP, WHICH I HAD RECOMMENDED ONE ENTRY EARLIER. RETRACTION OF D184's
+  RECOMMENDATION.** Owner asked to re-optimise the trading strategy on the
+  corrected frame, dropping high-drawdown periods with structural explanations,
+  and pre-committed to skipping December.
+
+  **(1) THE DRAWDOWNS ARE NOT PERIODS.** On the corrected frame the two deepest
+  underwater stretches are **2022-02-26 -> 2025-03-08 (-30.52u over 401 bets)**
+  and one spanning 83 bets; together the top two cover **49% of all bets**. These
+  are multi-SEASON underwater stretches, not excisable events. "Remove the
+  high-drawdown periods" is not an available lever — it would remove half the
+  sample, and the periods are identified by the endpoint anyway.
+
+  **(2) THE MEASUREMENT INSTRUMENT IS TOO BLUNT — THIS IS THE HEADLINE.** The
+  2019-20+ frame yields **7 seasons and only 4 scoreable walk-forward steps**.
+  A null that takes the **best of 5 RANDOM game subsets** of comparable size
+  (subsets chosen at random, never by outcome) buys **+2.54 ROI points on average,
+  +5.46 at the 95th percentile**. Every filter tested lands inside that band:
+
+  | arm | ROI | n | cum | +/- (95%) |
+  |---|---|---|---|---|
+  | INCUMBENT no filter | **+5.50%** | 610 | +33.5u | 24.21 |
+  | F1 drop first 5 games | +1.60% | 641 | +10.3u | 20.75 |
+  | F1 drop first 10 games | +2.82% | 663 | +18.7u | 22.89 |
+  | F1 drop first 15 games | +6.55% | 526 | +34.5u | 17.16 |
+  | F0 skip December | +2.44% | 604 | +14.7u | 19.82 |
+
+  Best arm beats incumbent by +1.05 points against a null mean of +2.54,
+  p(null >= real) = 1.000. **Nothing survives. Every interval is +/-17 to +/-24
+  points wide.** The frame we adopted for data integrity is too short to tune on;
+  correctness and tunability are in direct tension here, and correctness wins.
+
+  **(3) DECEMBER SKIP: RETRACTED.** Decomposed on the corrected frame:
+  - incumbent, no filter **+5.50%**
+  - incumbent configs, December dropped at SCORING only **+4.96%**
+    -> **direct effect of not taking December bets = -0.54 pts**
+  - December excluded during SELECTION as well **+2.44%**
+    -> **selection-change effect = -2.52 pts**
+
+  **Total cost of the December skip on the corrected frame: -3.06 points.**
+  D184's recommendation rested on the 2018-19+ frame and on the December bets the
+  ALL-ERA selection happened to place (n=77, dominated by 2022-23 at -66% on
+  n=17). Re-optimised on 2019-20+ the selector places 56 December bets that are
+  only mildly negative, and removing them is harmful. **I recommended this one
+  entry ago and it does not survive the frame the owner correctly insisted on.**
+
+  **(4) THE GENERAL METHODOLOGICAL FINDING, WHICH IS THE PART WORTH KEEPING:**
+  the selection-change channel (-2.52) is **five times larger** than the direct
+  channel (-0.54). A filter does not merely remove bets — it changes WHICH
+  CONFIGURATION the walk-forward selects, and that indirect effect dominates.
+  **No filter in this project may be evaluated by looking at the bets it removes;
+  selection must be re-run under the filter.** D182 and D184 both failed to do
+  this and are superseded on that point.
+
+  **(5) OWNER'S BROADER HYPOTHESIS ("something wrong with that part of the
+  season — trades? break?") HAS INPUT-SIDE SUPPORT BUT CANNOT BE RESOLVED ON
+  P&L.** Mean Out+Doubtful listings by half-month, 2019-20+, vs the season mean:
+  Oct-b -29.0%, Nov-a -3.1%, Nov-b +6.4%, **Dec-a +14.3% (peak)**, Dec-b +9.0%,
+  **Jan-a +9.5%**, Jan-b -0.5%, Feb-a +2.3%, Feb-b -0.5%, Mar +6.9/+6.5%,
+  Apr-a +3.5%, Apr-b -25.2%. So absence load DOES peak in early December and
+  stays elevated into early January — the availability leg is working hardest
+  exactly there. But the effect is modest (+14% at peak) and, per (2), the P&L
+  instrument cannot resolve a window effect of any plausible size on 4 steps.
+  **Recorded as a live-monitoring target, not a filter.**
+
+  **VERDICT: NO FILTER ADOPTED. The shipped strategy remains the unfiltered
+  incumbent.** December is NOT skipped.
+
+  [SCOPE: `scripts/d185_post2018_strategy.py` NEW (read-only);
+  `data/d185_post2018.json` NEW; two bugs found and fixed in it before scoring —
+  s_i not re-indexed after slicing (scattered every bet into the original
+  19-season columns, so the walk-forward read empty columns and returned nothing)
+  and injury_reports_pit storing FULL team names against an abbrev frame (5th
+  instance of the team-name bug class; nbapred/teams.py REPORTED the one
+  unresolvable name, `da Silva, Tristan`, which is a known un-reloaded parser
+  artefact from D178); NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; no
+  filter implemented; D184's December pre-commitment RETRACTED; DB READ-ONLY]

@@ -1,5 +1,17 @@
 # Where player-skill priors come from (2K vs stats vs DARKO)
 
+> **DATA-COVERAGE CAVEAT — READ BEFORE QUOTING ANY NUMBER IN THIS FILE.**
+> The daily NBA injury report, which the model's availability leg depends on,
+> begins **2018-12-17 — mid-way through 2018-19**. Coverage of regular-season
+> game dates is **0% before that, 63.7% in 2018-19, and 95–100% from 2019-20
+> onward**. Only **2019-20 → 2025-26 (7 seasons)** is fully covered, and that is
+> the only frame in which the model runs as designed. Earlier seasons score a
+> *crippled variant* whose availability leg is fed inputs it was never meant to
+> have. Any figure here spanning seasons before 2019-20 — including every
+> 14-season and 19-season figure — blends two different models and should be
+> read as historical context, not as a description of the shipped system.
+> (`D186`)
+
 Sean's question (2026-07-26): *2K ratings lag ~a full season — can we get
 skill priors from actual stats instead?* Yes. The plan below makes live stats
 the primary prior and demotes 2K to the one job it's actually best at.

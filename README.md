@@ -18,13 +18,19 @@ and each is defined by **what data exists**, never by which window looked best.
 
 | | frame | why this window | what it is not |
 |---|---|---|---|
-| **Model accuracy** | **2018-19 onward** | The daily injury report — the input the availability leg is built on — begins **2018-12-17**. Before that the shipped model cannot run as designed. | Not the best-scoring window. It is the *worst* one. See below. |
+| **Model accuracy** | **2019-20 onward** | The daily injury report — the input the availability leg is built on — begins **2018-12-17, mid-way through 2018-19**. Coverage is 63.7% in 2018-19 and **95–100% from 2019-20**, so 2019-20 is the first fully-covered season. | Not the best-scoring window. It is the *worst* one. See below. |
 | **Betting** | **2023-24 → 2025-26** | The recent block, reported because it is the era the model was built for. **Correction:** only **2023-24** has a genuinely measured multi-book panel at the open (7.74 books/game); 2024-25 has 1.00 and 2025-26 has 1.03, so their multi-book price is a modelled uplift. | Not a profitable-window selection — it includes the flattest of the three. But not a fully measured one either. |
 
 **The model frame is the less flattering choice, and that is the point.** Pooled
 over the seasons before the injury feed exists, the model sits **6.81%** behind
-the market. Over the injury-report era it sits **13.22%** behind. We report
-13.22%.
+the market. Over the fully-covered era (2019-20 → 2025-26, K=7, n=8,286) it sits
+**13.59%** behind. We report 13.59%.
+
+**Correction (`D186`):** earlier versions of this README used "2018-19 onward"
+(13.22%). That was wrong — 2018-19 is only **63.7%** injury-covered, because the
+report series starts 2018-12-17, a third of the way into the season. Including it
+put a partially-blind season inside the frame that exists to guarantee the model
+is not blind. The fully-covered frame is **2019-20 onward**.
 
 The reason is not modesty, it is that the two numbers measure different models.
 Pre-2018 the availability leg runs on inputs it was never designed to have, so
