@@ -1,16 +1,60 @@
 # NBA Prediction Model
 
 A market-blind NBA win-probability model, and the full research record behind
-it: **a register that runs to D178, most entries rejections.**
+it: **a register that runs to D188, most entries rejections.**
+
+---
+
+## ⚠️ Read this before any number: the data is severely limited before 2019
+
+**The model has four inputs. One of them — the daily NBA injury report the entire
+availability leg is built on — did not exist before 2018-12-17.**
+
+![data coverage](charts/data_coverage.png)
+
+| | |
+|---|---|
+| Seasons with **zero** injury-report coverage | **11** (2007-08 … 2017-18) |
+| First season with partial coverage | 2018-19, at **63.7%** (report series starts mid-season, 2018-12-17) |
+| First **fully covered** season | **2019-20** |
+| Fully covered seasons available | **7** (2019-20 → 2025-26) |
+| Seasons with a **measured multi-book price** at the open | **1** (2023-24) |
+
+**What this means, stated bluntly:**
+
+1. **Every figure in this repository that spans seasons before 2019-20 —
+   including all 14-season and 19-season results — is measuring a *different,
+   crippled model*,** not the one that would be deployed. Before the feed exists
+   the availability leg runs on inputs it was never designed to have. Those
+   numbers are historical context, not a description of the shipped system.
+2. **The honest evaluation frame is 2019-20 → 2025-26. That is seven seasons.**
+   It is not a lot. Season-clustered confidence intervals on this frame are tens
+   of ROI points wide, and essentially everything we have tested on it is
+   statistically indistinguishable from noise.
+3. **The frame is too short to tune on.** Measured directly (`D187`): on this
+   frame a null that takes the best of five *randomly chosen* game subsets buys
+   **+2.54 ROI points on average**. Every strategy filter we tested lands inside
+   that band. Correctness of frame and ability to optimise are in direct
+   tension, and we chose correctness.
+4. **Multi-book execution is largely counterfactual.** The headline execution
+   tier assumes best-of-9 books at the open. That panel genuinely exists for
+   **2023-24 only** (7.74 books/game). 2024-25 and 2025-26 observe 1.00 and 1.03
+   books/game; their multi-book price is a modelled uplift, not an observation.
+
+Every document in `docs/` carries this caveat in its header. If you quote a
+number from this repository, quote its frame with it.
+
+---
 
 The model is the smaller half of this repository. The larger half is
 `docs/DECISIONS.md` — an append-only register in which every experiment was
 pre-registered, gated out-of-sample, and written down whether it worked or not.
-Several of the most useful entries document mistakes we made and caught.
+Several of the most useful entries document mistakes we made and caught,
+including two frames that were wrong and had to be corrected in public.
 
 ---
 
-## Read this first: the two frames
+## The two reporting frames
 
 Most of the confusion in a project like this comes from quoting a number without
 saying which slice of history produced it. This repository reports two frames,

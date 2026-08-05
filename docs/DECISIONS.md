@@ -14090,3 +14090,46 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   unresolvable name, `da Silva, Tristan`, which is a known un-reloaded parser
   artefact from D178); NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; no
   filter implemented; D184's December pre-commitment RETRACTED; DB READ-ONLY]
+
+- D188 **THE DATA-LIMITATION NOTICE IS NOW THE FIRST THING ON THE REPO, BACKED BY
+  A MEASURED COVERAGE FIGURE RATHER THAN PROSE.** Owner: "make sure that it is
+  clear on the github that we are working with limited data until 2018."
+
+  **MEASURED COVERAGE OF ALL FOUR MODEL INPUTS, BY SEASON**
+  (`scripts/d188_coverage_chart.py` -> `charts/data_coverage.png`,
+  `data/d188_coverage.csv`). The point the figure makes that the prose did not:
+  **three of the four inputs are complete back to 2007-08.** DARKO player talent
+  100% every season (backfilled, D170) and the opening spread 100% every season.
+  **Only the injury report is missing — and it is missing ENTIRELY for 11 full
+  seasons.**
+
+  | input | 2007-08..2017-18 | 2018-19 | 2019-20+ |
+  |---|---|---|---|
+  | daily injury report | **0% (11 seasons)** | 63.7% | 95-100% |
+  | DARKO player talent | 100% | 100% | 100% |
+  | opening spread | 100% | 100% | 100% |
+  | multi-book panel AT THE OPEN | none | none | **2023-24 only** (7.74 books/game; 2024-25 = 1.00, 2025-26 = 1.03) |
+
+  This sharpens the framing considerably. The pre-2019 seasons are not "sparse
+  data" in general — they are **specifically and only missing the input that the
+  availability leg, i.e. half the production margin, is built from**. That is why
+  those seasons score a crippled variant rather than a noisier version of the
+  same thing, and it is a cleaner justification for the 2019-20 frame than the
+  one D186 gave.
+
+  **README RESTRUCTURED.** The limitation notice is now the first section, above
+  the model description, with the figure inline and four consequences stated
+  plainly: (1) every 14- and 19-season figure measures a different model;
+  (2) the honest frame is 7 seasons and its intervals are tens of ROI points
+  wide; (3) per D187 the frame is too short to tune on (best-of-5 RANDOM subsets
+  buy +2.54 points); (4) multi-book execution is counterfactual outside 2023-24.
+  All 23 docs carry the D186 coverage header.
+
+  **CHART DESIGN NOTE:** coverage is a magnitude, so the encoding is a single
+  sequential hue light->dark with an explicit distinct 'none' state — never a
+  rainbow — and **every cell carries its number**, so nothing depends on colour
+  alone.
+
+  [SCOPE: `scripts/d188_coverage_chart.py` NEW; `charts/data_coverage.png` NEW;
+  `data/d188_coverage.csv` NEW; README restructured; NO GATE RUN; NO PRODUCTION
+  MODEL DEFAULT CHANGED; DB READ-ONLY]
