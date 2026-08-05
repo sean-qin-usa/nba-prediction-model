@@ -14133,3 +14133,44 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d188_coverage_chart.py` NEW; `charts/data_coverage.png` NEW;
   `data/d188_coverage.csv` NEW; README restructured; NO GATE RUN; NO PRODUCTION
   MODEL DEFAULT CHANGED; DB READ-ONLY]
+
+- D189 **CONTINUOUS LOG-LOSS CHARTS REBUILT ON THE CORRECTED 2019-26 FRAME.**
+  Owner: "update continuous log loss graphs from 2019" / "from 19-26". The
+  existing continuous charts covered either the certified 5-season corpus
+  (2021-22..2025-26) or all 19 seasons; neither is the frame this project now
+  reports on after D186.
+
+  Source `data/k19_d171_t2_pergame.csv` (the D171 re-certified 19-season run)
+  sliced to 2019-20+. **Reproduces the registered pooled figure EXACTLY**:
+  n=8,286, ll_us 0.61113, ll_mkt 0.59823, **gap 13.59%**.
+
+  | season | n | gap |
+  |---|---|---|
+  | 2019-20 | 1,058 | **6.10%** (best) |
+  | 2020-21 | 1,080 | **26.98%** (worst) |
+  | 2021-22 | 1,228 | 16.95% |
+  | 2022-23 | 1,230 | 13.21% |
+  | 2023-24 | 1,230 | 16.34% |
+  | 2024-25 | 1,230 | 6.43% |
+  | 2025-26 | 1,230 | 12.43% |
+  | **pooled** | **8,286** | **13.59%** |
+
+  **THE TWO COVID SEASONS ARE THE EXTREMES IN BOTH DIRECTIONS** — 2019-20 is the
+  best cell on the frame and 2020-21 the worst, and they are adjacent. They are
+  KEPT because full injury coverage is the frame's only criterion and both meet
+  it; removing them would be exactly the endpoint-driven subgroup selection D182
+  and D187 rejected. They are flagged red in both charts so the reader can see
+  how much of the frame's dispersion they carry.
+
+  NEW files, nothing overwritten in place:
+  `charts/logloss_continuous_2019_26.png` (rolling-100, one panel per season) and
+  `charts/frame_model_2019_26.png` (per-season gap). The superseded
+  `charts/frame_model_post2018.png` — built on the wrong 2018-19+ frame — is
+  ARCHIVED to `charts_archive/frame_model_post2018__supersededByD189_20260805.png`
+  and removed from the public repo, per the owner's standing preserve-don't-delete
+  rule.
+
+  [SCOPE: `scripts/d189_logloss_2019.py` NEW (read-only); 2 charts NEW; 1 chart
+  archived + retired from repo; README charts section updated and both figures
+  embedded inline; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB not
+  touched]

@@ -182,6 +182,14 @@ corpus. **The 13.22% figure is the one that describes the shipped model.**
 fail to capture: `(ll_us − ll_mkt) / (ln2 − ll_mkt)`. Zero means we match the
 market. We do not.
 
+![log loss by season](charts/logloss_continuous_2019_26.png)
+
+![normalized gap by season](charts/frame_model_2019_26.png)
+
+The two COVID seasons are the extremes in both directions — 2019-20 is our best
+season on this frame at 6.10% and 2020-21 our worst at 26.98%. They are kept in
+because they are fully injury-covered, which is the frame's only criterion.
+
 ## The betting record, on the betting frame
 
 ### We beat the opening line. We do not clearly beat the price of betting it.
@@ -392,8 +400,11 @@ manufactures from nothing.**
 
 | chart | what it shows |
 |---|---|
-| `frame_model_post2018.png` | model accuracy on the reported frame — per-season normalized gap 2018-19 onward, pooled 13.22%, with the pre-feed and blended windows beside it |
-| `frame_betting_k8_2023_26.png` | every bet on the measured multi-book panel in order, at k=8 (max books), with the per-season split and the 95% interval |
+| `data_coverage.png` | **start here** — measured coverage of all four model inputs, by season |
+| `logloss_continuous_2019_26.png` | rolling-100 log loss, model vs market, one panel per season on the corrected 2019-26 frame |
+| `frame_model_2019_26.png` | per-season normalized gap on the corrected frame, pooled 13.59% |
+| `frame_betting_k8_2023_26.png` | every bet on the multi-book panel in order, with the per-season split and the 95% interval |
+| `sim_report_equity.png` | the institutional-format equity path (see `docs/SIM_REPORT.md`) |
 
 Charts superseded by a re-certification are moved out of this repository rather
 than deleted — the old renders are retained under `charts_archive/` in the
