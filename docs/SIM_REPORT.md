@@ -54,6 +54,29 @@ Month counts are unequal by construction: the walk-forward procedure selects a
 *phase* as well as a threshold, and it repeatedly selects the back half of the
 season, so March carries 267 of the 758 sessions.
 
+**Do not read this table as a reason to skip months, and in particular do not
+read it as "December and April lose money."** Pooled monthly dollars weight
+seasons by how many bets they happened to contribute, and coverage is very
+uneven — December appears in only **5** of 14 seasons, April in 11, March in 12.
+Weighting each season equally instead:
+
+| month | seasons | mean season ROI | season-clustered t |
+|---|---|---|---|
+| December | 5 | −18.92% | −1.39 (ns) |
+| April | 11 | **+3.78%** | +0.59 (ns) |
+
+**April is a positive month** once seasons are weighted equally; its negative
+dollar total is a composition artifact. **December is one bad December** — 2022-23
+at −66.1%; excluding that single season December is −1.56% on 94 bets.
+
+Dropping both months in-sample gains +2.47 ROI points, but a null that shuffles
+month labels within season manufactures **+2.09 points on average** from the same
+"drop the worst two" search (p = 0.28, net of null +0.38). Walk-forward — choosing
+the months to drop on seasons 1..k and scoring k+1 — the filter returns +5.42%
+against the unfiltered incumbent's +5.00%, a **+0.43-point delta at t = +0.51,
+not significant**, and it is *negative* in the two most recent seasons. The month
+filter is not adopted. (`D182`)
+
 ## Per-season attribution (14 seasons)
 
 Each line is one season's independently-scored book.

@@ -13808,3 +13808,61 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `docs/SIM_REPORT.md` NEW; `charts/sim_report_equity.png` NEW; README betting-
   frame claim CORRECTED; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB
   READ-ONLY THROUGHOUT]
+
+- D182 **"SHOULD WE NOT TRADE IN APRIL OR DECEMBER THEN?" — NO. THE MONTH FILTER
+  IS 85% SEARCH ARTIFACT, APRIL IS NOT EVEN A LOSING MONTH, AND DECEMBER IS ONE
+  BAD DECEMBER.** Owner read the D181 monthly table (Dec -$127,073, Apr -$13,756)
+  and asked whether to stop trading those months. Four tests declared before
+  scoring; decision rule declared before scoring (ship only if walk-forward beats
+  the incumbent AND the manufacturing null does not explain the in-sample gain —
+  net-of-null alone is insufficient per D176).
+
+  **T1 THE TEMPTATION.** Dropping Dec+Apr moves 14-season ROI from **+4.631% to
+  +7.103%, a +2.473-point gain** on n=1328. This is the number that makes the
+  idea look obvious.
+
+  **T2 THE EFFECT IS NOT WHAT THE TABLE SUGGESTS.** Pooled monthly dollars weight
+  seasons by how many bets they happened to contribute, and coverage is wildly
+  uneven — **December appears in only 5 of 14 seasons**, April in 11, March in 12.
+  Equal-weighting seasons:
+  - **APRIL: mean season ROI +3.78% (K=11, t=+0.59).** April is a POSITIVE month.
+    Its negative dollar total is a composition artifact, not a signal. The owner's
+    question named a month that does not lose money.
+  - **DECEMBER: mean season ROI -18.92% (K=5, t=-1.39, ns).** By season:
+    2022-23 **-66.1%**, 2020-21 -23.6%, 2021-22 -14.2%, 2025-26 -8.2%,
+    2013-14 +17.5%. **Excluding 2022-23 alone, December is -1.56% on n=94.**
+    One season is the entire effect.
+
+  **T3 MANUFACTURING NULL (2,000 draws, month labels shuffled WITHIN season, so
+  season and bet composition are preserved).** The same "drop the worst 2 of 7
+  months" search run on label-shuffled data manufactures **+2.090 points on
+  average** and +3.725 at the 95th percentile. Real gain +2.473.
+  **p = 0.2800. Net of null +0.382 points.** ~85% of the apparent gain is the
+  search itself. This is the D165/D166 capacity result reproducing at a smaller
+  scale on a 21-cell space.
+
+  **T4 WALK-FORWARD (the only test that decides).** Drop every month with
+  negative ROI on seasons 1..k, freeze, score k+1:
+  **filtered +5.423% (n=1277) vs unfiltered incumbent +4.997% (n=1639) =
+  +0.426 points, season-clustered t=+0.51 (K=13), ns.** Per-season deltas swing
+  +0.00/-0.31/+0.00/+0.00/+1.49/-2.52/+0.00/**+9.20**/+1.87/-3.28/+5.42/-0.95/
+  -4.33 — the single large win is 2020-21, i.e. the COVID August calendar, and
+  the rule is **negative in the two most recent seasons**. The rule does not even
+  select December until 2023-24, because December is absent from most prior
+  seasons.
+
+  **VERDICT: DO NOT SHIP.** Fails both conditions.
+
+  **HALL OF SHAME (the transferable part):** a monthly/subgroup breakdown printed
+  for reporting is not a menu of filters. Pooled subgroup dollars conflate effect
+  with coverage — here it labelled a **positive** month (April, +3.78%/season) as
+  a loser purely because fewer seasons contributed bets to it. Any future subgroup
+  exclusion in this project must clear (a) equal-weighted per-season inference,
+  (b) a within-season label-shuffle null, and (c) walk-forward against the
+  incumbent. D181's own monthly table has been annotated in `docs/SIM_REPORT.md`
+  so it cannot be misread the same way again.
+
+  [SCOPE: `scripts/d182_month_filter.py` NEW (read-only);
+  `data/d182_month_filter.json` NEW; `docs/SIM_REPORT.md` monthly section
+  annotated; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; no month filter
+  added anywhere; DB not touched]
