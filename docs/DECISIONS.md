@@ -13675,3 +13675,68 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/d179_gametypes.json` NEW; README reporting frames re-cut; NO GATE RUN;
   NO PRODUCTION MODEL DEFAULT CHANGED; no feature added or removed; Cup games
   explicitly LEFT IN; DB data/nba.duckdb READ-ONLY THROUGHOUT, zero writes]
+
+- D180 **CHART STALENESS SWEEP — 7 OF 35 PUBLISHED CHARTS WERE BUILT ON
+  SUPERSEDED DATA AND NOBODY NOTICED. TWO NEW FRAME CHARTS ADDED; HEADLINE
+  BETTING TIER MOVED TO k=8 (MAX BOOKS).** Owner flagged a published chart
+  showing the pre-D158 pooled figures (LL 0.6036 / mkt 0.5924, gap 11.13%) and
+  said "many such cases".
+
+  **THE SPECIFIC CHART WAS ALREADY FIXED, THE GENERAL CLAIM WAS RIGHT.** The
+  flagged render carried the OLD suptitle "certified production stack
+  (LATE_STATE=0, TANK_TERM=1)"; the on-disk file has since been rebuilt and now
+  reads "CERTIFIED D171" with computed values. But that was luck, not process:
+  there was no mechanism that would have caught it.
+
+  **SWEEP METHOD (the reusable part).** mtime is worthless here — a `cp` resets
+  it — and the numbers are pixels, so they cannot be grepped. The only sound
+  test is **re-run every chart script and diff the md5**: a chart whose bytes
+  change on a no-op rerun was, by definition, built on data that has since moved.
+  18 scripts, all exited 0.
+
+  | result | charts |
+  |---|---|
+  | already current | 28 |
+  | **STALE -> refreshed** | **7**: `ats19_open`, `history_logloss_by_season`, `history_normalized_gap`, `honest_clv`, `k19_model_and_rules`, `status_trading_h2h`, `walkforward_equity` |
+
+  **20% of the published chart set was wrong.** Every one is a D171/D173
+  consumer, i.e. exactly the charts the re-certification should have
+  invalidated — the re-cert updated the numbers and the register but never
+  re-rendered everything downstream. **HALL OF SHAME: a re-certification is not
+  complete until every artifact that consumes it has been re-run and diffed.
+  Publishing is a consumer.**
+
+  **PRESERVATION (owner instruction: do not delete or edit, archive instead).**
+  All 8 superseded renders (the 7 above + the explicitly-named
+  `_superseded_logloss_4season_normalized.png`, retired from the public repo)
+  copied to `charts_archive/` with a `__preD179_YYYYMMDD` suffix BEFORE the
+  refreshed versions were published. Nothing overwritten in place, nothing lost.
+
+  **TWO NEW FRAME CHARTS (`scripts/d179_frame_charts.py`)** on the D179 frames:
+  `charts/frame_model_post2018.png` (per-season normalized gap 2018-19 onward,
+  pooled 13.22%, with pre-feed 6.81% / blended 9.05% beside it) and
+  `charts/frame_betting_k8_2023_26.png` (per-bet equity on the measured panel,
+  per-season split, 95% CI). Palette validated rather than eyeballed: categorical
+  light-mode, worst adjacent CVD dE 6.6 (deutan) which is the 6-8 floor band ->
+  **every mark carries a direct value label** as the required secondary encoding,
+  which also discharges the contrast WARN on the green. Rendered and inspected;
+  four label collisions and two title overflows fixed before shipping.
+
+  **HEADLINE BETTING TIER -> k=8 (MAX BOOKS), per owner.** Supersedes the
+  k=5 +haircut headline in D179.
+
+  | tier | 2023-24 | 2024-25 | 2025-26 | pooled | 95% CI (K=3) |
+  |---|---|---|---|---|---|
+  | k=8 raw | +3.09% | +15.30% | +7.14% | **+8.72%** (+43.62u/500) | [-6.72, +24.17] |
+  | k=8 +haircut | +0.49% | +12.63% | +4.03% | +5.96% (+29.82u) | [-9.54, +21.47] |
+
+  **All three seasons positive at k=8** (at k=5 +haircut 2023-24 was +0.37%,
+  effectively flat). The interval still contains zero and **2024-25 supplies 65%
+  of the pooled P&L**, so the reading is unchanged: a candidate, not a result.
+  Both raw and haircut are published; reporting raw alone would drop the charge
+  for the 8.1% of best-of-N prices that get limited or voided.
+
+  [SCOPE: `scripts/d179_frame_charts.py` NEW; 7 charts re-rendered from existing
+  scripts (no script logic changed); 8 superseded renders ARCHIVED not deleted;
+  README headline tier -> k=8; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED;
+  no model refit; DB READ-ONLY THROUGHOUT]

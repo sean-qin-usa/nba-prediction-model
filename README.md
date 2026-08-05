@@ -159,19 +159,27 @@ freeze it, score season k+1, roll forward — re-selecting each year the way you
 actually would. Scored at the opening spread under measured five-book execution
 with the outlier-realism haircut:
 
+Priced at **k=8 — the maximum number of books we hold**, which is the access
+level this repository reports under (see *Execution* below):
+
 | season | bets | P&L | ROI |
 |---|---|---|---|
-| 2023-24 | 179 | +0.66u | **+0.37%** |
-| 2024-25 | 186 | +22.54u | **+12.12%** |
-| 2025-26 | 135 | +4.20u | **+3.11%** |
-| **2023-26 pooled** | **500** | **+27.40u** | **+5.48%** |
+| 2023-24 | 179 | +5.53u | **+3.09%** |
+| 2024-25 | 186 | +28.45u | **+15.30%** |
+| 2025-26 | 135 | +9.63u | **+7.14%** |
+| **2023-26 pooled** | **500** | **+43.62u** | **+8.72%** |
+
+**All three seasons are positive at k=8.** After the outlier-realism haircut —
+which charges for the 8.1% of best-of-N prices that sit >1.5 points off the next
+book and are the ones that get limited or voided — the same window returns
+**+5.96%**. Both numbers are reported; neither is significant.
 
 **And here is the interval, which is the part that matters:**
 
 | window | pooled ROI | 95% CI (season-clustered) | MDE80 |
 |---|---|---|---|
-| **2023-26 (K=3)** | **+5.48%** | **[−9.79%, +20.75%]** | 18.3pp |
-| 2024-26 (K=2) | +8.33% | [−48.89%, +65.55%] | 61.0pp |
+| **2023-26 (K=3)** | **+8.72%** | **[−6.72%, +24.17%]** | 18.5pp |
+| 2024-26 (K=2) | +11.86% | [−39.97%, +63.70%] | 55.3pp |
 
 **This is why the window is 2023-26 and not 2024-26.** Dropping 2023-24 raises
 the point estimate to +8.33% and widens the interval to ±57 points — an interval
@@ -179,7 +187,7 @@ that could not detect a 60-point edge, which is not a measurement. Three seasons
 is already too few; two is arithmetic wearing a percent sign.
 
 **Read the 2023-26 row honestly:** the point estimate is positive, the interval
-contains zero, and **2024-25 alone supplies 82% of the P&L.** One good season
+contains zero, and **2024-25 alone supplies 65% of the P&L.** One good season
 inside a three-season window is not an edge, and with K=3 the confidence interval
 is 30 points wide. This is a candidate, not a result.
 
@@ -243,8 +251,8 @@ only where the bet is placed:
 |---|---|---|---|
 | 1 retail book | 3.00 pts | −0.95% | degenerate reference |
 | 2 books | — | +0.39% | measured |
-| **5 books** | **1.10 pts** | **+1.76%** | **firm baseline** |
-| 8 books | 0.67 pts | +2.39% | optimistic bound |
+| 5 books | 1.10 pts | +1.76% | firm baseline |
+| **8 books** | **0.67 pts** | **+2.39%** | **max books — the reported tier** |
 | exchange, 2% commission | **0.41 pts** | **+2.69%** | arithmetic — we hold no exchange data |
 
 **What data we hold, plainly:** a measured multi-book panel for 2023-26 only;
@@ -324,6 +332,20 @@ manufactures from nothing.**
 - **A chart axis that hid the one season we won.** A hard-coded `ylim(0, …)`
   clipped 2008-09's −2.01% off the bottom of the frame. Three more instances were
   found afterwards. (`D171`)
+
+## Charts
+
+`charts/` holds current renders only. The two that carry the headline:
+
+| chart | what it shows |
+|---|---|
+| `frame_model_post2018.png` | model accuracy on the reported frame — per-season normalized gap 2018-19 onward, pooled 13.22%, with the pre-feed and blended windows beside it |
+| `frame_betting_k8_2023_26.png` | every bet on the measured multi-book panel in order, at k=8 (max books), with the per-season split and the 95% interval |
+
+Charts superseded by a re-certification are moved out of this repository rather
+than deleted — the old renders are retained under `charts_archive/` in the
+working tree, timestamped, so a number that changed can be traced to the run
+that changed it.
 
 ## Layout
 
