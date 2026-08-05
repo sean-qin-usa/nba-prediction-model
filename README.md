@@ -258,6 +258,27 @@ smallest detectable effect is ~8 ROI points, and resolving +3.54% would take
 model's structure is genuinely out of sample — is worth more than any further
 backtesting.
 
+### CLV is a monitor, not an objective
+
+Closing-line value resolves in weeks where ROI needs decades, which is why it is
+the live yardstick. But it is **not a sufficient statistic for bet selection**,
+and that was measured rather than assumed: an availability-divergence selector
+bought **more CLV (+0.143 pts, 6/6 cells) and less ROI (−1.16pp)**, while an
+explicitly CLV-targeted selector bought **essentially no extra CLV (+0.004) and
+the most ROI**. The two are separable by selector. A green CLV month is evidence
+the prices are good; it is not evidence the strategy is profitable.
+
+### A reporting defect we found in our own method
+
+Several results in this register were reported as "beats its own permutation
+null". That test is **necessary but not sufficient**, and reporting it alone is
+misleading. When three new selectors were tested, all three beat their own nulls
+(p ≤ 0.048, surviving multiple-comparison correction) **and all three lost to
+the incumbent** — one showed +6.29 net-of-null on a paired estimate of −0.43.
+A permutation null only asks whether a selector beats a scrambled copy of
+itself, which the incumbent also does. Every net-of-null figure must be reported
+against the incumbent benchmark as well.
+
 ### The number that keeps everything else honest: manufacturing capacity
 
 Tuning to a single season yields positive in-sample ROI on **19 of 19 seasons,

@@ -79,6 +79,38 @@ ADDITIVE so it cannot overwrite V3 rows with V2 blanks. Correctness: **0 of
 game_officials (retro crews via boxscoresummary; same coverage gap, same
 chained fix; pregame assignments poller in nbapred/ingest/referees.py —
 ingested, no term shipped).
+**UNOFFICIAL AVAILABILITY SOURCES — HUNTED AND REFUSED (D175).** Three free
+surfaces were verified rather than assumed; none is ingested and no table was
+created. (a) `boxscoretraditionalv3.comment` — ALREADY CACHED on disk
+(`data/raw/nba_api/boxscoretraditionalv3/`, 36,595 games), carries the NBA's own
+post-game DNP/DND/NWT memo at body-part granularity on **all 30 seasons,
+93.3-97.5% of games, back to 1996-97**, and is 99.99% consistent with minutes
+(9 of 125,728 DNP rows logged time; DND/NWT 0 of 26,453). **It attaches a reason
+to 0.00% of `game_inactives` rows in all 20 seasons** — the two populations are
+structurally disjoint, because from 2006-07 the NBA moved did-not-dress players
+out of the box-score `players` array into `InactivePlayers`. Also note the
+league changed convention at 2017-18: specific body-part memos run
+643-1,434/season BEFORE it and 57-147/season after, so the OLD era has better
+box-score reason granularity than the modern one. (b)
+`boxscoresummaryv2.InactivePlayers` carries **no reason column** (headers are
+PLAYER_ID/FIRST_NAME/LAST_NAME/JERSEY_NUM/TEAM_ID/TEAM_CITY/TEAM_NAME/
+TEAM_ABBREVIATION) — confirmed, it is exactly `game_inactives`. (c) Wayback
+snapshots of CBS/USA Today NBA injury pages are systematic on **2013-14..2017-18
+only** (C48 80.9-96.0%) and are the only surface carrying all three of advance
+notice, reasons and probabilistic status: news-break `Updated` date >=1 day
+before the game on **90.6%** of rows, body-part reason on **100%**, and a
+monotone status ladder (PROBABLE 88.1% played -> GTD 44.3% -> QUESTIONABLE
+35.8% -> DOUBTFUL 12.5% -> OUT 7.1% -> OUT_SEASON 0.0%). Agreement on
+OUT+OUT_SEASON **94.6% (2015-16) / 96.3% (2016-17)**; reason coverage of
+`game_inactives` **36.4%/48.9%** overall and **56.4%/75.1%** on mpg>=25
+players. **Piloted on three seasons it still does not pay: +0.100pp (2014-15),
++0.220pp (2015-16), -2.030pp (2016-17); mean -0.570pp, t(2)=-0.78, p=0.52,
+wrong sign on 2 of 3, sign flips on dropping 2016-17.** NOT ingested. Raw pilot
+artifacts under `data/raw/unofficial/`; full working in
+`data/unofficial_injury_notes.md`.
+**prosportstransactions.com is 403/Cloudflare-challenged on every path
+including robots.txt, and Basketball-Reference's `*/gamelog/` is robots.txt
+`Disallow`ed — neither may be scraped.**
 **KNOWN DEFECT, NOT FIXED (D170, owner's call):** the PDFs name the Clippers
 "LA Clippers" but `report_out_map()` maps through nba_api's full_name
 "Los Angeles Clippers", so **all 2,514 Clippers report rows are silently

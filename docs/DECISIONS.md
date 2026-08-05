@@ -12533,3 +12533,1058 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
    scripts/prod_by_season.py NOT RUN, no gate re-run, no default changed,
    eval corpus unchanged, no walk-forward re-run, no chart written;
    DB READ-ONLY THROUGHOUT — ZERO writes, no table created or altered]
+
+- D175 THE HUNT FOR UNOFFICIAL HISTORICAL INJURY/AVAILABILITY DATA, AND A
+  CONCLUSION THAT REVERSED TWICE UNDER ITS OWN MEASUREMENTS. **HEADLINE: A
+  FREE, PERMITTED, SYSTEMATIC ARCHIVE EXISTS FOR 5 OF THE 11 PRE-REPORT
+  SEASONS (2013-14..2017-18) AND FOR NONE OF THE OTHER 6. PILOTED ON THREE OF
+  THEM IT RETURNS +0.100pp / +0.220pp / -2.030pp — MEAN -0.570pp, t(2)=-0.78,
+  p=0.52, WRONG SIGN ON 2 OF 3, AND THE SIGN FLIPS WHEN 2016-17 IS DROPPED.
+  NOT ACTIONABLE; RECOMMENDATION IS TO KEEP THE POST-2018 FOCUS. SEPARATELY
+  AND MORE IMPORTANTLY, A PERFECT AVAILABILITY ORACLE IS WORTH -1.76pp
+  (2012-13) / -2.61pp (2015-16) / -3.75pp (2023-24), SO OLD-ERA HEADROOM IS
+  2.4-3.5x THE REPORT'S -0.741pp AND HAD NEVER BEEN MEASURED; AND THE OUT-SET
+  IS **NON-MONOTONE IN COMPLETENESS** — A PARTIAL FEED IS WORSE THAN NONE.**
+  NOTHING INGESTED, NO TABLE CREATED OR ALTERED, NO DEFAULT CHANGED, NO GATE
+  RUN, NO CERTIFIED ARTIFACT TOUCHED. DB READ-ONLY THROUGHOUT.
+  (1) **ToS / robots FIRST, AND TWO CANDIDATES DIE AT THE DOOR.**
+  **prosportstransactions.com** — the brief's strongest a-priori candidate —
+  returns **HTTP 403 to every path INCLUDING `/robots.txt`**, with a Cloudflare
+  **managed-challenge** body (`_cf_chl_opt`, `cType:'managed'`, "Enable
+  JavaScript and cookies to continue"). That is an active anti-automation
+  access control; a headless browser / CF-solver / spoofed-browser-UA replay
+  would be CIRCUMVENTING it, not polite crawling. **Dropped, not attempted.**
+  **Basketball-Reference** serves robots.txt 200 and `User-agent: *` carries
+  **`Disallow: */gamelog/`** — which is exactly the brief's BBRef candidate
+  ("player game logs mark DNP/Inactive with reasons"). **Dropped.** (The
+  prohibition is path-specific: `/leagues/NBA_<yr>_coaches.html`, which D172
+  already caches, stays allowed. BBRef box-score pages are allowed but list
+  inactives WITHOUT reasons, i.e. strictly dominated by `game_inactives`.)
+  **web.archive.org** publishes **no robots.txt (HTTP 404 = unrestricted under
+  RFC 9309)** and its CDX index is a documented public API — **permitted**, and
+  used at 1 request at a time, >=1.1s apart, honest UA, everything cached to
+  disk so a re-run costs the archive nothing.
+  (2) **`boxscoresummaryv2.InactivePlayers` HAS NO REASON COLUMN** — headers
+  are PLAYER_ID/FIRST_NAME/LAST_NAME/JERSEY_NUM/TEAM_ID/TEAM_CITY/TEAM_NAME/
+  TEAM_ABBREVIATION. It is exactly `game_inactives`. The brief's suspicion
+  confirmed; that avenue is closed.
+  (3) **BUT A SIBLING ENDPOINT WE HAD ALREADY DOWNLOADED CARRIES REASONS BACK
+  TO 1996-97.** `data/raw/nba_api/boxscoretraditionalv3/` — **36,596 cached
+  files, 36,595 distinct game_ids** already on local disk — gives every player
+  a `comment`, the NBA's own post-game DNP/DND/NWT memo:
+  `DNP - Coach's Decision` 121,893 / `DND - Injury/Illness` 4,927 /
+  `DND - Sprained Left Ankle` 410 / `DND - Rest` 351 / `DNP - Rest` 95 /
+  `NWT - Rest` 77, plus a long body-part tail. **Coverage is SYSTEMATIC on all
+  30 seasons at 93.3%-97.5% of completed 002 games** — nine seasons deeper than
+  `game_inactives`, twenty-two deeper than the report PDF. **Validity is near
+  perfect**: of commented rows, DNP 9 of 125,728 logged minutes (0.007%),
+  **DND 0 of 20,061, NWT 0 of 6,392**.
+  (4) **AND IT IS USELESS FOR THE THING WE NEEDED, FOR A STRUCTURAL REASON.**
+  **The comment population and `game_inactives` are DISJOINT — exactly 0
+  overlap across all 26,453 DND/NWT rows in all 30 seasons.** From 2006-07 the
+  NBA moved did-not-dress players OUT of the box score's `players` array and
+  into the separate `InactivePlayers` set. Per-game rates show the handover:
+  avg inactives/game 0.00 (1996-97..2005-06) -> 3.2-5.3 -> 6.3-9.0, against
+  avg DND+NWT comments/game 1.5-1.8 -> 0.5-1.2 -> 0.3-1.0. **So the box-score
+  memo attaches a reason to 0.00% of `game_inactives` rows in every one of the
+  20 seasons.** It also carries **NO advance notice** (post-game) and **NO
+  probabilistic status**. A NEW DATA-QUALITY FACT falls out: **the NBA changed
+  memo convention at 2017-18** — specific body-part memos run 643-1,434/season
+  BEFORE it and 57-147/season after (generic `Injury/Illness` 11-85 -> 468-1,156).
+  **The OLD era has BETTER box-score reason granularity than the modern one**,
+  the inverse of the report gap.
+  (5) **THE WAYBACK ARCHIVE IS SYSTEMATIC FROM 2013-14 AND SPORADIC BEFORE.**
+  C48 = share of NBA game days with a distinct-content snapshot in the prior
+  48h (`collapse=digest`, statuscode 200):
+```
+             07-08 08-09 09-10 10-11 11-12 12-13 13-14 14-15 15-16 16-17 17-18
+  cbssports     0%    2%    0%    2%  6.8% 11.1% 80.9% 67.3% 85.6% 91.0% 30.3%
+  usatoday       0     0     0     0     0     0  9.5% 77.4% 77.6% 90.0% 96.0%
+  UNION         0%    2%    0%    2%  6.8% 11.1% 80.9% 83.4% 90.0% 93.5% 96.0%
+```
+  2012-13's honest union over EVERY structured table (cbs+espn+yahoo+donbest)
+  is **40.7% at 48h**. espn/yahoo/fox/realgm/rotowire never clear the bar.
+  **Rotoworld is a trap**: n=65 snapshots in 2012-13 looks best-in-class, but
+  each archived page carries ~8 blurbs spanning ~20 minutes — under 1% of the
+  news stream; excluded from every union above. **So the 11 old seasons split
+  6/5: 2007-08..2012-13 have no systematic archive at all.**
+  (6) **THE PILOT. IT IS GOOD DATA, AND IT IS THE ONLY SURFACE THAT CARRIES
+  ALL THREE CRITERIA.** `d175_wayback_{fetch,parse,validate}.py`; 418 archived
+  pages over three seasons, server-rendered `<table class="data">`, parsed with
+  `Updated | Player | Pos | Injury | Expected Return` and a CBS player-id link.
+  2015-16: 120/120 snapshots, 7,728 rows, 30 teams, 373 players, name-match to
+  `nba_players` 94.97%. **Reason non-empty 100.00%. News-break `Updated` date
+  non-empty 100.00%, and >=1 day before the game on 90.63% (median 2d)** —
+  i.e. genuinely EARLIER than the 5PM report. Snapshot lead vs a 19:00 ET tip
+  median 14.6h, >=5h on 95.65%. **The status ladder is monotone and is real
+  information** (most-recent-snapshot per (player,game), n=3,149):
+```
+  status        n     % played    status        n     % played
+  PROBABLE     42      88.10      DOUBTFUL     24      12.50
+  GTD         641      44.31      OUT        1617       7.11
+  QUESTIONABLE 307     35.83      OUT_SEASON  512       0.00
+```
+  Agreement on OUT+OUT_SEASON: **did NOT play 94.60% (2015-16) / 96.30%
+  (2016-17)**, n=2,129 / 2,704. **REASON COVERAGE OF `game_inactives`** (the
+  brief's fraction): **36.40% / 48.88%** of all inactive rows, rising with
+  importance to **56.43% / 75.12%** at mpg>=25.
+  (7) **TWO PARSER BUGS OF MINE, BOTH CAUGHT BY RUNNING A SECOND SEASON, BOTH
+  RECORDED BECAUSE THE FIRST VERSION OF THIS ENTRY'S VERDICT RESTED ON THEM.**
+  (a) **CBS changed wording between seasons** — 2015-16 writes `Out until at
+  least Feb 15`, 2016-17 writes `Expected to be out until at least Feb 1`; my
+  classifier matched only the first, so **3,209 of 6,001 2016-17 rows fell into
+  OTHER and the season parsed with ZERO `OUT` rows** and moved 3 games. (b)
+  **carried-forward rows never expired**: CBS states its own return date, and a
+  row saying "out until at least Nov 25" read on Dec 5 is not a claim the
+  player is out; `until_date` is now parsed (48.5%/52.3% of rows) and a row
+  stops asserting OUT once its date passes. On 2015-16 the fix moved the arm
+  from **+0.490pp to +0.220pp** — the source deserved its best shot and this
+  entry gives it.
+  (8) **THE PRICE, THREE SEASONS, SEASON-CLUSTERED.** CBS arm =
+  `cbs_out UNION inactives` fed to `k19_t2.season_run` **UNMODIFIED**, so it is
+  the exact analogue of `T2 = report_out UNION inactives`; baseline `t2i` =
+  inactives only, same process, same DB state. **HARNESS CHECK: every baseline
+  reproduces the certified per-season number exactly** (2014-15 +9.80%,
+  2015-16 +5.07%, 2016-17 +7.91%). Point-in-time discipline: for game date D
+  we use the latest snapshot whose own target date is <= D, where a snapshot
+  before 17:00 ET targets that day's slate and one after targets the next day.
+```
+  season   snaps  C48     t2i     CBS arm   DELTA      outs/tm base->CBS  games chg
+  2014-15   109  67.3%   +9.80%   +9.90%  +0.100pp      0.415 -> 0.528      237
+  2015-16   120  85.6%   +5.07%   +5.29%  +0.220pp      0.375 -> 0.526      260
+  2016-17   189  91.0%   +7.91%   +5.88%  -2.030pp      0.437 -> 0.546      210
+
+  mean -0.570pp   sd 1.266   se 0.731   t(2) = -0.780   p = 0.5171
+  95% CI [-3.714, +2.574] pp    median +0.100pp    WRONG SIGN 2 of 3
+  leave-one-season-out means: -0.905 / -0.965 / +0.160  (SIGN FLIPS on 2016-17)
+```
+  **The interval spans the benchmark (-0.741pp), zero, and the opposite sign,
+  and the entire pooled effect is one season.** A pre-registered prediction
+  (written into `data/unofficial_injury_notes.md` BEFORE running the third
+  season) said 2014-15, the sparsest archive, should come in HARMFUL and WORSE
+  than 2015-16: **correct on sign, wrong on ordering** (+0.100 vs +0.220), so
+  the "density law" is only half supported and is recorded as such.
+  (9) **THE FINDING THAT OUTLASTS THE VERDICT: OUT-SET VALUE IS NON-MONOTONE
+  IN COMPLETENESS, AND OLD-ERA HEADROOM IS 2.4-3.5x THE REPORT.**
+  `d175_oracle_bound.py` sets the out-set to every player who logged 0 minutes
+  in that exact game — maximal leakage, a BOUND not a result:
+```
+  season     t2i    outs/tm    PERFECT-ORACLE   outs/tm     DELTA
+  2012-13   +7.06%   0.319         +5.30%        1.306    -1.760pp
+  2015-16   +5.07%   0.375         +2.46%        1.339    -2.610pp
+  2023-24  +16.97%   0.974        +13.22%        1.794    -3.750pp
+```
+  **So the old-era gap is NOT "there is nothing left to know" — the headroom is
+  REAL and 2.4-3.5x the report's -0.741pp.** But a PARTIAL feed landing at
+  0.526-0.546 between a 0.375-0.437 baseline and a ~1.3 optimum can be WORSE
+  THAN NOTHING. **A half-filled out-set is not half a good.** That is the
+  brief's "sporadic data is worse than a clean gap" risk, measured rather than
+  asserted, and it generalises beyond this source.
+  (10) **WHY THE OFFICIAL REPORT HELPS AND THIS DOES NOT — MARGINAL-SET
+  PRECISION.** Because `game_inactives` is already complete and correct
+  (D171: `viol`=0 on all 19 seasons), a pregame source can ONLY add names that
+  are not on it, so the marginal set carries the entire effect:
+```
+                     OUT rows   already in inactives   marginal   of marginal, PLAYED
+  CBS      2015-16      2,129          74.78%           25.22%         21.42%
+  OFFICIAL 2022-23      8,049          94.47%            5.53%          3.37%
+  OFFICIAL 2023-24      8,928          92.79%            7.21%          1.24%
+```
+  The report adds a SMALL (5.5-7.2%), ~98%-true increment on top of a DENSE
+  modern base. The archive adds a LARGE (25.2%), ~79%-true increment on top of
+  a THIN old base. **But precision is not the whole story either:**
+  `d175_headroom.py` re-ran 2015-16 with every false positive REMOVED BY ORACLE
+  (276 names) and recovered only **+0.490 -> +0.440pp** — 0.05pp of a 0.49pp
+  loss. The surviving marginal names are real rotation players (median season
+  22.4 mpg, 38.4% at mpg>=25), so the damage is the DENSITY effect of (9), not
+  merely bad names.
+  (11) **THE TANK COMPOSITE, COMPONENT (c) — COMPUTABLE, AND STILL BLOCKED.**
+  (c) counts rest/management/maintenance Out listings in the trailing 14 days.
+  Reconstructed per team-date:
+```
+  source / season           team-dates   nonzero    mean    max
+  CBS       2015-16              2,460    10.65%   0.265     14
+  OFFICIAL  2022-23              2,460    21.10%   0.517     14
+  OFFICIAL  2024-25              2,460    34.47%   1.141     19
+```
+  **So (c) DOES become computable for an old season from the archive** —
+  non-degenerate, ~50% of the official 2022-23 event density. (The box-score
+  route is far weaker: 58 mpg>=25 rest events in 2015-16 vs CBS's 153. And in
+  2003-04..2012-13 the box-score rest vocabulary is 0-4 rows/season, which is
+  mostly TRUE — league-wide load management is a modern practice; the official
+  feed itself runs 72 rest events in 2018-19 vs 486-629 in 2024-25/2025-26.)
+  **BUT IT CANNOT ENTER THE MODEL AND THIS ENTRY DOES NOT MAKE IT:**
+  `tanking.PINNED_SEASON_FLOOR = "2020-21"` (D155), so the composite is not
+  built for 2015-16 at all, and `tanking.py` states in terms that moving the
+  pinned floor "is a MODEL CHANGE and needs a gate + re-cert; it is not a
+  bookkeeping edit". **Component (c) becomes computable; the tank term does not
+  become active; the season's gap cannot improve by that route without a
+  separate gate.** Not attempted — the brief forbids re-certifying.
+  (12) **WHAT THE SOURCE IS GOOD AT THAT WE STILL CANNOT USE.** The Q/D/P
+  ladder in (6) is genuine, calibrated information about players who MIGHT sit
+  — the brief's criterion 3, and the one thing neither `game_inactives` nor the
+  box-score memo supplies. **The model has no channel to consume it**: the
+  out-set interface is BINARY, so a 36%-likely-to-play QUESTIONABLE enters as a
+  hard OUT. Building a probabilistic-availability channel is a MODEL CHANGE
+  requiring a gate. **Logged as a future direction, NOT attempted.**
+  (13) **ERA STATEMENT (GATE_POLICY_V2 §10).** Source census: all 30 seasons
+  1996-97..2025-26 for the box-score memo; the Wayback probe covers 2007-08..
+  2017-18. Priced frame: three seasons **2014-15, 2015-16, 2016-17**, 1,230
+  games each, chosen as archivable-and-old; the oracle bound adds 2012-13 and
+  2023-24. **CLUSTERING: season, K=3 — and K=3 is why nothing here is
+  actionable; every number in (8) should be read with that in front of it.**
+  COVID seasons never enter. AVAILABILITY TIER: the baseline arm is **T2i** on
+  every priced season (correct — no report feed exists there), and the CBS arm
+  is a NEW UNCERTIFIED tier that this entry deliberately does not name or
+  register. `TANK_SEASON_FLOOR=2020-21` on every run, matching k19_t2's
+  documented environment.
+  (14) **WHAT THIS ENTRY DOES NOT CLAIM.** It does NOT claim the archive is
+  worthless — 2016-17 alone returns -2.030pp, 2.7x the benchmark, and the data
+  is demonstrably accurate (96.3% agreement, 100% reason coverage, a real
+  news-break date). It claims only that **at K=3, with 2 of 3 seasons the wrong
+  sign and the pooled sign flipping on one season's removal, there is no
+  evidence to act on.** It does not create a table, ingest a row, name a new
+  tier, change a default, run a gate, touch a certified artifact, or move the
+  pinned tank floor. It does not re-certify or widen the eval corpus. It does
+  not pilot 2013-14 or 2017-18 — **2017-18 is the highest-value unpiloted
+  season (it abuts the 2018-12-17 floor) and needs the USA Today parser, since
+  CBS collapses to C48 30.3% there; those two seasons would take K from 3 to 5
+  for ~400 more archived pages, all free and permitted. THAT IS THE OWNER'S
+  CALL, NOT A CONCLUSION OF THIS ENTRY.** **RECOMMENDATION: KEEP THE POST-2018
+  FOCUS.** For 2007-08..2012-13 the gap is PERMANENT (no systematic free
+  archive exists); for 2013-14..2017-18 the data exists, is permitted, is good,
+  and is not measurably worth ingesting on the evidence in hand.
+  [code scripts/d175_wayback_fetch.py, d175_wayback_parse.py,
+   d175_wayback_validate.py, d175_price_cbs.py, d175_headroom.py,
+   d175_oracle_bound.py (all NEW);
+   data/unofficial_injury_notes.md (full working, checkpointed as the run
+   proceeded, including the RETRACTED CHECKPOINT-10 verdict and the
+   pre-registered CHECKPOINT-13 prediction);
+   data/raw/unofficial/v3_comments.csv, v3_comment_vocab.json,
+   v3_coverage_by_season.csv;
+   data/raw/unofficial/wayback/ — cdx indices + 418 archived pages
+   (cbs_2014_15/ 109, cbs_2015_16/ 120, cbs_2016_17/ 189) + *_rows.csv +
+   cbs_2015_16_joined.csv.gz, cbs_2016_17_joined.csv.gz;
+   data/d175_price_cbs_{2014_15,2015_16,2016_17}.json, d175_pooled.json,
+   d175_headroom_cbs_2015_16.json, d175_oracle_bound.json,
+   d175_cbs_{2015_16,2016_17}_validate.json;
+   data/logs/d175_fetch_{1415,1617}.log;
+   docs/ERAS.md, docs/STAT_INVENTORY.md updated;
+   NO nbapred/ FILE MODIFIED; scripts/k19_t2.py IMPORTED, NOT EDITED AND NOT
+   RE-RUN in its own right; NO GATE RUN; NO PRODUCTION DEFAULT CHANGED; NO
+   CERTIFIED ARTIFACT TOUCHED; DB data/nba.duckdb READ-ONLY THROUGHOUT —
+   read_only=True with retry_s=60 on every connect, ZERO writes, no table
+   created or altered]
+
+- D176 **THE STRATEGY SPACE RE-OPENED ON THE BACKFILLED MODEL — THREE
+  PRE-REGISTERED SELECTORS, TWELVE CELLS, AND NOTHING BEATS THE INCUMBENT.
+  THE BETTER DATA DID NOT OPEN A NEW EDGE, AND THE NULL IS WHY THAT IS
+  CREDIBLE.** (2026-08-05)
+  **THE WARRANT, AND ITS LIMIT.** Every betting rule in this register was
+  selected against a model running 3.6-40% DARKO coverage on the pre-2021
+  seasons and no availability feed at all. D170/D171 fixed that and D173 re-ran
+  everything: the ATS rejection went from **-3.25% SIG NEG to -0.68% ns**, 13
+  significantly-negative primary cells became **zero**, and 19-season spread CLV
+  **doubled to +0.32001**. By D45 (gate against the SHIPPED baseline) the rules
+  were chosen against a different object, so the strategy space may be re-opened
+  ONCE. It does not follow that a search is licensed: D164 measured that a blind
+  600-cell search manufactures **+16.917 ROI points from pure noise** (null
+  +17.464, net **-0.55**, p=0.685) and that capacity scales with cell count
+  (6 -> +3.078, 30 -> +7.888, 120 -> +14.764, 600 -> +16.917); D165 measured the
+  family-wise burden of 7 procedures at **+2.13 points**. **This entry therefore
+  scores TWELVE cells, not six hundred.**
+  (1) **PRE-REGISTRATION.** `data/newstrat_prereg.md`, sha256
+  **`db293ad8548a2e7099586a66847d6d1a71d8e83e4ab171e0917584980e9f1fc7`**
+  (`data/newstrat_prereg.sha256`), written and hashed BEFORE any arm was scored,
+  including the MDE80 table and the five-condition decision rule. Substrate is
+  `data/ats19_frame.csv.gz` md5 `78bbba1fa9cf14e6dc9563aab73bdc0f` (byte-identical
+  to `ats19_frame_D173.csv.gz`, i.e. POST-fix, built from `k19_d171_t2_pergame.csv`
+  md5 `657458e52980aad702cc3b63766fa2f0`), 22,742 games, 19 seasons, tier **T2**.
+  Registered correction: that JSON's `design` string still reads
+  "availability-BLIND", which is stale D162 text — its own `md5` block and its
+  non-zero `n_out_*` columns are T2. **THREE arms and ONE control, not the four
+  permitted**: the burden rises monotonically in F (+1.32 at F=3 vs +1.63 at F=4
+  from D165's stored 200x7 null matrix) and a 4th arm not motivated by a
+  REGISTERED measurement buys +0.31 points of free ROI and no knowledge.
+  (2) **THE ARMS.** Bet universe, side and price are IDENTICAL across all four —
+  ATS at the OPEN, bet home iff `m_us > open_margin`, payoff {+100/110, -1, 0},
+  `oc_capacity.payoff_and_masks` verbatim. Only the SELECTION differs.
+  `s = +1` on a home bet. Grid for each: top-q fraction, q in {0.50, 0.25, 0.10}.
+```
+  A0 CONTROL      |m_us - open_margin|            incumbent EDGE logic, benchmark
+  A1 CLV-TARGET   s * pred_dm                     D147/D167: 86.5% of our CLV is
+                                                  banked pre-report, so select on
+                                                  PREDICTED movement, not on edge
+  A2 AVAIL-DIV    s * (m_us_T2 - m_us_BLIND)      D156/D159: the feed is now
+                                                  complete and is ~2/3 of the CLV
+  A3 RETURN       s * (retmin_h - retmin_a)       D133/D145 absence-blindness,
+                                                  generalised to the SIDES path
+```
+  `pred_dm` is rebuilt on all 19 seasons from the D147 primitives
+  (`nbapred/market/anchored.py`) because D147's own artifact carries it on only 4
+  seasons; TIER A features only, ridge refit every 500 games on all prior games,
+  **D147 `assert_pit` two-sided guard: violations `[]`, moved-under-full-shuffle
+  `['resid_close','resid_res']` — non-vacuous.** R^2 vs the naive no-movement
+  baseline +0.0876 pooled, **+0.109/+0.124/+0.120/+0.140/+0.110 on
+  2021-22..2025-26** (D147 registered +0.171 on a richer set and 4 seasons).
+  `m_us_BLIND` is `ats19_frame_D173blind.csv.gz`, the tier-matched blind twin
+  (divergence mean +0.0099, sd 0.7894, exactly zero on 30.8%). `retmin` sums prior
+  mpg of rotation players (mpg>=10 over the trailing 20 team-games) who missed the
+  team's most recent game and are NOT on tonight's inactive list — **component (c)
+  reads `game_inactives`, the same T2 tier `p_us` consumes but NOT Tier-A-live at
+  the open, so A3 is an UPPER BOUND and is labelled one.**
+  (3) **DESIGN.** D164 ARM B verbatim (select on seasons [0,k) by pooled ROI,
+  eligibility n >= 100k, tie-break larger-n then lower index, freeze, score k,
+  roll; pool bet-weighted; interval = equal-weight K-1 dof cluster-mean t).
+  PRIMARY = report era 2018-19..2025-26, min_history 3, **scored folds
+  2021-22..2025-26, K=5** — the two COVID seasons are TRAINING-ONLY and are never
+  scored there. SECONDARY = 19 seasons at best-available tier (**T2i**
+  2007-08..2017-18, **T2** 2018-19..2025-26 — never pooled silently, D158),
+  min_history 5, **scored folds 2012-13..2025-26, K=14**.
+  **MDE80 STATED BEFORE SCORING** (`data/ns_mde80.json`, selector-independent,
+  random subsets of the universe payoff): paired **4.51 / 7.61 / 13.58** points at
+  q = .50/.25/.10 on PRIMARY, **2.85 / 4.91 / 8.56** on SECONDARY.
+  (4) **THE PRE-REGISTERED ANSWER: NO ARM CLEARS, AND ALL THREE LOSE TO THE
+  INCUMBENT ON THE PRIMARY FRAME.**
+```
+  PRIMARY  K=5   universe n=9,469  ROI -1.715%  cover 51.473%  CLV +0.5156
+  arm          q-path                n     ROI%   cover     CLV   paired vs A0
+  A0 CONTROL   .10 x5              742   +7.83   56.504  +1.872   (benchmark)
+  A1 CLV       .25/.25/.10/.10/.10 1475   +6.76   55.951  +1.547   -0.43 [-5.52,+4.67] ns
+  A2 AVAIL     .10 x5              680   +6.46   55.804  +2.187   -1.25 [-14.18,+11.69] ns
+  A3 RETURN    .10 x5              627   +1.44   53.140  +0.649   -4.54 [-14.52,+5.44] ns
+  SECONDARY K=14 universe n=22,742 ROI -0.677%  cover 52.021%  CLV +0.3200
+  A0 CONTROL                      2023   +3.95   54.468  +1.108   (benchmark)
+  A1 CLV                          6649   +2.90   53.924  +0.746   +0.68 [-3.96,+5.32] ns
+  A2 AVAIL                        3351   +0.28   52.530  +1.066   -2.96 [-7.77,+1.85] ns
+  A3 RETURN                       3172   -1.24   51.719  +0.361   -4.03 [-10.42,+2.36] ns
+```
+  Every arm's own K-1 t interval straddles zero on both frames. A1's paired sign
+  **FLIPS between frames** (-0.43 / +0.68). Decision-rule conditions (1), (2) and
+  (5) all fail. **Nothing here is a result.**
+  (5) **THE NULL, AND THE TRAP IT EXPOSES — THE MOST TRANSFERABLE THING IN THIS
+  ENTRY.** 400 draws, seed 20260805, two nulls, identical procedure per arm:
+  NULL-S permutes the arm's OWN selector within date-slate; NULL-M permutes every
+  model-derived quantity jointly within date-slate (D164/D173 convention).
+```
+  PRIMARY   real   NULL-S    net      p   paired real  NULL-Sp    net      p  FWERp
+  A1       +6.76    +0.30  +6.46  0.000        -0.43    -6.72  +6.29  0.003  0.005
+  A2       +6.46    -1.25  +7.70  0.003        -1.25    -8.41  +7.16  0.018  0.025
+  A3       +1.44    -1.69  +3.13  0.048        -4.54    -8.57  +4.02  0.037  0.215
+```
+  **ALL THREE ARMS BEAT THEIR OWN NULL AT p <= 0.048 AND ALL THREE SURVIVE BH —
+  AND ALL THREE LOSE TO THE BENCHMARK.** A net-of-null of **+6.29** sits on a
+  paired estimate of **-0.43**. NULL-S asks "does this selector beat a permuted
+  copy of ITSELF", and the answer is yes for all four selectors INCLUDING the
+  incumbent; it does not ask whether the arm beats what we already ship.
+  **Reporting net-of-null without the benchmark alongside it would have
+  manufactured three wins out of three losses.** That is a general defect in the
+  register's reporting convention, found here by accident, and it is the reason
+  D45's shipped-baseline comparison has to be the PRIMARY statistic and the null
+  a SECONDARY one — never the other way round.
+  **FAMILY-WISE BURDEN MEASURED AT F=3** by D165's own prescription (all 3 arms
+  through the SAME permuted realisation, per-draw max): E[max|null] +1.045% vs
+  mean single-arm null -0.881% = **+1.926 points** (PRIMARY), +0.261% vs -0.742%
+  = **+1.003 points** (SECONDARY); paired **+2.110 / +1.152**. D165's F=3
+  interpolation was +1.32; measured here at +1.00-2.11 on a different object.
+  **Every paired estimate above is inside that tie band except A3's, which is
+  negative.**
+  (6) **THE SELECTION LAYER, NOT THE SELECTOR, IS WHAT LOST — AND THE CONTROL
+  CHEATED WITHOUT MEANING TO.** Walk-forward pooled ROI minus the SAME arm with q
+  FROZEN at 0.10 (cut-point still learned PIT-safely on [0,k)):
+```
+  frame        A0          A1          A2          A3
+  PRIMARY    +0.00 (1q)  -1.65 (2q)  +0.00 (1q)  +0.00 (1q)
+  SECONDARY  +0.00 (1q)  -2.92 (3q)  -0.71 (3q)  -0.54 (2q)
+```
+  **A0's walk-forward is DEGENERATE — it selected q=0.10 on all 19 folds across
+  both frames and paid NO adaptation cost, while A1 paid -1.65 and -2.92.** The
+  pre-registered paired statistic is therefore biased AGAINST the arms by an
+  amount comparable to the effect sought. This reproduces D165 §3's "within-season
+  adaptation costs -8.76 points paired" on a new object at a coarser cadence, and
+  it is a design lesson for any future paired arm-vs-control test in this
+  register: **a control whose selection is degenerate is not a fair control.**
+  (7) **FROZEN-q RE-READ (POST-HOC, LABELLED): A1 IS POSITIVE ON 6 OF 6 CELLS AND
+  IS STILL NOT A RESULT.** Paired ROI vs A0, q frozen, all three pre-registered q
+  on both frames:
+```
+  arm    PRIMARY .50/.25/.10    SECONDARY .50/.25/.10   +/6   mean
+  A1    +0.92 / +2.14 / +0.88   +0.58 / +0.64 / +2.61   6/6  +1.30pp
+  A2    -1.28 / -1.84 / -1.25   +0.16 / -0.29 / -2.49   1/6  -1.16pp
+  A3    -2.36 / -8.49 / -4.54   -2.77 / -4.21 / -3.59   0/6  -4.33pp
+```
+  A1 is the only arm whose own level CI ever excludes zero (PRIMARY q=.25 +6.87%
+  [+0.23,+12.86]; SECONDARY q=.10 +5.81% [+1.79,+8.57]) and the only arm
+  **sign-consistent across all four scorable eras** on the secondary frame
+  (K-B +1.92, K-C +0.18, K-D +0.50, K-E +7.95 -> **ERA-CONDITIONAL**), where the
+  INCUMBENT A0 is **ERA-SPECIFIC** and flips (K-B **-8.51**, K-C +0.63, K-D
+  +9.14, K-E +6.31). **BUT not one of the six paired intervals excludes zero; the
+  mean +1.30pp is BELOW the measured family burden (+1.00..+2.11) and far below
+  the paired MDE80 (2.85-13.58); the six cells are NESTED (q .10 in .25 in .50,
+  PRIMARY in SECONDARY) so the 6/6 sign-test p=0.0156 is NOT a valid p-value and
+  is recorded as a consistency observation only; and A1's paired delta FLIPS SIGN
+  under deletion of a single fold on BOTH frames (LOSO [-1.70,+0.84] and
+  [-0.41,+1.89]).** A1 is a hypothesis worth carrying to fresh seasons, not a
+  finding. **IT DOES NOT SHIP AND NOTHING IS RE-CERTIFIED.**
+  (8) **THE ONE CLEAN DISSOCIATION: CLV AND ROI ARE SEPARABLE BY SELECTOR.**
+  Same six frozen-q cells, paired CLV vs A0 in spread points:
+```
+  arm    +/6 CLV   mean CLV    +/6 ROI   mean ROI
+  A1       4/6     +0.004        6/6     +1.30pp
+  A2       6/6     +0.143        1/6     -1.16pp
+  A3       0/6     -0.524        0/6     -4.33pp
+```
+  **A2 selects bets the market moves TOWARD more than the incumbent does — 6/6,
+  mean +0.143 points, peaking at +0.422 on the PRIMARY q=.10 cell — while
+  selecting bets that WIN LESS (1/6, -1.16pp). And the explicitly CLV-TARGETED arm
+  A1 buys essentially NO extra CLV (+0.004, 4/6) while buying the most ROI.** No
+  interval excludes zero, so this is an observation and not a measurement. But it
+  is a direct caution about this register's use of CLV as the yardstick: **CLV is
+  not a sufficient statistic for bet selection, and a selector can be optimised
+  into more CLV without more money.** D167 §12 already qualified D159 in the same
+  direction; this is a second, independent route to the same warning.
+  (9) **A3 IS DECISIVELY WRONG-SIGNED — THE ONLY UNAMBIGUOUS VERDICT HERE, AND IT
+  IS NEGATIVE.** 0/6 on ROI (mean -4.33pp; **SIG NEG** at PRIMARY q=.25, -8.49
+  [-16.76,-0.22], and at SECONDARY q=.50, -2.77 [-4.90,-0.64]) and **0/6 on CLV
+  with ALL SIX paired CLV intervals excluding zero** (-0.266, -0.632, -1.109,
+  -0.170, -0.358, -0.609). Selecting on returning rotation minutes picks bets with
+  LESS CLV and LESS ROI. **The D133/D145 absence-blindness insight does NOT
+  transfer to the SIDES path in the direction hypothesised**; on this evidence the
+  market prices returning rotation minutes MORE efficiently than the games we
+  would otherwise be betting. Recorded so it is not re-proposed.
+  (10) **V3 BATTERY (GATE_POLICY_V2 §8-§11).** ROLLING-ORIGIN is the walk-forward;
+  sign consistency across folds is **FALSE for every arm on both frames**
+  (A0 3/5 and 8/14 positive, A1 4/5 and 9/14, A2 4/5 and 7/14, A3 2/5 and 7/14),
+  so by §11 tie-break 3 **all four, INCLUDING THE INCUMBENT, are disqualified from
+  T1 on this statistic.** LOSO is reported as a stability diagnostic with
+  `independent_folds = 1`, never as k proofs (§8.2). ERA: A0 ERA-SPECIFIC, A1
+  ERA-CONDITIONAL, A2 and A3 ERA-STABLE at/below zero; the PRIMARY frame is
+  entirely K-E so its era decomposition is **UNDETERMINED** and is reported as
+  such rather than as stability. BLOCK BOOTSTRAP (7-day blocks, 2,000 draws) on
+  the q=.10 cell: A1 [+2.46,+14.67] PRIMARY and [+2.49,+8.85] SECONDARY —
+  **the only intervals in the whole run that exclude zero for A1, and §9.1
+  explicitly SUBORDINATES the block bootstrap to the season-clustered interval,
+  which straddles zero. The shipping statistic says no.** ICC -0.003..+0.006,
+  DEFF 0.61-1.89, consistent with §9.2's "sides deltas are dominated by
+  irreducible outcome noise". BH across the family: 3/3 rejected on PRIMARY, 1/3
+  on SECONDARY — immaterial, see (5).
+  (11) **ERA STATEMENT (§10).** Eval universe by era code: PRIMARY = **K-E only**
+  (scored 2021-22..2025-26), training K-C+K-D; SECONDARY = **K-B, K-C, K-D, K-E**
+  (scored 2012-13..2025-26), training K-A+K-B. ERA-AVAILABILITY: every input
+  exists on every scored season — `open_margin`/`close_margin` on all 19,
+  `game_inactives` complete to 2006-07 after D170/D171, and **A2/A3 consume the
+  inactive list only, NOT `injury_reports_pit`, precisely so that neither arm is
+  structurally inert on the secondary frame** (the D110 §1a trap). The 5PM report
+  enters only through the frame's own T2 `p_us`, which is why the report era is
+  the PRIMARY frame. COVID-FRAME CHECK: **2019-20 and 2020-21 are TRAINING-ONLY
+  on the primary frame and are never scored there**; on the secondary they are
+  scored inside K-D, where A0 is strongest (+9.14%) — a reason to distrust A0's
+  pooled level, not to like it. TIERS: T2 throughout the primary, **T2i
+  2007-08..2017-18 + T2 2018-19..2025-26** on the secondary, named and never
+  pooled silently. CLUSTERING: season, K=5 (primary) and K=14 (secondary);
+  **K=5 is why nothing on the primary frame is actionable and every number there
+  should be read with that in front of it.**
+  (12) **EXECUTION.** Priced flat -110 at the OPEN. `data/bkp_panel_rows.csv.gz`
+  had **NOT** grown when this was priced (493,371 bytes, mtime 2026-08-04 22:35,
+  unchanged), so no new Kaggle panel was available and D174's ladder is used as
+  registered. Per-season MEASURED/EXTRAPOLATED labels are taken from
+  `bkp_ladder.json`'s `repriced.rows` (**10 MEASURED / 4 EXTRAPOLATED**), **not**
+  from D174 §15's prose, which the artifact contradicts — the primary frame's five
+  scored seasons are 2021-22 EXTRAPOLATED, 2022-23 EXTRAPOLATED, 2023-24 MEASURED,
+  2024-25 MEASURED, 2025-26 MEASURED. Level twin with the k=5 outlier-realism
+  haircut (dROI = 1.909 * 0.0317276 = 0.06057 per spread point): PRIMARY A0
+  +7.83 -> +9.43, A1 +6.76 -> +8.29, A2 +6.46 -> +8.00, A3 +1.44 -> +3.05;
+  SECONDARY A0 +3.95 -> +5.14, A1 +2.90 -> +3.93, A2 +0.28 -> +1.49, A3 -1.24 ->
+  -0.22. **Uniform across arms; it cannot and does not move any paired contrast.**
+  (13) **WHAT ACTUALLY CHANGED IS THE BASELINE, NOT THE FRONTIER.** On the fixed
+  data the INCUMBENT edge selector, walk-forward at q=0.10, returns **+7.83%** on
+  the report era (K=5, CI [-6.11,+19.16]) and **+3.95%** on 19 seasons (K=14, CI
+  [-2.20,+7.34]) — positive, ERA-SPECIFIC, rolling-origin sign-inconsistent, and
+  underpowered on both. D173 registered that transition; **this entry adds that
+  the space immediately around it does not contain a detectable improvement.**
+  (14) **WHAT THIS ENTRY DOES NOT CLAIM AND DOES NOT DO.** It does NOT claim the
+  three hypotheses are false — only A3 is affirmatively wrong-signed. It does NOT
+  claim A1 is worthless; it claims A1's +1.30pp sits below the family burden and
+  the MDE80 and flips under one-fold deletion. **A null result at K=5 with a
+  paired MDE80 of 4.51-13.58 points is a statement about DETECTABILITY, not a
+  proof of absence; the binding constraint is K and the only instrument that
+  relaxes it is fresh seasons (§9.4).** No production default changed. No gate
+  run. No re-certification. The eval corpus is not widened. No table created or
+  altered. `data/capstone_pergame.csv` md5 `695d40a3545e889267cad403b7acdce8`
+  VERIFIED UNCHANGED before and after. `nbapred/` NOT MODIFIED — `anchored.py`
+  and `oc_capacity.py` were IMPORTED, not edited. DB `data/nba.duckdb` READ-ONLY
+  throughout (`read_only=True`), ZERO writes.
+  [code scripts/ns_features.py, ns_score.py, ns_battery.py (all NEW);
+   data/newstrat_prereg.md (+ .sha256
+   db293ad8548a2e7099586a66847d6d1a71d8e83e4ab171e0917584980e9f1fc7),
+   data/newstrat_notes.md (full working, checkpointed as the run proceeded,
+   including the MDE80 table fixed BEFORE scoring);
+   data/ns_features.csv.gz (md5 531ad048ff5ca02d763d65d130753499),
+   data/ns_mde80.json, data/ns_score.json, data/ns_battery.json;
+   data/logs/ns_score.log, data/logs/ns_battery.log;
+   INPUTS ats19_frame.csv.gz 78bbba1fa9cf14e6dc9563aab73bdc0f,
+   ats19_frame_D173blind.csv.gz 154226d46e1b4937089a4f68e8060de9,
+   k19_d171_t2_pergame.csv 657458e52980aad702cc3b63766fa2f0;
+   NO nbapred/ FILE MODIFIED; NO GATE RUN; NO PRODUCTION DEFAULT CHANGED;
+   NO CERTIFIED ARTIFACT TOUCHED; NOTHING SHIPS]
+
+- D177 **KAGGLE SWEPT TO EXHAUSTION FOR THE LAST BOOK-PANEL GAP, AND THE ANSWER
+  IS NO. 1,613 DATASETS ENUMERATED; NOT ONE CARRIES PER-BOOKMAKER NBA ODDS FOR
+  2019-20..2022-23. THE HOLE IS NOT CLOSED AND ON THIS ROUTE IT CANNOT BE.**
+  WHAT KAGGLE DID YIELD IS **ONE REAL BOOK** — BetMGM's close, 2021-22..2025-26
+  (`caseydurfee`) — WHICH IS **NOT A PANEL AND IS NEVER CALLED ONE**, BUT WHICH
+  ANCHORS THE EXTRAPOLATION FROM INSIDE THE HOLE FOR THE FIRST TIME:
+  **D166's FORWARD-CARRIED LAW (k=5+HC = 0.4261) WAS OPTIMISTIC BY ~1.25x ON
+  2021-22/2022-23 (ANCHORED 0.3397 / 0.3398), THE SAME DIRECTION AS D174's
+  1.7-2.0x AT THE MODERN END BUT MILDER — SO THE LAW WAS TOO GENEROUS AT BOTH
+  ENDS OF THE RECORD AND THE MIDDLE IS THE LEAST WRONG PART OF IT.**
+  **THE EQUITY PATH DOES NOT MOVE: NO SEASON BECOMES MEASURED, SO THE OFFICIAL
+  FIGURE STAYS D174's +3.13% / +48.6u AND THE RECORD STAYS 9 OF 14 MEASURED.**
+  A FOURTH INSTANCE OF THE D171 NAME BUG CLASS WAS CAUGHT — LOUDLY, BY DESIGN.
+  DIAGNOSTIC. No production default changed, no gate run, eval corpus NOT
+  widened, `scripts/bet_engine.py` and `scripts/prod_by_season.py` UNTOUCHED and
+  NOT RUN, no walk-forward re-run. DB `data/nba.duckdb` **READ-ONLY THROUGHOUT**
+  — `read_only=True` with `retry_s=60`, ZERO writes, no table created or
+  altered. `nbapred.threads.pin(1)` before numpy. (2026-08-05)
+  (1) **THE BRIEF, AND WHY KAGGLE WAS THE ONLY ROUTE LEFT.** D174 §11 put
+  2019-20..2022-23 on the record as EXTRAPOLATED for a **legal, not technical**
+  reason: Action Network's robots.txt is `Disallow: /`, and ESPN's core API has
+  the data but Disney's ToS forbids extraction while `espn.com/robots.txt` names
+  **`anthropic-ai / Disallow: /`**. Kaggle is public, freely downloadable and
+  permitted, so it is the remaining route. **IT WAS TAKEN, IT WAS SWEPT TO
+  EXHAUSTION, AND IT DOES NOT CONTAIN THE DATA.**
+  (2) **ACCESS: THE CHROME ROUTE IS DEAD, THE ANONYMOUS PUBLIC API IS NOT.**
+  `kaggle_web.py::_find_session` raises `no logged-in Kaggle Chrome profile
+  found`. But Kaggle's own `/api/v1/` needs **no auth at all** — `datasets/list`
+  (search), `datasets/view` (metadata) and the **full `datasets/download` zip**
+  all return 200 anonymously (72 MB pulled with no cookie). `kaggle_web.py` now
+  falls back to it (`_anon_session`/`_session`) and exposes `search()`/`view()`
+  so a candidate is SCREENED BEFORE it is downloaded. **Two gotchas recorded so
+  nobody re-finds them:** the documented `datasets/list/files/{owner}/{slug}`
+  endpoint **404s**, and `view`'s `files` array comes back **EMPTY** — the only
+  reliable way to see file names is to download the zip and read its namelist.
+  kaggle.com serves **no robots.txt** (`/robots.txt` soft-404s to the SPA shell,
+  HTTP 404) and `/api/v1/` is Kaggle's own documented API whose entire purpose
+  is dataset download. No other host was contacted by this entry.
+  (3) **THE SWEEP.** 88 search terms; deep paging on `nba`/`basketball`/`odds`/
+  `betting`/`sportsbook`/`bookmaker`/`spread`/`moneyline`/`wager` to exhaustion;
+  and a **per-user enumeration of all 17 publishers** who have ever posted an
+  odds file (`christophertreasure, thedevastator, oliviersportsdata, eddieglush,
+  erichqiu, ehallmar, cviaxmiwnptr, chevronronson, zachht, ronaldoaf,
+  caseydurfee, visualize25, giardinidavide, changewire, sharpapi, austro,
+  mexwell`). **1,613 distinct datasets; 140 betting-related; 32 both-basketball-
+  and-betting, and every one of those 32 was opened or its header read.**
+  (4) **THE EVALUATION TABLE. THE DECISIVE COLUMN IS PER-BOOK, AND THE DECISIVE
+  TRAP IS THAT AN AVERAGE OF BOOKS IS NOT A PANEL OF BOOKS.**
+```
+  dataset                                  seasons        per-BOOK?  OPEN? lic       verdict
+  thedevastator/uncovering-hidden-…-20     2014-10..22-12 PROPS only  no   CC0       NO
+  caseydurfee/mgm-grand-nba-betting-data   2021-22..25-26 1 book      no   CC BY-SA  USED, not a panel
+  zachht/wnba-odds-history                 2025-09+       1 book(Pinn) n/a CC0       NO
+  visualize25/basketball-betting-dataset   ..2023         no         YES   Unknown   NO
+  giardinidavide/nba-odds                  2021-2022      no          no   Unknown   NO (oddsportal)
+  bhavishsalia/nba2019odds                 2018-19        no          no   Unknown   NO
+  hardikbhalekar/global-sports-…-2026      2026-06+       YES         no   CC BY-SA  NO (zero NBA rows)
+  oliviersportsdata/us-sports-master…      1998-2026      no          no   CC BY-NC  NO (50-row teaser)
+  dontefarquharson / cactusmann / marcuslin                                          NO
+  ehallmar/nba-historical-stats-…          2006-07..17-18 YES         no   Unknown   held; FROZEN v1
+  erichqiu/nba-odds-and-scores             2012-13..18-19 YES        YES   CC0       held; FROZEN v3
+  chevronronson / cviaxmiwnptr / christophertreasure — re-verified single-consensus
+```
+  **THE NEAR MISS, AND IT IS INSTRUCTIVE.**
+  `thedevastator/uncovering-hidden-trends-in-nba-betting-lines-20` (CC0, 72 MB,
+  **Dec-2021 to Dec-2022 — squarely inside the hole**) advertises comparing
+  "betting lines from a variety of sports books", ships a file literally called
+  `slackr_output_arbs.csv`, and **does** carry per-book columns
+  (`br_/bs_/csr_/dk_/fd_/mgm_/pb_` = BetRivers/…/Caesars/DraftKings/FanDuel/
+  BetMGM/PointsBet). **All of it is on FANTASY-POINTS and FIRST-TEAM-TO-SCORE
+  PROP markets, and all of it is ONE SINGLE DAY, 2022-12-12 (70 rows).** Its
+  game-level `nba_YYYYMMDD_spread.csv` files carry one `home_line` per game
+  whose values give the game away — `-503.3333`, `219.8333`, `7.66667` — **they
+  are cross-book MEANS.** A consensus computed FROM books is still a consensus.
+  (5) **THE BEST LEAD IN THE HUNT, KILLED ON EVIDENCE RATHER THAN ASSUMPTION.**
+  The only two NBA sets on Kaggle with a real per-book schema are the two we
+  already own. `ehallmar` is **v1, 2018-08-26, never updated**. `erichqiu` is
+  **v3, 2020-05-02 — SEVEN WEEKS AFTER THE COVID SHUTDOWN**, so a scrape made
+  then could plausibly have carried the truncated 2019-20 season and would have
+  closed a quarter of the hole for free. **It was re-downloaded and diffed:
+  BYTE-IDENTICAL ZIP (1,961,317 B), same 21-file namelist, last folder
+  `2018-19/`.** Dead, and dead for a stated reason.
+  (6) **A LIMIT OF THE SEARCH, RECORDED RATHER THAN GLOSSED.** Kaggle's
+  `datasets/list?search=` indexes **title and subtitle ONLY, not descriptions** —
+  probes for `jimtheflash`, `gambling_stuff` and `Open_Line_Spread` (strings
+  present only in description bodies) each return **0 hits**. A per-book NBA
+  panel published under a title naming neither the sport nor the market would be
+  invisible to this sweep. Mitigated by the per-user enumeration and by paging
+  the broad terms to exhaustion; **not eliminated, and the entry does not
+  pretend otherwise.**
+  (7) **WHAT WAS INGESTED, AND THE SENTENCE THAT GOVERNS IT: IT IS ONE BOOK.**
+  `caseydurfee/mgm-grand-nba-betting-data` (CC BY-SA 4.0, 6,081 rows,
+  2021-10-19..2026-02-12) is **BetMGM only**, scraped from Yahoo's internal JSON.
+  **k=1 COMPUTES NO LADDER. THE BRIEF'S "5 BOOKS THAT ARE ONE FEED IS WORTH
+  NOTHING" QUESTION DOES NOT ARISE, BECAUSE THERE ARE NOT 5 BOOKS — THERE IS 1,
+  AND THIS ENTRY NEVER CALLS IT A PANEL.** It is ingested because it is the only
+  free object that places a NAMED, VERIFIED operator inside the hole.
+  (8) **THE FOURTH INSTANCE OF THE D171 BUG CLASS, AND THE DESIGN WORKED.** The
+  feed names every side by **BARE CITY** ("Atlanta", "Utah", "Golden State").
+  Through `nbapred/teams.py` as it stood, **28 of 30 franchises were
+  UNRESOLVABLE** — and `resolve_map` REPORTED all 28 with row counts instead of
+  silently deleting ~5,700 rows, which is precisely what D171 built it to do.
+  Fix: a **CITY rule added LAST in `resolve()`**, so it is **strictly additive**
+  — it can only fire where the three older rules already returned None and
+  therefore cannot change any name this module resolved before.
+```
+  30 / 30 distinct strings resolved, to 30 DISTINCT franchises, 0 unresolved.
+  'Los Angeles' STILL returns None, deliberately — two franchises share it.
+  'Golden State' needs an explicit alias: nba_api's `city` for GSW is
+     "San Francisco", so the city rule alone would have missed exactly one team.
+```
+  Regressions: `tests/test_teams_canon.py::test_city_rule_resolves_every_yahoo_mgm_spelling`
+  (asserts **30 DISTINCT** abbrevs, because a rule that collapsed two cities
+  would still "resolve" 30 strings), `::test_ambiguous_city_stays_unresolvable`,
+  `::test_city_rule_is_strictly_additive`.
+  (9) **MATCH RATE, BOTH DIRECTIONS, AND A MEASURED NO-OP.**
+```
+  MGM -> spine   6,077 / 6,079 rows carrying a spread            99.97%
+  spine -> MGM   6,077 / 6,606 odds_market games 2021-22..25-26  92.0%
+                 (shortfall is 2025-26 stopping at the All-Star break)
+  per season  2021-22 1,329 | 2022-23 1,302 | 2023-24 1,318
+              2024-25 1,320 | 2025-26   808
+```
+  **D174's +/-1 DAY TOLERANCE CONTRIBUTED EXACTLY ZERO — all 6,077 matched at
+  offset 0.** Unlike ESPN (UTC), Yahoo's dates are already ET. The tolerance is
+  kept in the code because it is free; that it is a no-op **here** is now
+  measured rather than assumed.
+  (10) **VALIDATION AGAINST WHAT WE ALREADY HOLD.**
+```
+  season   n     corr(mkt) MAD(mkt) bias   tie(mkt) MAD(open) tie(open) tie(close)
+  2021-22 1329   0.9975    0.2961  +0.006   49.66%   1.5740    14.04%    49.74%
+  2022-23 1302   0.9928    0.3184  +0.079   58.83%   1.7891    13.90%    53.04%
+  2023-24 1318   0.9959    0.3001  +0.003   73.22%   1.3367    19.20%    53.72%
+  2024-25 1320   0.9952    0.2924   0.000   75.23%   1.9129    22.65%    74.77%
+  2025-26  808   0.9863    0.5186  -0.019   56.68%   1.4709    25.37%    84.41%
+```
+  corr 0.986-0.998 and |systematic offset| <= 0.08 pt: a real NBA spread on our
+  games, not mis-keyed and not sign-flipped (a flip would show ~5+).
+  **WHICH PHASE? MEASURED, NOT ASSUMED: MAD to our CLOSE is 0.18-0.30 and to our
+  OPEN 1.34-1.91. IT IS THE CLOSE.**
+  (11) **INDEPENDENCE — THE TIE-RATE LADDER APPLIED TO THE ONLY QUESTION IT CAN
+  ANSWER HERE.** With k=1 there is no cross-operator question, so the test run
+  is D174 §3's **same-operator control**: this scrape against the panel's OWN
+  `mgm` rows — one book, two independent scrapers.
+```
+  2023-24 CLOSE  n=1229  tie 89.10%  MAD 0.2107
+  2025-26 CLOSE  n= 100  tie 89.00%  MAD 0.1600
+  2024-25 CLOSE  n=  75  tie 77.33%  MAD 1.2667   (thin; AN's MGM is sparse)
+  2023-24 OPEN   n=1196  tie 33.03%  MAD 1.3094   <- the phase control
+```
+  Against D163/D174's ladder — **known duplicate 100.00% with MAD exactly
+  0.0000; Caesars state skins 91-94%; genuine cross-operator 36.52%** — 89.10%
+  and 89.00% sit squarely in D174's "independent scrapers of the SAME operator"
+  band (81-96%). **VERDICT: A GENUINE BetMGM CLOSE, INDEPENDENTLY CAPTURED;
+  NEITHER A RELABELLED COPY OF A FEED WE ALREADY HOLD NOR A DIFFERENT BOOK
+  WEARING MGM's NAME.**
+  (12) **THE LADDER (TASK 4): NO SEASON BECOMES MEASURED, AND NO LADDER IS
+  INVENTED.** A best-of-k ladder needs >= 2 books. What one book gives against a
+  consensus is a SCALE statistic `m1 = mean|book - consensus close|`, and the
+  ladder is a function of scale — so the ratio is FITTED where both are MEASURED
+  and only then read off. `ladder_vals` is **IMPORTED from `scripts/bkp_ladder.py`,
+  not reimplemented**, so every cell is D163/D174-comparable.
+  **HARNESS ANCHOR: THE CALIBRATION REPRODUCES D174 EXACTLY** — 2023-24 k2/k3/k5/k8
+  = 0.2569 / 0.3854 / 0.5569 / 0.7265 (D174 §6, identical); 2024-25 k5+HC 0.2527
+  and 2025-26 k5+HC 0.2154 (D174 §7, identical); 2018-19 k2 0.1107 (D174 §10).
+```
+  season  games books  m1_mean m1_trim |  k2     k3     k5     k8  |  k2_hc  k3_hc  k5_hc  k8_hc
+  2012-13  1313   5    0.1813  0.1552   0.1175 0.1762 0.2610 0.2610  0.1013 0.1519 0.2211 0.2211
+  2013-14  1319   5    0.1632  0.1556   0.1013 0.1519 0.2206 0.2206  0.0925 0.1388 0.2000 0.2000
+  2014-15  1309   5    0.1647  0.1527   0.1136 0.1704 0.2511 0.2511  0.1045 0.1567 0.2294 0.2294
+  2015-16  1315   5    0.2058  0.1940   0.1186 0.1778 0.2587 0.2587  0.1118 0.1677 0.2428 0.2428
+  2016-17  1309   5    0.2317  0.2014   0.1223 0.1834 0.2678 0.2678  0.1110 0.1664 0.2401 0.2401
+  2017-18  1312   5    0.2563  0.1952   0.1631 0.2446 0.3706 0.3706  0.1052 0.1577 0.2269 0.2269
+  2018-19  1307   5    0.1929  0.1849   0.1107 0.1660 0.2366 0.2366  0.1040 0.1559 0.2223 0.2223
+  2023-24  1319  11    0.4428  0.3096   0.2569 0.3854 0.5569 0.7265  0.1610 0.2415 0.3381 0.4221
+  2024-25  1291   5    0.2840  0.2461   0.1702 0.2550 0.3118 0.3118  0.1435 0.2147 0.2527 0.2527
+  2025-26  1265   6    0.4131  0.2311   0.1431 0.2140 0.2350 0.2350  0.1331 0.1985 0.2154 0.2154
+```
+  **THE TRIMMED SCALE HAD TO BE USED, AND THAT WAS NOT ASSUMED — IT IS THE ONE
+  PLACE THIS METHOD NEARLY BROKE.** With a plain mean, 2025-26's `m1` blows up
+  to 0.4131 against a MEASURED k5+HC of 0.2154 and **the harness misses by
+  147%**. Applying **D163's OWN 1.5-pt outlier-haircut rule to `m1`** — the same
+  rule the ladder it predicts already uses, so numerator and denominator are
+  haircut alike — collapses that: `k5_hc/m1_trim` **1.2071, cv 0.142, K=10, 95%
+  CI [1.0842, 1.3300]** against `k5_hc/m1_mean` 1.0265, **cv 0.254 — rejected on
+  every count**.
+  **HARNESS CHECK, THE TEST THAT DECIDES WHETHER ANY OF THIS MAY BE QUOTED:**
+```
+  season   k5_hc MEASURED   k5_hc ANCHORED   ratio
+  2023-24     0.3381           0.3064        0.907
+  2024-25     0.2527           0.2822        1.117
+  2025-26     0.2154           0.2662        1.236
+  WORST CONTROL-SEASON ERROR  23.6%
+```
+  **NO ANCHORED CELL BELOW MAY BE READ WITHOUT THAT +/-24% IN FRONT OF IT.**
+  (13) **WAS THE EXTRAPOLATION OPTIMISTIC, PESSIMISTIC OR RIGHT? LAW vs LAW —
+  D174 §7's comparison, chosen because it does not depend on a back-out.** D166
+  carried D163's pooled ESPN23 law, k=5 + outlier haircut = **0.4261**, into
+  every extrapolated season.
+```
+  season    EXTRAPOLATED   ANCHORED k5+HC   [95% CI]           ratio
+  2021-22      0.4261         0.3397     [0.3051, 0.3743]   **1.254x**
+  2022-23      0.4261         0.3398     [0.3052, 0.3744]   **1.254x**
+  carrying the harness's own 23.6%:                          1.02x - 1.38x
+  2019-20 / 2020-21  0.4261   NOTHING — MGM's file starts 2021-10-19
+  raw twins:  k5 raw 0.4128 / 0.4129 | k2 raw 0.1955 | k2+HC 0.1643 / 0.1644
+              | k3+HC 0.2463 | k8+HC 0.3474
+```
+  **OPTIMISTIC, BY ~1.25x. SO THE FORWARD-CARRIED LAW WAS TOO GENEROUS AT BOTH
+  ENDS OF THE RECORD — 1.7-2.0x on 2024-25/2025-26 (D174 §7) and ~1.25x here —
+  AND THE MIDDLE OF THE RECORD IS THE LEAST WRONG PART OF IT.** Note what this
+  does NOT say: it is an anchored EXTRAPOLATION, not a measurement, and half the
+  hole (**2019-20 and 2020-21, both COVID seasons**) is untouched by it.
+  (14) **THE RE-PRICE (TASK 5): THE PATH DOES NOT MOVE, AND SAYING SO IS THE
+  RESULT.** No season becomes MEASURED, so the official figure is unchanged.
+  Reproduced from `data/bkp_ladder.json` to the cent: pooled **+3.1305% /
+  +48.62u**, season-clustered **K=14 +2.54% [-3.75, +8.82]**.
+  A SENSITIVITY was computed and is labelled as one — D174's path with 2021-22
+  and 2022-23's applied gain swapped for the anchored estimate:
+```
+  pooled          +3.13% (+48.6u)  ->  +3.40% (+52.8u)
+  clustered K=14  +2.54% [-3.75,+8.82] -> +2.81% [-3.34,+8.96]
+```
+  **AND THE DIRECTION MUST BE EXPLAINED OR IT READS AS A CONTRADICTION OF §13.**
+  The law comparison says D166 was too GENEROUS while the path sensitivity moves
+  UP. Both are right and they are different quantities: D166's per-season
+  **APPLIED** gains for those two seasons, backed out of its own dcover, were
+  **0.0174 (2021-22) and 0.0785 (2022-23)** — far BELOW its own 0.4261 law.
+  That is exactly D174 §12's recorded caveat that the back-out is **~8x noisier
+  than the law**. **SO THE +0.27pp IS NOISE CORRECTION, NOT EVIDENCE THAT
+  EXECUTION IN THE HOLE WAS BETTER THAN ASSUMED, AND IT IS NOT PROMOTED TO A
+  RE-PRICE.**
+  (15) **THE COUNT.** **9 of 14 scored seasons MEASURED, 5 EXTRAPOLATED —
+  UNCHANGED from D174.** A one-book file does not make a season measured. What
+  changes is only the QUALITY of the label on two of the five: 2021-22 and
+  2022-23 move from "EXTRAPOLATED, law carried forward from another era" to
+  "EXTRAPOLATED, ANCHORED to a verified operator inside the season, +/-24%".
+  **2019-20 and 2020-21 remain wholly EXTRAPOLATED with no anchor of any kind,
+  and per D174 §15 the COVID seasons are never pooled into a headline.**
+  (16) **ERA / CLUSTERING / AVAILABILITY (GATE_POLICY_V2 §10).** Calibration
+  universe: the ten seasons with a MEASURED close panel (2012-13..2018-19
+  erichqiu + 2023-24..2025-26 AN/ESPN), **K=10**, and the ratio CI above is the
+  9-dof cluster-mean interval. Harness control: **K=3**, and its 23.6% worst
+  error is quoted rather than a CI, because K=3 does not support one. The
+  re-priced path is **K=14**. ERA-AVAILABILITY: unchanged everywhere; improved in
+  LABEL QUALITY only for 2021-22/2022-23. AVAILABILITY TIER: not applicable — no
+  arm here consumes an out-set.
+  (17) **UNPRICED BIAS, RESTATED ONCE AS REQUIRED.** Best-of-k **always**
+  transacts at the most offside book in the panel, and **nothing here, in D163,
+  D166 or D174 charges anything for being LIMITED, RESTRICTED OR VOIDED.** Every
+  number above is gross of that cost and it remains the largest unmodelled risk
+  in the execution layer. It applies to the anchored cells exactly as it applies
+  to the measured ones, and the anchored cells are if anything MORE exposed,
+  since BetMGM is a retail operator of precisely the kind that limits winners.
+  (18) **WHAT THIS ENTRY DOES NOT CLAIM.** It does **not** close
+  2019-20..2022-23 and says plainly that Kaggle cannot. It does **not** present
+  a panel — there is one operator and the word is refused throughout. It does
+  **not** re-price the walk-forward (§14 is a labelled sensitivity, and the
+  official path is D174's, reproduced not recomputed). It does **not** widen the
+  eval corpus, re-certify, gate, ship, or change any default. It does **not**
+  contact any host other than kaggle.com, and it does not revisit ESPN, Action
+  Network or oddsportal — **D174's robots/ToS stops are upheld in full.** It
+  does **not** delete or re-scrape the pre-existing ESPN/AN files, and D174's
+  flagged **pre-existing compliance exposure remains open and remains the
+  owner's call.**
+  [code scripts/d177_mgm_probe.py (NEW, not under `nbapred/`);
+   nbapred/ingest/kaggle_web.py MODIFIED (anonymous public-API fallback +
+   `search()`/`view()`; the Chrome path is untouched and still tried first);
+   nbapred/teams.py MODIFIED (unique-city rule, LAST in `resolve()`, strictly
+   additive; `_static()` now returns a third map; `known_report_names` updated
+   for the new arity; "Golden State" alias added);
+   tests/test_teams_canon.py EXTENDED (3 new regressions, 13 pass);
+   data/kaggle_odds_notes.md (full working, checkpointed as the run proceeded —
+   the dataset evaluation table, the search limits, and the rejected m1_mean
+   variant that missed by 147%);
+   data/d177_mgm_probe.json, data/d177_mgm_rows.csv.gz (the 6,077 joined BetMGM
+   closes on our team keys), data/logs/d177_mgm_probe.log;
+   data/raw/kaggle/caseydurfee__mgm-grand-nba-betting-data/ (NEW, 6,081 rows),
+   data/raw/kaggle/thedevastator__uncovering-hidden-trends-in-nba-betting-lines-20/,
+   data/raw/kaggle/zachht__wnba-odds-history/,
+   data/raw/kaggle/visualize25__basketball-betting-dataset/ (all NEW, all
+   EVALUATED AND REJECTED, kept so the verdicts are re-checkable);
+   docs/OPENING_LINES.md updated (new §9; §4's Kaggle verdicts and the access
+   note rewritten; the phase-coverage table now separates 2019-20/2020-21 from
+   2021-22/2022-23 and states the 9-of-14 record);
+   inputs data/bkp_panel_rows.csv.gz, data/bkp_ladder.json (D174's, READ ONLY),
+   scripts/bkp_ladder.py (IMPORTED for `ladder_vals`/`clustered`, NOT EDITED),
+   scripts/build_odds_open.py (`_pair_join`'s rule reused, file NOT EDITED),
+   data/nba.duckdb (read_only=True retry_s=60; queries: `odds_market`,
+   `odds_open`);
+   scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py NOT RUN, no gate
+   re-run, no default changed, eval corpus unchanged, no walk-forward re-run,
+   no chart written; DB READ-ONLY THROUGHOUT — ZERO writes, no table created
+   or altered]
+
+- D178 **THE OCTOBER-BLOCKING LIVE-PATH FLAGS, CLOSED — AND THE CLV BANDS
+  RE-DERIVED. THE HEADLINE IS NOT THE FILTER: IT IS THAT THE >=2-BOOK RULE
+  D142's EVIDENCE DEMANDS CANNOT BE SATISFIED BY EITHER FEED WE ACTUALLY OWN
+  AT THE OPEN, SO OCTOBER'S CLV SCORING SET LIVES OR DIES ON A SYSTEMD UNIT
+  THAT HAS NEVER RUN IN-SEASON.** (2026-08-05)
+  SHIP + DIAGNOSTIC. Four production files changed
+  (`nbapred/engine/slate.py`, `nbapred/ingest/injury_pdf.py`,
+  `scripts/bet_engine.py`, `scripts/predict_today.py`), two test files re-pinned
+  or extended, one new derivation script, one new runbook. NO GATE RUN, NO
+  MODEL RE-CERTIFIED, EVAL CORPUS UNCHANGED, `data/capstone_pergame.csv`
+  NOT WRITTEN (md5 `695d40a3545e889267cad403b7acdce8` before and after).
+  DB `data/nba.duckdb` **READ-ONLY THROUGHOUT** — `read_only=True` with
+  `retry_s=60` on every connect, ZERO writes, no table created or altered.
+  `nbapred.threads.pin(1)` before numpy in the new script.
+  (1) **FIX 1 — THE GAME-TYPE FILTER, AND THE HOLE WAS BIGGER THAN D172 SAID.**
+  D172 found `slate.py` was the one production consumer lacking
+  `game_id LIKE '002%'`. It is worse than one query: **`todays_games()` had no
+  filter at all**, so the nba_api scoreboard — which serves `001` PRESEASON in
+  early October and `003` ALL-STAR in February — handed exhibition games
+  straight to `fit_production`, the tank priming and the bet engine regardless
+  of what any downstream SQL did. Spine census re-confirmed: **315 rows / 97
+  non-franchise team codes = 148 `001` international preseason + 167 `003`
+  All-Star.** Fixed at FOUR chokepoints so no caller can smuggle one in:
+  `slate.todays_games()` (`slate.py:55`), `slate.slate_context()`
+  (`slate.py:97`), `bet_engine.emit()`/`scan_open()` (`bet_engine.py:748`,
+  `:811`), `predict_today.main()` (`predict_today.py:42`). New helpers
+  `is_regular_season`/`filter_regular_season`/`GAME_TYPE` (`slate.py:30-52`)
+  REPORT every drop rather than swallowing it (D171's `teams.py` law).
+  **THE bet_engine FILTER IS NOT BELT-AND-BRACES:** both emitters keep their
+  own copy of `games` and index `ctx["outs"][gid]`, so an unfiltered list would
+  have raised KeyError the first October night a preseason game appeared.
+  **THREE MORE UNFILTERED QUERIES FOUND BY THE AUDIT, ALL FIXED:** the b2b
+  lookup (now `slate.b2b_teams`, `slate.py:73`) and BOTH props CTEs in
+  `predict_today.py` (`:118`, `:125`) — the second of which, `current_team`'s
+  `arg_max`, could resolve a player's CURRENT team to an All-Star or exhibition
+  side and drop that entire roster from the printout. b2b impact MEASURED
+  across the whole spine: **1 date x 2 teams** (2025-12-17, the day after the
+  2025 NBA Cup final) — small, but `prod_by_season.py:111` and
+  `production.fit_schedule_layer:131` are both 002-only, so it was a live/
+  backtest PARITY break and it was free. FALSE POSITIVES the audit correctly
+  left alone: `october_bridge.py:118` and `production.py:334` filter `001%`
+  DELIBERATELY (the D84-A preseason bridge); `tanking.py:194` is a
+  team_id->abbrev map; `bet_engine.py` settle/dry-run key on a specific
+  game_id. REGRESSION TEST as asked: `test_emit_never_books_a_non_regular_
+  season_game` pushes an All-Star + a preseason game through the LIVE emission
+  path beside a real one and asserts (a) the model layer is never asked about
+  them and (b) neither `bet_paper` nor `bet_quotes_panel` carries their id —
+  plus four unit tests covering all six prefixes, the scoreboard chokepoint and
+  the b2b query (`test_bet_engine.py:399-552`).
+  (2) **FIX 2 — >=2 BOOKS AT THE OPEN, AND THE FEED FINDING THAT MATTERS MORE
+  THAN THE RULE.** D142 measured the whole shop asset: best-of-2 lifts CLV
+  ~49%, and taking the WORSE book erases essentially all of it (+0.0092 ->
+  -0.0007). D125 shipped `bet_quotes_panel` but nothing REQUIRED two books.
+  Now `MIN_BOOKS_OPEN = 2` (`bet_engine.py:237`): an OPEN row is BOOKED only
+  with >=2 distinct two-sided books; with one book the observation is **STILL
+  WRITTEN** — all four stakes zeroed, `single_book=TRUE`, `clv_eligible=FALSE`,
+  `detail` carrying `single_book=1` (`bet_engine.py:670`) — and `--report` /
+  `--monthly-report` score CLV on `clv_eligible` rows only. **A THIN-BOOK NIGHT
+  DEGRADES VOLUME, VISIBLY, RATHER THAN SILENTLY POLLUTING THE MEAN.** Three
+  new columns (`n_books`, `single_book`, `clv_eligible`) migrate in place;
+  `clv_eligible` DEFAULTS TRUE so **no pre-D178 row is retroactively removed
+  from a measurement this rule did not govern**. The gate binds AT THE OPEN
+  ONLY — POST_REPORT/PRETIP record `n_books` for telemetry but keep eligibility,
+  because narrowing them too would silently redefine the two comparison views
+  the whole three-view design exists to measure.
+  **NOW THE PART THAT SHOULD WORRY THE OWNER. D174 said Action Network has no
+  per-book opener; we checked what the OTHER feeds actually return instead of
+  assuming, and the answer is that NEITHER LOCAL FEED CAN SERVE THE OPEN.**
+  Share of games with >=2 distinct operators, MEASURED off D174's own
+  `data/bkp_panel_rows.csv.gz`:
+```
+      source  phase    2023-24   2024-25   2025-26
+      espn    open       94.7%      0.0%      3.4%
+      espn    close      95.2%      0.0%      1.5%
+      an      close     100.0%     99.6%     99.1%
+```
+  **ESPN's live poller is ONE BOOK BY CONSTRUCTION** (`espn_lines.py` reads the
+  public scoreboard = ESPN BET), and its historical open panel collapsed to one
+  operator when ESPN BET became the house book. **Action Network carries NO
+  per-book opening price at all** (D174 (2)(c): `book_id 30` is a consensus
+  opener and its per-book snapshot is the CLOSE). **THE ODDS API
+  (`odds_logger` -> `ev["bookmakers"][]`, regions=us; `load_odds.flatten`
+  emits one row per book) IS THE ONLY LIVE SOURCE WHOSE RESPONSE SHAPE CAN
+  SATISFY THE RULE — AND IT HAS NEVER RUN IN-SEASON IN THIS REPO.**
+  `data/raw/odds/` holds exactly ONE offseason day whose `data` is `[]`, and
+  **`odds_quotes` is EMPTY, 0 rows.** If that systemd unit is not up and
+  authenticated on opening night, **every OPEN row will be single-book and the
+  OPEN CLV scoring set will be EMPTY.** That is now the loudest failure the
+  system has, by design, and it is §3 of the runbook. NOTE what this rule does
+  NOT claim: it does not claim the Odds API will deliver k>=2 in practice —
+  that is UNMEASURED here because no in-season capture exists. It claims only
+  that the shape supports it and that the other two feeds provably do not.
+  (3) **FIX 3 — THE CLV BANDS, RE-DERIVED FROM SCRATCH, NOT PASTED.**
+  `scripts/d178_clvbands.py` (NEW) -> `data/d178_clvbands.json`. FIDELITY
+  ANCHOR FIRST, per D171's discipline: the LEAKY_REG arm reproduces the
+  registered D155/D159 ML@open UNION digits **n=1378, CLV=+0.01590 EXACT**, so
+  the harness is the registered one before anything else is believed.
+  **WHICH SPACE — STATED, BECAUSE D173 PUBLISHES TWO CLV NUMBERS AND THEY ARE
+  NOT INTERCHANGEABLE.** `bet_engine.settle` computes
+  `clv = close_implied - implied_p` where `implied_p` is the de-vigged
+  CONSENSUS MONEYLINE probability on our side. **The engine scores in
+  PROBABILITY space on the REAL MONEYLINE**, so the ML frame is used
+  (+0.01228, essentially unchanged from D159's +0.01197). D173's ATS
+  SPREAD-POINT CLV, which DOUBLED to +0.320, is in POINTS; the engine never
+  sees a spread point and using it would have been a **~26x unit error**.
+```
+    frame|arm      nbets  mo  med/mo    centre    sd_bet        se       RED       GOOD
+    ML|HONEST       1386  21      67  +0.01228   0.05123  0.006258  -0.000236  +0.024797  <- INSTALLED
+    SP|HONEST       1657  35      47  +0.01692   0.06006  0.008760  -0.000600  +0.034450
+    ML|LEAKY_REG    1378  21      66  +0.01590   0.04882  0.006010  +0.003880  +0.027920
+    SP|LEAKY_REG    1304  28      44  +0.01944   0.05795  0.008790  +0.001870  +0.037010
+```
+  **DERIVATION INPUTS (ML|HONEST, `capstone_pergame.csv`, union of the 4 F4
+  rules, unique games, @OPEN, 2023-24..2025-26 — the three full-T2 seasons, the
+  only ones with a real moneyline open): CENTRE = the UNION mean CLV
+  +0.012280275 (D120/D121 used the ALL-SAME-SIDE UNIVERSE, +0.0048 on this
+  frame — defect 1); PER-BET SD 0.051226; n = 1,386 bets over 21 months, MEDIAN
+  67/month; MONTHLY SE 0.006258 = sd/sqrt(67); BANDS = centre +- 2 se ->
+  RED -0.000236 / GOOD +0.024797.** Installed as a DICT `CLV_BAND`
+  (`bet_engine.py:282`) with `CLV_MONTH_RED`/`GOOD` **COMPUTED FROM IT**
+  (`:317-318`), so the constants cannot drift from their inputs; verified
+  installed == derived to **0.00e+00**. `--monthly-report` now PRINTS frame,
+  arm, seasons, n, centre, per-bet sd, n/month, se, k, source, anchor and what
+  it supersedes, beside the verdict.
+  **TWO CONSEQUENCES THAT ARE NOT SIDE-EFFECTS AND ARE PRINTED EVERY RUN.**
+  **(a) RED IS NOW MUCH TIGHTER (-0.0002 vs -0.0131).** Correctly centred on
+  +0.0123, "2 sigma below" is essentially "any negative month". On the 21
+  in-frame months it flags THREE — 2024-10, 2025-04, 2025-10 — and **TWO OF THE
+  THREE ARE OCTOBERS** (n=29 both times). Expect an October RED; it means the
+  month ran below the historical rate, not that the engine is broken.
+  **(b) THE TRIGGER IS UNREACHABLE BY CONSTRUCTION, AND ALWAYS WAS. Asking for
+  2 consecutive months above a +2-sigma line is E[wait] = 1/0.02275^2 = ~1,932
+  MONTHS.** D159 reported ~98 months for D120/D121 and read that as
+  mis-specification; the deeper point is that **the number was ~98 only because
+  their GOOD line happened to sit at +1.23 sigma OF THIS FRAME BY ACCIDENT — a
+  correctly-specified symmetric 2-sigma band makes the gate WORSE, not better.**
+  **FIXING THE BAND DOES NOT FIX THE TRIGGER.** This entry deliberately does
+  NOT move `TRIGGER_MONTHS` or re-specify the gate: that is a product decision
+  with its own D-line. It makes the arithmetic impossible to overlook instead.
+  (4) **CLV IS THE MONITOR, NOT THE OBJECTIVE — D176's FINDING, FOLDED INTO THE
+  INSTRUMENT IT CONSTRAINS.** D176 measured CLV and ROI apart: the
+  availability-divergence selector bought MORE CLV (6/6 cells, +0.143 pts) and
+  LESS ROI (1/6, -1.16pp), while the explicitly CLV-TARGETED selector bought
+  essentially NO extra CLV (+0.004) and the MOST ROI. **CLV IS NOT A SUFFICIENT
+  STATISTIC FOR BET SELECTION, SO A PURELY CLV-TUNED BAND CAN GREEN-LIGHT A
+  SELECTOR THAT IS LOSING MONEY.** These bands are kept because CLV RESOLVES
+  FAST — an early-warning read on execution and timing. **A GREEN CLV MONTH IS
+  NOT EVIDENCE OF PROFITABILITY; ROI AGAINST THE INCUMBENT IS THE OBJECTIVE.**
+  Stated in `CLV_BAND`, in `d178_clvbands.py`'s header, in runbook §4, and
+  PRINTED by `--monthly-report` on every run. **ON NULLS (D176's second
+  lesson):** D176 found all three new arms beat their own permutation nulls at
+  p<=0.048 and survived BH **and all three still lost to the incumbent** —
+  "beats a scrambled copy of itself" is true of the incumbent too. **CHECKED
+  AND STATED: nothing in this derivation is a net-of-null statistic.** Centre,
+  sd and se are plain sample moments of the union CLV, so there is no null to
+  over-read; any future re-derivation that introduces one must report against
+  the INCUMBENT as well.
+  (5) **FIX 4 — LIVE DRY RUN, BOTH BRANCHES.** New `--dry-books {1,2}`.
+  On the real 2026-03-27 slate (10 games): **books=2** — OPEN 11 bet rows
+  (11 booked, 0 excluded), POST_REPORT 8, PRETIP 8, 40 panel rows per view, 27
+  settled; staked flat 11.00/8.00/8.00, raw_kelly 53.03/13.91/13.91,
+  shrunk_kelly 0.00 everywhere (the D112/D117 result — the calibrated CLOSE edge
+  does not clear the vig), open_shrunk 8.03/0.02/0.02; OPEN mean CLV +0.0200
+  (flag `ok`), POST_REPORT/PRETIP +0.0000 by construction (both priced at the
+  close). **books=1, the HONEST historical shape** — OPEN 11 rows, **0 BOOKED,
+  11 single-book/CLV-EXCLUDED, n_clv = 0, `1book` = 11, meanK = 1.00**, while
+  POST_REPORT/PRETIP book 14 each. Both branches of the >=2-book rule exercised
+  end to end including settle, `--report` and `--monthly-report`. NO ERROR.
+  `bet_paper` was NEVER touched (temp DuckDB). `books=2` adds a CLEARLY-LABELLED
+  SYNTHETIC second book priced off the same row's spread via the program's own
+  `sigmoid(margin/6.96)` map — it exists so the BOOKED branch and all four arms
+  are exercised, and it is **plumbing, never a measurement**: D174 (5)
+  established no historical per-book ML OPEN panel exists for 2024-25/2025-26.
+  `scripts/predict_today.py` runs CLEAN (offseason no-op, exit 0).
+  **`docs/OCTOBER_RUNBOOK.md`** (NEW): cron layout with ordering constraints,
+  what each view books, the >=2-book rule and its feed reality, the bands and
+  their derivation, the game-type filter, a **ranked what-breaks-first table**
+  with first symptom / check / blast radius, all eleven kill switches with
+  DEFAULTS (`LATE_STATE` 0-OFF, `TANK_TERM` 1-ON, `OCT_BRIDGE` 1-ON,
+  `OCT_BRIDGE_TRAIL` "2", `COVID_GUARD` 0-OFF, `PROPS_MIN_RAMP` 1-ON,
+  `PROPS_ABSENCE_RAMP` 1-ON, `PROPS_KALMAN_FWD` unset-OFF, `ORACLE_PLAYED_OUTS`
+  0-OFF **and LEAKAGE — ceiling runs only**, `TANK_SEASON_FLOOR` pinned
+  2020-21), and a "things that are NOT broken" section. **It also records that
+  `predict_today.py` IS NOT IN CRON** — deliberate (it is off the write path)
+  but it means a break in it is only ever found by running it.
+  (6) **THE TWO RED TANKING FIXTURES, RE-PINNED.** Both were pinned to a DB
+  vintage that no longer exists. `k_26` at the old floor drifted **-2.26990
+  (pre-D112) -> -2.17831 (after D170's 97-report-day backfill) -> -2.08251
+  (after D171's Clippers join fix)** — a DATA change, not a code regression, on
+  a term fit on the availability-driven composite. Re-pinned to
+  **-2.08251078599815** with the tolerance TIGHTENED 0.01 -> **1e-4**, so a
+  future drift is again detectable and LOUDER than before. The gate-table
+  fixture no longer reads the stale `data/apr_tank_stats.csv` at all: 18
+  `(tank_score, gp_before)` pairs are pinned INLINE (`test_tanking.py:102`)
+  with the superseded CSV value in a trailing comment on every line. **`gp` is
+  unchanged on all 18 teams; only the scores moved** — consistent with an
+  availability-input shift through a POOLED EXPANDING z, which moves every team
+  once it moves any. `test_tanking.py` now **6 passed** (was 4 passed / 2
+  failed). `data/apr_tank_stats.csv` NOT regenerated.
+  (7) **`da Silva, Tristan` — THE ROOT CAUSE IS WORSE THAN THE ARTEFACT, AND
+  THE ARTEFACT IS THE ONLY ONE LEFT.** `injury_pdf.parse_pdf`'s `PLAYER` regex
+  required an INITIAL CAPITAL, so a lowercase nobiliary particle never matched
+  "Last, First" and fell through to an **UNGUARDED `else: team = f`**. TWO
+  effects, both measured: **(a) the player's OWN row was dropped entirely** —
+  no `player`, so no row is appended, i.e. **Tristan da Silva has never had an
+  injury status in this system at all**; and (b) the poisoned value
+  FORWARD-FILLED to every later row in that team's block, leaving **30 rows of
+  `injury_reports_pit.team` holding a player name**, which `slate_context`'s
+  `team_id_for` resolves to None — silently emptying those Orlando out-sets.
+  Fixed AT THE PARSER: `PLAYER_RX` lifted to module level and widened to accept
+  a 1-3-letter lowercase particle (`injury_pdf.py:54`), plus a REPORTING
+  backstop — `elif f in _team_names()` and otherwise `log.warning` and KEEP the
+  previous team (`:260-273`) — so an unrecognised fragment can never again
+  become a team. Bounded so no team name can match: team names carry no comma
+  and none begins with a short lowercase word; asserted against all 31
+  `known_report_names()` in `test_teams_canon.py:136`.
+  **RE-PARSED ALL 1,259 ARCHIVED PDFs IN MEMORY (no DB write): 126,378 rows,
+  0 bad files, distinct `team` 31 -> 30 real names.** ANSWERING THE QUESTION
+  ASKED: **NO other non-team string survives.** The only remaining non-name
+  values are **6 rows with `team=None`**, all from report 2023-01-05, which
+  also have `game_date=None` and are therefore dropped by `load_all`'s
+  `dropna(subset=["game_date"])` — they never reach the table and are
+  PRE-EXISTING, unchanged by this fix.
+  **THE TABLE WAS DELIBERATELY NOT REWRITTEN.** Reload delta MEASURED: **30
+  rows out (all `team='da Silva, Tristan'`), 39 rows in (all Orlando Magic; 17
+  Out / 16 Questionable / 3 Available / 2 Doubtful / 1 Probable, of which 1 is
+  da Silva's own Out).** That is a change to the availability inputs the
+  certified model reads, so re-loading `injury_reports_pit` would move
+  `capstone_pergame.csv` and is a re-cert, not a bookkeeping edit — **THE
+  OWNER'S CALL, NOT THIS ENTRY'S.** The LIVE path is nevertheless fixed from
+  the next PDF onward, which is the October-blocking half.
+  (8) **D-NUMBER COLLISION, HANDLED TWICE.** D176 was claimed in flight by the
+  strategy-space study and D177 by the Kaggle book-panel sweep. Every citation
+  in this entry's code, tests and docs was renumbered **D176 -> D177 -> D178**
+  (77 references across 10 files) and `d176_clvbands.*` renamed `d178_clvbands.*`.
+  Reason it was worth doing properly rather than leaving stale comments: D141
+  hall-of-shame 15 — **a production constant whose comment points at an
+  unrelated study is worse than no comment.** No file collision occurred
+  (D177's artifacts are `d177_mgm_probe.*`).
+  (9) **WHAT THIS ENTRY DOES NOT CLAIM.** It does NOT claim the model got
+  better — no model coefficient, gate, corpus or certified artifact moved. It
+  does not claim the >=2-book rule will PRODUCE volume in October; on the
+  evidence in hand it may produce none, and that is the point of logging the
+  refusals. It does not re-specify the real-stakes TRIGGER. It does not reload
+  `injury_reports_pit`, regenerate `apr_tank_stats.csv`, or move
+  `PINNED_SEASON_FLOOR`. It does not measure the Odds API's live per-book depth
+  — that is unmeasurable until the season starts. **FULL TEST SUITE: 118
+  passed, 0 failed** (the two known-red `test_tanking.py` fixtures are now
+  green and 14 new tests were added).
+  [code nbapred/engine/slate.py (game-type filter x2 chokepoints, `b2b_teams`
+   extracted and filtered), nbapred/ingest/injury_pdf.py (`PLAYER_RX` widened
+   + reporting backstop), scripts/bet_engine.py (`MIN_BOOKS_OPEN`, `CLV_BAND`,
+   3 new bet_paper columns + migration, clv_eligible scoring in `report`/
+   `monthly_report`, derivation-input printout, `--dry-books`),
+   scripts/predict_today.py (filter + both props CTEs);
+   scripts/d178_clvbands.py (NEW) -> data/d178_clvbands.json (NEW);
+   docs/OCTOBER_RUNBOOK.md (NEW); data/livepath_notes.md (NEW, the checkpointed
+   working record incl. the two D-number collisions);
+   tests/test_bet_engine.py +11 tests, tests/test_teams_canon.py +2 tests,
+   tests/test_tanking.py 2 fixtures re-pinned;
+   data/capstone_pergame.csv NOT WRITTEN (md5 695d40a3545e889267cad403b7acdce8
+   before and after); injury_reports_pit NOT RELOADED; apr_tank_stats.csv NOT
+   REGENERATED; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; eval corpus
+   unchanged; DB data/nba.duckdb READ-ONLY THROUGHOUT — read_only=True with
+   retry_s=60 on every connect, ZERO writes, no table created or altered]

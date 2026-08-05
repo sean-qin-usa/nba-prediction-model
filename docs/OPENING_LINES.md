@@ -247,11 +247,26 @@ every `dataset.zip` was re-extracted to confirm no file had been missed.
   intraday, not an open), `oliviersportsdata/...` (50-row teaser for a paid
   product), plus ~8 others screened on season range or single-price schema.
 
-Kaggle access note: `nbapred/ingest/kaggle_web.py` needs a logged-in Chrome
-cookie and currently fails. But the **public Kaggle API works anonymously** for
-search, metadata, file listing, and *single-file* download —
-`https://www.kaggle.com/api/v1/datasets/download/{owner}/{slug}?file_name=<path>`
-pulled a 95 MB file out of a 10.9 GB dataset with no auth. Worth wiring in.
+- Rejected at D177 after a 1,613-dataset sweep (see §9 for the full table):
+  `thedevastator/uncovering-hidden-trends-in-nba-betting-lines-20` (per-book on
+  PROPS only, one day; game lines are cross-book **averages**),
+  `zachht/wnba-odds-history` (Pinnacle only, 2025-09+),
+  `visualize25/basketball-betting-dataset` (open+close, one consensus book),
+  `giardinidavide/nba-odds` (oddsportal average), `bhavishsalia/nba2019odds`,
+  `hardikbhalekar/global-sports-betting-odds-2026` (per-book, **no NBA rows**),
+  `dontefarquharson`, `cactusmann`, `marcuslin`, `oliviersportsdata` (teasers).
+- `caseydurfee/mgm-grand-nba-betting-data` — **re-opened at D177 and INGESTED,
+  but it is ONE book (BetMGM close, 2021-22..2025-26), not a panel.** §9.
+
+Kaggle access note (**wired in at D177**): `kaggle_web.py`'s Chrome-cookie route
+is dead, so it now falls back to the **anonymous public API**, which needs no
+auth for `datasets/list` (search), `datasets/view` (metadata) or the full
+`datasets/download` zip. `search()` and `view()` are exposed so a candidate can
+be screened before it is pulled. Two gotchas: the documented
+`datasets/list/files/{owner}/{slug}` endpoint **404s** and `view`'s `files` array
+comes back **empty**, so the only reliable way to see file names is to download
+the zip and read its namelist; and `search=` indexes **title/subtitle only, not
+descriptions**.
 
 ### 5. The Odds API historical endpoint — **CLOSED at $0**
 - "This endpoint is only available on paid usage plans" on all three
@@ -340,10 +355,14 @@ corrections.** Panels are now in `data/bkp_panel_rows.csv.gz`
 |---|---|---|
 | 2012-13..2017-18 | none | **MEASURED** 9 offshore ops (KAG) + 5 (erichqiu, independent replication) |
 | **2018-19** | none | **MEASURED — NEW.** 5 offshore ops (`erichqiu`, 1,307 games, modal 5/game) |
-| 2019-20..2022-23 | none | **NONE — stays EXTRAPOLATED (legal, not technical: see §8)** |
+| 2019-20, 2020-21 | none | **NONE, from any source. Stays EXTRAPOLATED** (§8, §9) |
+| **2021-22, 2022-23** | none | **STILL NO PANEL — 1 operator only (BetMGM, D177). Stays EXTRAPOLATED, but now ANCHORED: see §9** |
 | 2023-24 | **MEASURED** 9 ops, modal 8 | **MEASURED** 11 ops, modal 10 |
 | 2024-25 | **1 operator — NO PANEL EXISTS** | **MEASURED** 5 ops, modal 4 |
 | 2025-26 | 2 ops on 44 games — **NO PANEL** | **MEASURED** 6 ops, modal 3 |
+
+**RECORD: 9 of the 14 scored seasons MEASURED, 5 EXTRAPOLATED (unchanged by
+D177 — a one-book file does not make a season measured).**
 
 **A MEASURED MULTI-BOOK PANEL FOR 2024-25/2025-26 EXISTS ONLY AT THE CLOSE.
 At the OPEN — the phase D167 decided to bet — there is exactly one operator.**
@@ -424,6 +443,117 @@ in 2022-23.** Reported as an audit observation only; nothing downstream uses it.
 already on disk were collected from those same hosts under those same rules — a
 **pre-existing compliance exposure**. Nothing in D174 deletes, re-scrapes or
 extends them.
+
+---
+
+## §9 KAGGLE, SWEPT TO EXHAUSTION FOR A PER-BOOK PANEL IN THE HOLE (D177)
+
+D174 closed the hole on robots/ToS grounds for ESPN and Action Network and left
+**Kaggle — public, freely downloadable, permitted — as the one open route.** It
+was taken. Full working: `data/kaggle_odds_notes.md`.
+
+**VERDICT: NO KAGGLE DATASET CARRIES PER-BOOKMAKER NBA ODDS FOR 2019-20..2022-23.
+THE GAP IS NOT CLOSED AND ON THIS ROUTE IT CANNOT BE.**
+
+*Access.* `nbapred/ingest/kaggle_web.py`'s Chrome-cookie route is dead
+(`no logged-in Kaggle Chrome profile found`). **Kaggle's own public API needs no
+auth at all** — `datasets/list`, `datasets/view` and the full `datasets/download`
+zip all return 200 anonymously. The module now falls back to that
+(`_anon_session`, plus `search()` and `view()` so a candidate can be evaluated
+before 72 MB is pulled). kaggle.com serves **no robots.txt** (`/robots.txt`
+soft-404s to the SPA shell) and `/api/v1/` is Kaggle's own documented API.
+
+*Sweep.* 88 search terms; deep paging on nba/basketball/odds/betting/sportsbook/
+bookmaker/spread/moneyline/wager to exhaustion; per-user enumeration of all 17
+publishers who have ever posted an odds file. **1,613 distinct datasets; 140
+betting-related; 32 both-basketball-and-betting, every one opened.**
+
+The decisive traps, all measured:
+
+- **An average of books is not a panel of books.**
+  `thedevastator/uncovering-hidden-trends-in-nba-betting-lines-20` (CC0, Dec-2021
+  to Dec-2022, i.e. squarely inside the hole) advertises comparing "betting lines
+  from a variety of sports books" and *does* carry per-book columns
+  (`br_/bs_/csr_/dk_/fd_/mgm_/pb_`) — but **only on fantasy-points and
+  first-team-to-score PROP files, and only for a single day, 2022-12-12.** Its
+  game-level `nba_YYYYMMDD_spread.csv` has one `home_line` whose values
+  (`-503.3333`, `219.8333`, `7.6667`) give it away as a **cross-book mean**.
+- **The two sets that do have a per-book schema are frozen.**
+  `ehallmar` is **v1, 2018-08-26, never updated**; `erichqiu` is v3, 2020-05-02 —
+  a date seven weeks AFTER the COVID shutdown, which made it the single best lead
+  in the hunt. **It was re-downloaded and diffed: byte-identical zip (1,961,317 B),
+  same 21-file namelist, last folder `2018-19/`.**
+- `zachht/wnba-odds-history` is **Pinnacle only** and starts 2025-09.
+  `hardikbhalekar` has a real `sportsbook` column and **zero NBA rows**.
+  `giardinidavide` is a single oddsportal average (and oddsportal is stopped).
+  `visualize25` carries an open/close pair but one consensus book.
+- **SEARCH LIMIT, RECORDED:** Kaggle's `datasets/list?search=` indexes **title and
+  subtitle only** — probes for `jimtheflash`, `gambling_stuff`, `Open_Line_Spread`
+  return **0 hits**. A panel titled without sport or market would be invisible.
+
+### What Kaggle DID yield — one real book, and it is NOT a panel
+
+`caseydurfee/mgm-grand-nba-betting-data` (CC BY-SA 4.0, 6,081 rows,
+2021-10-19..2026-02-12) is **one operator, BetMGM, at the CLOSE**, scraped from
+Yahoo's internal JSON. **k=1 computes no ladder and this is never called a
+panel.** It is worth having because it is the only free object that puts a
+*named, verified* book inside the hole.
+
+- **Phase and authenticity, MEASURED by D174 §3's same-operator method** (one
+  book, two independent scrapers) against the panel's own `mgm`:
+  **89.10% tie / MAD 0.2107 (2023-24 close)**, 89.00% / 0.1600 (2025-26 close),
+  against **33.03% / 1.3094 vs the OPEN**. Ladder anchors: duplicate 100.00%,
+  skins 91-94%, cross-operator 36.52%. **Genuine BetMGM, genuine close.**
+- Joins at **6,077/6,079 (99.97%)**, and the ±1-day tolerance contributed
+  **exactly zero** — Yahoo's dates are already ET, unlike ESPN's UTC.
+- **`nbapred/teams.py` gained a CITY rule** (D177). The feed names sides by bare
+  city and **28 of 30 franchises were previously unresolvable** — D171's design
+  reported all 28 rather than dropping 5,700 rows. The rule is LAST in
+  `resolve()`, so strictly additive; `Los Angeles` deliberately still resolves to
+  None, and `Golden State` needs an alias because nba_api's city for GSW is
+  "San Francisco". Tests in `tests/test_teams_canon.py`.
+
+### The anchored extrapolation, and the honest size of its error bar
+
+One book against a consensus gives a scale statistic, and the ladder is a
+function of scale. Fitting `ladder_k / m1` over the **ten** seasons where both
+are MEASURED (`ladder_vals` imported from `bkp_ladder.py`, so every cell is
+D163/D174-comparable — the calibration reproduces D174's 2023-24 and 2024-25
+cells exactly) gives **k5+haircut / m1_trim = 1.2071, cv 0.142, K=10,
+95% CI [1.0842, 1.3300]**.
+
+**The trimmed scale had to be used and that was not assumed:** with a plain mean,
+2025-26's m1 blows up and the harness misses by **147%**. Applying D163's own
+1.5-pt haircut to `m1` — the same rule the ladder already uses — fixes it.
+
+**HARNESS CHECK (anchored vs MEASURED, where both exist): 0.907 / 1.117 / 1.236 —
+worst error 23.6%. No anchored cell may be quoted without that band.**
+
+| season | EXTRAPOLATED (D166's carried law) | ANCHORED k5+HC | ratio |
+|---|---|---|---|
+| 2021-22 | 0.4261 | **0.3397** [0.3051, 0.3743] | **1.254x** |
+| 2022-23 | 0.4261 | **0.3398** [0.3052, 0.3744] | **1.254x** |
+| 2019-20, 2020-21 | 0.4261 | **nothing — MGM starts 2021-10-19** | — |
+
+Raw twins beside every haircut number: k5 raw 0.4128 / 0.4129, k2 raw 0.1955,
+k2+HC 0.1643 / 0.1644, k8+HC 0.3474.
+
+**SO THE FORWARD-CARRIED LAW WAS OPTIMISTIC AT BOTH ENDS OF THE RECORD —
+1.7-2.0x on 2024-25/2025-26 (D174 §7) and ~1.25x here — and the middle of the
+record is the least wrong part of it.**
+
+**THE PATH DOES NOT MOVE.** No season becomes MEASURED, so the official figure
+stays **D174's +3.13% / +48.6u, K=14 +2.54% [-3.75, +8.82]**, and the record
+stays **9 of 14 MEASURED**. A labelled *sensitivity* (D174's path with those two
+seasons anchored) gives +3.40% / +52.8u — and it moves UP only because D166's
+per-season **back-out** for them was 0.0174 / 0.0785, far below its own 0.4261
+law. That is D174 §12's recorded "~8x noisier than the law" caveat, so **the
++0.27pp is noise correction, not evidence that execution was better**, and it is
+not promoted to a re-price.
+
+**UNPRICED, AS ALWAYS:** best-of-k always transacts at the most offside book, and
+nothing here or in D163/D166/D174 charges for being limited, restricted or
+voided.
 
 ---
 

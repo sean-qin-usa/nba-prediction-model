@@ -587,3 +587,75 @@ which is a SOURCE floor; D171 prices it at **-0.741pp** at modern density and
 **-0.25pp..-0.74pp** at old-era density. AVAILABILITY TIER remains era-varying
 and must be labelled per season: **T2i on 2007-08..2017-18, T2 on
 2018-19..2025-26.**
+
+## D175 — THE UNOFFICIAL BACKFILL IS REFUSED, AND OUT-SET VALUE IS NON-MONOTONE
+
+D175 hunted free unofficial availability data for the pre-2018-12-17 era and
+**recommends NOT closing the gap.** Three era facts land here:
+
+1. **A free, systematic, permitted archive exists for 5 of the 11 old seasons
+   and not the other 6.** Wayback snapshots of `cbssports.com/nba/injuries`
+   and `usatoday.com/sports/nba/injuries/` (web.archive.org publishes no
+   robots.txt; 404 = unrestricted). C48 = share of game days with a
+   distinct-content snapshot in the prior 48h:
+```
+        07-08 08-09 09-10 10-11 11-12 12-13 13-14 14-15 15-16 16-17 17-18
+ union     0%    2%    0%    2%  6.8% 11.1% 80.9% 83.4% 90.0% 93.5% 96.0%
+```
+   So **2013-14..2017-18 are archivable and 2007-08..2012-13 are not.**
+   `prosportstransactions.com` is behind a Cloudflare managed challenge (403 on
+   every path incl. robots.txt) and BBRef's `*/gamelog/` is `Disallow`ed, so
+   neither is available at all.
+
+2. **PILOTED ON THREE OF THE FIVE ARCHIVABLE SEASONS, IT DOES NOT PAY —
+   BUT THE REASON IS VARIANCE, NOT A CLEAN NEGATIVE.** CBS OUT-set unioned
+   with inactives, fed to `k19_t2.season_run` UNMODIFIED (so it is the exact
+   analogue of `T2 = report UNION inactives`); baseline `t2i` = inactives only,
+   same process, same DB state, and it reproduces the certified per-season
+   numbers exactly:
+```
+  season   CBS snaps  C48     t2i     CBS arm    DELTA      outs/tm base->CBS
+  2014-15     109    67.3%   +9.80%   +9.90%   +0.100pp       0.415 -> 0.528
+  2015-16     120    85.6%   +5.07%   +5.29%   +0.220pp       0.375 -> 0.526
+  2016-17     189    91.0%   +7.91%   +5.88%   -2.030pp       0.437 -> 0.546
+
+  mean -0.570pp  sd 1.266  t(2) = -0.780  p = 0.5171  95% CI [-3.714,+2.574]
+  WRONG SIGN on 2 of 3;  leave-one-out means -0.905 / -0.965 / +0.160
+```
+   **The CI spans the benchmark, zero and the opposite sign, and the whole
+   pooled effect is one season.** Not actionable at K=3.
+
+3. **A PERFECT AVAILABILITY ORACLE IS WORTH FAR MORE THAN THE REPORT, AND
+   THE OUT-SET IS NON-MONOTONE IN COMPLETENESS.** Out-set = every player who
+   logged 0 minutes in that exact game (maximal leakage; a bound, not a result):
+```
+  season     t2i     outs/tm    PERFECT-ORACLE   outs/tm    DELTA
+  2012-13   +7.06%    0.319         +5.30%       1.306     -1.760pp
+  2015-16   +5.07%    0.375         +2.46%       1.339     -2.610pp
+  2023-24  +16.97%    0.974        +13.22%       1.794     -3.750pp
+```
+   Old-era headroom is **2.4-3.5x the report's -0.741pp**. But a PARTIAL feed
+   landing at 0.526-0.546 outs/team, between a 0.375-0.437 baseline and a
+   ~1.3 optimum, can be WORSE THAN NOTHING. **A half-filled out-set is not
+   half a good** — which is precisely the "sporadic data is worse than a clean
+   gap" risk, now measured rather than asserted.
+
+4. **MARGINAL-SET PRECISION IS THE AXIS THAT SEPARATES THE TWO FEEDS.** Because
+   `game_inactives` is already complete and correct, a pregame source can only
+   add names NOT on it, and those marginal names carry the entire effect:
+```
+                    report-OUT rows  already in inactives  marginal  of marginal, PLAYED
+  CBS      2015-16          2,129         74.78%            25.22%        21.42%
+  OFFICIAL 2022-23          8,049         94.47%             5.53%         3.37%
+  OFFICIAL 2023-24          8,928         92.79%             7.21%         1.24%
+```
+   The report adds a SMALL, ~98%-true increment on top of a DENSE modern base.
+   The archive adds a LARGE, ~79%-true increment on top of a THIN old base.
+
+**CONSEQUENCE FOR THE ERA ROW: unchanged.** The tier labels stay **T2i on
+2007-08..2017-18, T2 on 2018-19..2025-26**. D175 creates no T2-unofficial tier
+and recommends against one on the current evidence. **The pre-2018-12-17 floor
+stands, but the reason is now precise: for 2007-08..2012-13 no free systematic
+archive exists at all; for 2013-14..2017-18 one does and it is not measurably
+worth ingesting at K=3.** 2013-14 and 2017-18 remain unpiloted and would take
+K to 5 — the owner's call, not a conclusion of the entry.
