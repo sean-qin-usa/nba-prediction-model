@@ -13917,3 +13917,75 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/d183_sharpe.json` NEW; `docs/SIM_REPORT.md` Sharpe caveat rewritten to
   show both routes; headline Sharpe UNCHANGED at 0.5; NO GATE RUN; NO PRODUCTION
   MODEL DEFAULT CHANGED; DB not touched]
+
+- D184 **DECEMBER, ERA-RESTRICTED: THE OWNER'S ARGUMENT SURVIVES FURTHER THAN
+  D182's DID, BUT DIES ON OUR OWN SHIPPING STATISTIC AND FINDS NO MECHANISM.
+  APRIL'S PREMISE IS FACTUALLY WRONG. AND THE SELECTOR ALREADY DECLINES DECEMBER
+  IN 9 OF 14 SEASONS.** Owner: "if training to try to profit on post 2023 (or
+  2018?) markets, i think we should not rely on the 2013-14 result, there must be
+  something structurally wrong with december and april in recent seasons if all
+  negative."
+
+  **THE ERA POINT IS CONCEDED AND IS CORRECT IN PRINCIPLE.** D182 let a
+  **2013-14** December (+17.5%) sit in the same average as the modern ones. If
+  the deployment target is the post-2018 market, a pre-injury-feed season should
+  not be allowed to rescue a month. Re-scored on the reported frame:
+
+  **DECEMBER (2018-19+): NEGATIVE IN 4/4 SEASONS** — 2020-21 -23.61% (n=5),
+  2021-22 -14.15% (n=29), 2022-23 -66.11% (n=17), 2025-26 -8.21% (n=26).
+  Pooled **-24.23% on n=77**.
+  - bet-level bootstrap 95% CI **[-44.78, -3.74] — excludes zero**
+  - **season-clustered 95% CI [-69.67, +13.63] — CONTAINS zero.** Per
+    GATE_POLICY_V2 §8 the season-clustered interval is the shipping statistic and
+    D139 established the i.i.d. bet-level bootstrap is the one that lies. So the
+    honest read is NOT significant.
+  - exact sign test 4/4 gives **p = 0.0625**, and **0.0625 is the minimum
+    attainable p at K=4** — a perfect run of four cannot reach 0.05. The design
+    cannot deliver significance here regardless of how real the effect is.
+  - excluding 2022-23 (n=17, -66%): December is **-12.36% on n=60**.
+
+  **APRIL: THE PREMISE IS WRONG.** Modern April is negative in **2 of 6** seasons,
+  not all — 2018-19 +3.69, 2020-21 -19.83, 2021-22 +6.15, 2022-23 +43.18,
+  2023-24 -8.46, **2024-25 +18.74**. Pooled **+0.29%** on n=177, CI
+  [-13.16, +14.22], sign-test p = 0.89. April's best modern showing is in the
+  best modern season. **April is not dropped and the question should not be asked
+  of it again.**
+
+  **NO MECHANISM IN THE INPUTS (H3).** The availability leg is the model's
+  injury-reactive half, so a structurally mispriced month should show anomalous
+  absence load. Mean daily Out+Doubtful listings vs the all-month mean:
+  Oct -36.0%, Nov -1.0%, **Dec -4.3%**, Jan +1.5%, Feb +0.7%, Mar +3.7%,
+  **Apr +35.1%**. **December is unremarkable; APRIL is the anomalous month** — and
+  April is the one that performs fine. The mechanism story points at the wrong
+  month.
+
+  **THE FINDING THAT ACTUALLY CHANGES THE DECISION (H4).** The walk-forward
+  selector **already places zero December bets in 9 of 14 seasons** (2012-13,
+  2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2023-24, 2024-25).
+  December is **6.4% of all volume, 6.8% in the modern frame**. We are already
+  mostly not trading December; the proposal is to hard-code what the selector
+  does on its own most years.
+
+  **COST/BENEFIT.** Modern frame with December **+3.69%** (n=1132) vs without
+  **+5.73%** (n=1055): **+2.04 points for 6.8% of volume.** That +2.04 is
+  IN-SAMPLE and carries D182's manufacturing critique; it must not be booked as
+  expected gain.
+
+  **DECISION — a judgment override, logged as such, NOT a gated finding.** The
+  statistical bar is not cleared and cannot be at K=4. But the decision is cheap
+  in both directions: at 6.8% of volume the cost of being wrong is bounded, the
+  sign is consistent 4/4, and October deployment will meet December before any
+  live evidence exists. **A December skip is therefore a defensible
+  risk-management choice, and it is registered as a PRE-COMMITMENT to be scored
+  live — not as a result.** April is NOT included. If it is adopted the live
+  scoring must compare against the unfiltered incumbent, per D176.
+
+  **HALL OF SHAME:** D182 pooled across eras and let a 2013-14 season into a
+  judgement about a post-2018 market. Era-restriction should have been the FIRST
+  cut, not the owner's correction. Subgroup questions inherit the frame of the
+  deployment target.
+
+  [SCOPE: `scripts/d184_december_modern.py` NEW (read-only);
+  `data/d184_december.json` NEW; NO GATE RUN; NO PRODUCTION MODEL DEFAULT
+  CHANGED; no month filter implemented in code — this entry records a
+  pre-commitment, not a change; DB READ-ONLY]

@@ -77,6 +77,19 @@ against the unfiltered incumbent's +5.00%, a **+0.43-point delta at t = +0.51,
 not significant**, and it is *negative* in the two most recent seasons. The month
 filter is not adopted. (`D182`)
 
+**Era-restricted follow-up.** Restricting to the reported post-2018 frame — so a
+pre-injury-feed season cannot rescue a month — December is negative in **4 of 4**
+modern seasons, pooled −24.23% on n=77. That is a stronger case, and it still
+does not clear the bar: the season-clustered interval is **[−69.67%, +13.63%]**
+and contains zero, and a 4/4 sign test gives p = 0.0625, which is the *minimum
+attainable* p at K=4. No mechanism is visible in the model's inputs either —
+December's absence load is −4.3% against the all-month mean, while **April's is
++35.1%** and April performs fine (+0.29% pooled, positive in 4 of 6 modern
+seasons). Note also that the selector **already places zero December bets in 9 of
+14 seasons**; December is 6.8% of modern volume. A December skip is registered as
+a bounded-risk *pre-commitment to be scored live*, not as a finding. April is not
+dropped. (`D184`)
+
 ## Per-season attribution (14 seasons)
 
 Each line is one season's independently-scored book.
