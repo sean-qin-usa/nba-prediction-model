@@ -45,11 +45,14 @@ seasons, 2007-08..2025-26, CONTIGUOUS, and every one of them has market odds.**
 16 poolable + 3 separate strata (1998-99 is a fourth lockout stratum but has no
 odds and is not scorable). Below 2007-08 the binding constraint is no longer
 box scores — all 30 seasons back to 1996-97 are now at 100% coverage — it is
-(a) **`odds_market` starts at 2007-08**, and (b) **`darko_history` starts
-2003-10-29**, below which `fit_production` REFUSES outright ("darko_history
-empty before <date>; refusing snapshot fallback"). So 2004-05/2005-06/2006-07
-are fittable but unscoreable-against-market, and 1996-97..2003-04 are not
-fittable at all. See §7.
+(a) **`odds_market` starts at 2007-08**, and (b) ~~**`darko_history` starts
+2003-10-29**~~ **`darko_history` now starts 1996-11-01 (D170, 2026-08-04)**,
+below which `fit_production` REFUSES outright ("darko_history empty before
+<date>; refusing snapshot fallback"). **The DARKO floor is therefore NO LONGER
+BINDING anywhere in the box-score corpus: all 30 seasons back to 1996-97 are
+now fittable.** `odds_market` at 2007-08 is the only remaining constraint on
+the SCORABLE frame, so the scorable frame is unchanged at 19 seasons and this
+entry does not widen it. See §7.
 
 ---
 
@@ -209,16 +212,36 @@ any sport-side feature does. Produced by `scripts/history_killed.py` and
 no `darko_history` row is silently scored LEAGUE-AVERAGE. Coverage is the share
 of actually-played minutes belonging to players who have any prior DARKO row:
 
-| season | 11.3 → 100% | season | | season | |
-|---|---|---|---|---|---|
-| 2010-11 | **11.3%** | 2016-17 | 44.1% | 2022-23 | 97.0% |
-| 2011-12 | 12.7% | 2017-18 | 50.5% | 2023-24 | **100%** |
-| 2012-13 | 18.6% | 2018-19 | 62.1% | 2024-25 | 100% |
-| 2013-14 | 22.8% | 2019-20 | 73.1% | 2025-26 | 100% |
-| 2014-15 | 28.1% | 2020-21 | 81.3% | | |
-| 2015-16 | 36.9% | 2021-22 | 88.8% | | |
+**D170 (2026-08-04) CLOSED THIS RAMP. THE TABLE BELOW IS HISTORY, NOT CURRENT
+STATE.** The ramp was never a DARKO limit — darko.app server-renders the full
+daily series back to **1996-11-01**, for retired players too (Kobe
+1996-11-01..2016-04-13, n=1777; Duncan, Iverson, Nash, Dirk, Yao, KG likewise).
+We had only ever fetched 1,009 of the 3,934 player_ids in `player_game_stats`,
+i.e. the modern roster universe. After backfilling, `darko_history` holds
+**1,103,818 rows / 2,909 players / 1996-11-01..2026-07-26** (was 354,600 / 837 /
+2003-10-29) and PIT minute coverage is **98.7-99.95% in EVERY season
+1996-97..2025-26**. Read the "was" column only when interpreting a result
+computed BEFORE 2026-08-04.
 
-Measured consequences over the 11 poolable seasons (D153):
+| season | was → is | season | was → is | season | was → is |
+|---|---|---|---|---|---|
+| 2007-08 | **3.6%** → **99.95%** | 2014-15 | 28.0% → 99.90% | 2021-22 | 88.8% → 99.89% |
+| 2008-09 | 6.9% → 99.91% | 2015-16 | 36.9% → 99.90% | 2022-23 | 96.9% → 99.91% |
+| 2009-10 | 9.5% → 99.90% | 2016-17 | 44.1% → 99.90% | 2023-24 | 99.9% → 99.91% |
+| 2010-11 | **11.2%** → **99.94%** | 2017-18 | 50.5% → 99.87% | 2024-25 | 99.9% → 99.91% |
+| 2011-12 | 12.7% → 99.89% | 2018-19 | 62.1% → 99.92% | 2025-26 | 99.9% → 99.87% |
+| 2012-13 | 18.6% → 99.93% | 2019-20 | 73.0% → 99.87% | | |
+| 2013-14 | 23.0% → 99.93% | 2020-21 | 81.2% → 99.89% | | |
+
+**WHAT THAT COST US, MEASURED (D170).** Re-running D161's 19-season model
+availability-blind on the backfilled feed, changing nothing else: 2007-08's
+normalized gap **+26.87% → +7.18%**, 2009-10 **+25.69% → +4.24%**, 2010-11
+**+23.61% → +4.22%**, 2008-09 **+17.85% → −2.44% (the model BEATS the market)**.
+The three seasons that already had ~100% coverage moved by +0.48 / +0.08 /
+−0.09 pp — a placebo the design did not have to be given. **Most of what this
+file called the "oldest-season deficit" was our own starved talent feed.**
+
+Measured consequences over the 11 poolable seasons (D153, on the PRE-D170 feed):
 corr(coverage, **D19 composition-leg** effect) = **+0.793**;
 corr(coverage, **D21 four-factors-leg** effect) = **−0.605**;
 corr(coverage, normalized market gap) = −0.391;
@@ -229,6 +252,11 @@ significantly HARMFUL (−0.01384) and the arm that does not consume DARKO score
 a 12.88% normalized gap against the shipped 24.67% — i.e. about HALF the
 oldest-season deficit is our own starved talent feed, not the era. Any
 historical claim about D19/D21 must cite this row.
+**D170 UPDATE: those four correlations were computed against a coverage
+variable that is now CONSTANT at ~99.9%, so they can no longer be recomputed
+and must not be quoted as current. D153's inference was right and the
+correction is larger than D153 estimated: it is not "about half" the
+oldest-season deficit, it is ~73% of it on 2007-08 and ~82% on 2010-11.**
 
 ### 2b.2 TEAM-HOME STRUCTURE, per season (D137 method, D153 extension)
 
@@ -369,10 +397,16 @@ decision the owner must take; D152 changed the data, not the eval universe.
   +1.2 / −3.4pp in 2022-23 / 2023-24 / 2024-25).
 * Absence stays elevated post-wave (2022-W01..W05 = .2098), so E3 is a
   high-absence season overall (.2394 for the year).
-* **Our injury feed cannot see any of this**: `injury_reports_pit` starts
+* ~~**Our injury feed cannot see any of this**: `injury_reports_pit` starts
   2023-10, `game_inactives` starts 2022-23. Every E3 absence number in this
   file is derived from `player_game_stats` non-appearance. Any feature that
-  consumes the injury feed is STRUCTURALLY INERT on half the legacy holdout.
+  consumes the injury feed is STRUCTURALLY INERT on half the legacy holdout.~~
+  **NO LONGER TRUE — D170 (2026-08-04).** E3 (2021-22) now carries BOTH feeds:
+  `injury_reports_pit` 168 report-days (2021-10-19..2022-04-10) and
+  `game_inactives` on the full schedule. The absence numbers in this file were
+  still derived from `player_game_stats` non-appearance and are unchanged, but
+  a feature that consumes the injury feed is **no longer structurally inert**
+  on the legacy holdout and any claim that it is must be re-tested.
 
 ### E4 — post-COVID baseline (2022-23) — SCORABLE, holdout half #2
 * **CORRECTION — this is NOT "the only clean normal season".** It is the
@@ -430,9 +464,9 @@ Two things the data says are stable, so no future gate should invoke them:
 | `nba_games` (schedule, scores) | yes (to 1996-97) | yes | yes | yes | yes | yes | yes |
 | `player_game_stats` | yes where landed (D152/D153) | E0 only | yes | yes | yes | yes | yes |
 | `odds_market` closes | **from 2007-08; THIN pre-2013** (162/131/83 games unmatched in 2010-11/2011-12/2012-13) | yes | yes | yes | yes | yes | yes |
-| **`darko_history` MINUTE coverage** | **11-62% — see §2b.1** | 73% | 81% | 89% | 97% | 100% | 100% |
-| `game_inactives` | **no** | no | no | **no** | yes | yes | yes |
-| `injury_reports_pit` | **no** | no | no | **no** | **no** | yes | yes |
+| **`darko_history` MINUTE coverage** | **~99.9% (D170; was 11-62%) — see §2b.1** | ~99.9% (was 73%) | ~99.9% (was 81%) | ~99.9% (was 89%) | ~99.9% (was 97%) | 100% | 100% |
+| `game_inactives` | **YES (D170; was no)** | yes | yes | **yes** | yes | yes | yes |
+| `injury_reports_pit` | **no before 2018-12-17 — SOURCE FLOOR, not an ingest gap** | **yes (D170; was no)** | **yes** | **yes** | **yes** | yes | yes |
 | `schedule_features` table | no | no | no | no | no | no | 2025-26 only |
 | travel/venue features meaningful? | **yes — `travel_valid`=1.0000 (D152 arenas fix verified, D153)** | E0 yes, **E1 all-zero by construction (D140)** | yes | yes | yes | yes | yes |
 | D73 tank term active? | **NO below `tanking.season_floor()` (=2014-15 as of D153) — UNTESTABLE, not failed** | no | no | yes | yes | yes | yes |
@@ -444,7 +478,15 @@ marked `travel_valid=False` (with the next team-game after each, 36 team-games
 total): DROP them, do not score them.
 
 Read this table before claiming a feature "does not transfer to the holdout".
-Two of the four availability channels are simply ABSENT on the holdout.
+~~Two of the four availability channels are simply ABSENT on the holdout.~~
+**SUPERSEDED BY D170 (2026-08-04): they were absent from OUR DB, not from the
+world.** `game_inactives` now covers **2006-07 onward** (BoxScoreSummaryV2's
+`InactivePlayers` result set was populated the whole time; probed live, it is
+empty for 2005-06 and earlier and non-empty from 2006-07 — that IS a source
+floor) and `injury_reports_pit` covers **2018-12-17 onward** (probed daily; the
+league's standardised PDF does not exist before that date, which IS a source
+floor). The only genuinely absent channel on the old eras is the injury report
+before 2018-12-17.
 
 **D153 ADDS THE ROW THAT MATTERS MOST AND IT IS NOT BINARY.** `darko_history`
 coverage is a RAMP, not a switch, so the composition leg is not "off" pre-2019 —
@@ -477,7 +519,7 @@ They are listed oldest-first with what breaks at each.
 |---|---|---|---|
 | **PBP floor** | **1996-97** | `playbyplayv3` returns ZERO actions for 1995-96 and every season below it (verified on 14 games, 1995-96 → 1983-84) | **HARD FLOOR.** Below it every zone feature (`rima/mida/thra`...) is silently 0 and `four_factors` eFG degenerates to fgm/fga. Boxscores still load — which is the trap. **NOW ENFORCED IN CODE (D160)**: `possessions.load_corpus` REFUSES any game with `fga>0` and zero zone attempts, and `backfill_history.py pgs` refuses any season below 1996-97 outright. 13 such games had already leaked into `player_game_stats` and were purged |
 | plus-minus floor | 1996-97 | `plusMinusPoints` is 0.0 in every probed season 1995-96 and below | same floor, second reason |
-| **DARKO floor** | **2003-04** (2003-10-29) | `darko_history` has no rows before it | **THE BINDING FLOOR FOR THE MODEL, measured D160.** `fit_production` RAISES `RuntimeError: darko_history empty before <date>; refusing snapshot fallback` for every opening night ≤ 2003-10-28, so 1996-97..2003-04 are **not fittable at all** no matter how complete the box data is. Their value is era measurement, tank/four-factors history, and D62 carry into 2004-05 — nothing else |
+| **DARKO floor** | ~~2003-04 (2003-10-29)~~ → **1996-97 (1996-11-01), D170** | `darko_history` has no rows before it | ~~**THE BINDING FLOOR FOR THE MODEL, measured D160.**~~ **NO LONGER BINDING (D170, 2026-08-04).** The 2003-10-29 floor was an artefact of having fetched only 837 of 3,934 darko.app player pages; the site serves the full daily series back to 1996-11-01 for retired players too. `darko_history` is now 1,103,818 rows / 2,909 players / 1996-11-01.., PIT minute coverage ~99.9% in every season, and **1996-97..2003-04 are now fittable.** They remain UNSCORABLE against the market (`odds_market` starts 2007-08), so the 19-season scorable frame is unchanged |
 | **odds floor** | **2007-08** | `odds_market` / `odds_open` start at season_end 2008 | **THE BINDING FLOOR FOR EVALUATION.** 2004-05/2005-06/2006-07 fit but cannot be scored against a market, so they are training tail and carry only. This is why the scorable run starts at 2007-08 and not at 2004-05 |
 | **shortened 3PT line** | **1994-95 → 1996-97** (restored 1997-98) | 3PT line moved in to a uniform 22 ft, then back to 23'9" | **MEASURED, not recalled (D160):** 3PA share is **.212 in 1996-97 and .160 in 1997-98** — a −5.2pp step, the largest single-season move in the whole 30-season series, and the ONLY break in an otherwise continuous .160 → .421 ramp. 1996-97 is therefore a shot-mix regime of its own and must never be pooled with 1997-2000 on any 3PT-sensitive measure |
 | **zone defense legalised** | **2001-02** | illegal-defense rules repealed; help defense becomes legal | shot-mix and rim-finishing priors are not transportable across this line |
@@ -494,3 +536,54 @@ until D152: **NOH** (→NOP 2013-14), **NJN** (→BKN 2012-13), **SEA** (→OKC
 2008-09), **NOK** (2005-07), **VAN** (→MEM 2001-02), **CHH** (→NOH 2002-03),
 **WSB** (→WAS 1997-98). A missing code costs that team's whole season of
 travel silently (measured 60.7 km/team-game error on 2012-13 from NOH alone).
+
+## D171 — ABSENCE DENSITY IS AN ERA PROPERTY, NOT AN INGEST GAP
+
+D170 measured that the availability feed is worth more to a modern season than
+an old one (1.32 OUT/team-game in 2024-25 vs 0.31-0.48 in 2012-16) and left the
+interpretation open. **D171 settles it: the difference is REAL, not a data
+gap.** Measured by `scripts/d171_era_density.py` (read-only):
+
+```
+season   inactive rows  raw/team-gm  scored OUT/tm  kept%  played/team-gm  viol
+2007-08          5,985         4.87          0.42    8.7%          10.12     0
+2009-10          5,423         4.41          0.39    8.8%          10.08     0
+2012-13          4,454         3.62          0.32    8.8%          10.48     0
+2013-14          4,675         3.80          0.31    8.1%          10.41     0
+2015-16          5,121         4.16          0.38    9.0%          10.60     0
+2016-17          5,143         4.18          0.44   10.5%          10.62     0
+2017-18          9,705         7.89          0.70    8.9%          10.61     0
+2018-19          9,599         7.80          0.83   10.6%          10.61     0
+2020-21          6,809         6.30          1.13   17.9%          10.67     0
+2021-22         10,625         8.64          1.38   16.0%          10.58     0
+2023-24         11,010         8.95          1.09   12.2%          10.73     0
+2024-25         10,854         8.82          1.32   14.9%          10.69     0
+2025-26         11,059         9.01          1.33   14.7%          10.83     0
+```
+
+Three independent reasons this is an era property:
+1. **`viol` = 0 on every one of the 19 seasons.** `viol` counts players listed
+   inactive who nevertheless logged minutes; zero everywhere means the official
+   list is complete and correct in BOTH eras. The thin old-era out-set is not
+   us missing rows.
+2. **The RAW official density roughly DOUBLES at exactly 2017-18** (3.6-4.2 →
+   7.8-9.0), the season the NBA instituted its injury-report policy and load
+   management became general. That number is the league's own list, not ours.
+3. **Rotation depth is FLAT** (players used per team-game 10.0-10.6 old vs
+   10.5-10.8 modern), so it is not a roster-size artefact either.
+
+The one genuine change in OUR filter's behaviour points the same way: `kept%`
+(the share of the inactive list surviving the 12-day roster window) rises from
+**8.1-10.5%** to **12-18%**. Modern absences are concentrated among players who
+ARE in the active window — rotation players resting — which is the
+load-management signature precisely. **So an honest availability feed helps a
+modern season more, and that is a property of the ERA, not a defect in the old
+seasons' data.**
+
+**ERA-AVAILABILITY ROW (GATE_POLICY_V2 §10), CURRENT.** `game_inactives` and
+`darko_history` cover E-3 through E6 in full. The only model-visible channel
+still absent on the old eras is the 5PM injury report before **2018-12-17**,
+which is a SOURCE floor; D171 prices it at **-0.741pp** at modern density and
+**-0.25pp..-0.74pp** at old-era density. AVAILABILITY TIER remains era-varying
+and must be labelled per season: **T2i on 2007-08..2017-18, T2 on
+2018-19..2025-26.**

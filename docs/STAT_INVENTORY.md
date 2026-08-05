@@ -63,13 +63,29 @@ rest/b2b/home/calendar/opponent controls **-0.02466**, season-mean t at 3 dof
 **-0.02189 CI(-0.03505,-0.00872)**. The explicitly-labelled "Rest" DNP is
 suppressed ~2.7x (.00114 vs .00305) but is only ~6% of the total. Panel:
 `data/ad_natltv_panel.csv.gz`.
-injury_reports_pit (official NBA injury-PDF feed 2023-10→2026-04, 45k rows,
-D49) — feeds tank shutdown listings + live OUT sets; game_inactives
-(official retro inactive lists; 2023-24 full, 2024-25 1195/1230, 2025-26
-20/1230 — V2 endpoint broken ≥4/10/2025, BoxScoreSummaryV3 backfill chained
-2026-07-31, see scripts/backfill_inactives_v3.py); game_officials (retro
-crews via boxscoresummary; same coverage gap, same chained fix; pregame
-assignments poller in nbapred/ingest/referees.py — ingested, no term shipped).
+injury_reports_pit (official NBA injury-PDF feed **2018-12-17→2026-04-12,
+125,695 rows, 8 seasons** — D49, backfilled to the SOURCE FLOOR by D170; the
+standardised PDF genuinely does not exist before 2018-12-17, probed daily
+against a control URL; per season report-days 110/156/139/168/169/168/167/159
+for 2018-19..2025-26, 2018-19 partial by source) — feeds tank shutdown
+listings + live OUT sets; game_inactives (official retro inactive lists,
+**2006-07→2025-26, D170**; V2's `InactivePlayers` was populated the whole time
+and the gap was INGEST, not source — it is empty for 2005-06 and earlier, which
+IS the source floor. V2 endpoint broken ≥4/10/2025 so 2024-25's last 35 games
+and 2025-26 come from BoxScoreSummaryV3 — see scripts/backfill_inactives_v3.py
+and scripts/bf_inactives_hist_{fetch,load}.py, whose loader is STRICTLY
+ADDITIVE so it cannot overwrite V3 rows with V2 blanks. Correctness: **0 of
+77,313+ inactive rows appear in player_game_stats with minutes>0**);
+game_officials (retro crews via boxscoresummary; same coverage gap, same
+chained fix; pregame assignments poller in nbapred/ingest/referees.py —
+ingested, no term shipped).
+**KNOWN DEFECT, NOT FIXED (D170, owner's call):** the PDFs name the Clippers
+"LA Clippers" but `report_out_map()` maps through nba_api's full_name
+"Los Angeles Clippers", so **all 2,514 Clippers report rows are silently
+dropped from every T1/T2 OUT-set, in the certified seasons too**; 30 more rows
+are lost to the heuristic parser's upper-case-surname assumption
+("da Silva, Tristan" lands in the `team` column). Fixing either changes the
+certified baseline's inputs.
 
 ## MARKET / CAPTURE (never model inputs — benchmark & edge measurement)
 odds_market (spreads/totals/ML 2008-2026), odds_quotes (live logger),
@@ -188,3 +204,62 @@ state_shocks, v3_predictions.
 `player_game_stats` 234,308 rows / 27 cols. `schedule_features` 2,460 rows
 (**one season only** — 2025-26; the ledger's "sched features absent for 24-25"
 note generalises: this table is far thinner than the game corpus).
+
+## D171 COVERAGE CENSUS — every feed, per season, 2007-08..2025-26
+
+Measured by `scripts/d171_gap_census.py` (read-only), 2026-08-04, AFTER D170's
+backfill. `inact%` = share of the season's games with an inactive list;
+`report` = report-days / game-days; `darko%` = PIT minute coverage; `poss%` /
+`stints%` / `refs%` = share of games present in `possessions_v2` /
+`lineup_stints` / `game_officials`.
+
+```
+season   games  inact%  report_days  darko%  poss%  stints%  refs%  sched  odds_mkt  sbr
+2007-08   1230  100.0     0/162      100.0    0.0     0.0     0.0      0     1316   1316
+2008-09   1230  100.0     0/163      100.0    0.0     0.1     0.0      0     1315   1315
+2009-10   1230  100.0     0/164      100.0    0.0     0.1     0.0      0     1312   1312
+2010-11   1230  100.0     0/164      100.0    0.0     0.0     0.0      0     1311   1311
+2011-12    990   99.0     0/120      100.0    0.0     0.0     0.0      0     1074   1074
+2012-13   1229  100.0     0/163      100.0    0.0     0.0     0.0      0     1313   1314
+2013-14   1230  100.0     0/163      100.0    0.0     0.0     0.0      0     1319   1319
+2014-15   1230   99.9     0/162      100.0    0.0     0.0     0.0      0     1311   1311
+2015-16   1230  100.0     0/161      100.0    0.0     0.1     0.0      0     1316   1316
+2016-17   1230  100.0     0/162      100.0    0.0     0.0     0.0      0     1309   1309
+2017-18   1230  100.0     0/168      100.0    0.0     0.0     0.0      0     1312   1312
+2018-19   1230  100.0   107/168      100.0    0.0     0.6     0.0      0     1312   1312
+2019-20   1059  100.0   150/150      100.0   46.8    48.2     0.0      0     1142   1143
+2020-21   1080  100.0   135/140      100.0   20.2    20.2     0.0      0     1171   1171
+2021-22   1230  100.0   164/165      100.0   26.5    26.5     0.0      0     1321   1323
+2022-23   1230  100.0   163/164      100.0   46.0    46.0   100.0      0     1320    664
+2023-24   1230  100.0   160/160      100.0   96.8    96.8   100.0      0     1319      0
+2024-25   1230  100.0   162/163      100.0   62.1    62.1   100.0      0     1321      0
+2025-26   1230   99.8   155/164      100.0   99.6    99.6    99.8   1230     1322      0
+```
+
+**THE ROW THAT MATTERS MOST IS WHICH OF THESE THE MODEL ACTUALLY OPENS.**
+Grepped over the shipped path (`fit_production` + `CompositionModel` +
+`four_factors` / `travel` / `october_bridge` / `latestate` / `tanking`), the
+certified model reads **exactly seven tables**:
+`nba_games`, `player_game_stats`, `nba_players`, `darko_history`, `darko_dpm`,
+`injury_reports_pit`, `odds_market` — plus `game_inactives`, which is read
+NOWHERE inside `nbapred/` and enters only through the caller's out-set.
+
+Consequences, and this is the whole answer to "what else is missing from the
+old seasons":
+* `game_inactives` (99.0-100% everywhere) and `darko_history` (100.0%
+  everywhere) are **CLOSED** by D170. There is no DARKO ceiling.
+* `injury_reports_pit` before **2018-12-17** is a **PERMANENT SOURCE FLOOR** and
+  is the ONLY remaining model-visible asymmetry. D171 prices it at
+  **-0.741pp normalized** (paired T2 vs T2i, n=9,516, season-clustered
+  t = -5.02, K=8, 7/8 seasons improve), with an old-era range of
+  **-0.25pp to -0.74pp**.
+* `possessions_v2`, `lineup_stints`, `game_officials`, `schedule_features`,
+  `defended_fg`, `epm_history*`, `odds_open`, `odds_hist_sbr`, `ratings_2k`
+  are **NOT read by the certified model**. Their (large) coverage asymmetries
+  bound FUTURE work; they are not part of any current per-season gap. In
+  particular `schedule_features` is still 2025-26-only (D135 confirmed), and
+  `possessions_v2`/`lineup_stints` are absent before 2018-19 and only 62.1%
+  complete even on 2024-25.
+* `odds_market` is complete on all 19 seasons (~1,310/season) — the benchmark
+  itself has no era gap. Panel DEPTH does (D163: 2 books early vs up to 9
+  operators modern), but that is an EXECUTION-study asymmetry, not a model one.

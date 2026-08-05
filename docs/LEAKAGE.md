@@ -178,3 +178,92 @@ CSV path so it cannot re-occupy it.
    again be recoverable only by reading the source.
 3. A backtest whose availability feed does not cover a season falls back to
    EMPTY out-sets (honest, weaker), never to a hindsight set.
+
+### 2026-08-04 — the tier picture changed: "no feed exists" was mostly false (D170)
+
+Not an incident — a correction to the *scope* of rule 3 above.
+
+Rule 3 ("a backtest whose availability feed does not cover a season falls back
+to EMPTY out-sets") is unchanged and still correct. What changed is **how often
+it fires**. D158/D161/D162 and every entry inheriting from them recorded
+"BLIND on all 19 seasons — no honest availability information exists before
+2022-23". **That was a statement about our DB, not about the world.**
+
+| feed | was in DB | actually available | which is it |
+|---|---|---|---|
+| `game_inactives` | 2022-23→ | **2006-07→** | INGEST gap. BoxScoreSummaryV2's `InactivePlayers` was populated the whole time. Empty for 2005-06 and earlier — that IS a source floor |
+| `injury_reports_pit` | 2023-10-24→ | **2018-12-17→** | INGEST gap to 2018-12-17; genuine SOURCE floor before it (probed daily, control-verified) |
+| `darko_history` | 837 players, ramping | **2,909 players, 1996-11-01→** | INGEST gap. Not a leakage issue, but it is what made the historical composition leg inert |
+
+**Consequences for how tiers must be cited from now on.**
+
+1. **"BLIND because no feed exists" is no longer a valid justification for any
+   season from 2006-07 onward.** It was valid when written; it is not valid to
+   repeat. A blind run on those seasons is now a CHOICE, and must be labelled
+   as one.
+2. **Every pre-2026-08-04 historical result is a LOWER BOUND for a second,
+   previously unnamed reason**: not just the empty out-sets, but a DARKO feed
+   covering 3.6-89% of minutes. D161's own numbers move by up to **20
+   normalized points** on the oldest seasons once that is fixed, with the
+   direction always favourable and a clean placebo on the three seasons that
+   already had full coverage.
+3. **The tier labels themselves are now era-varying and must be printed per
+   season, not per run.** 2007-08..2017-18 can reach `T2i` (inactives only —
+   no report feed exists), 2018-19 is `T2-partial` (report feed starts
+   2018-12-17, mid-season), 2019-20..2025-26 can reach full `T2`. Do not write
+   "T2" over a frame that contains all three.
+4. **A pre-existing silent drop is now on the record and is NOT fixed**: the
+   injury PDFs say "LA Clippers", `report_out_map()` maps through nba_api's
+   `full_name` "Los Angeles Clippers", the lookup returns None, and **2,514
+   Clippers OUT rows have never entered a T1 or T2 out-set — including in the
+   certified seasons.** One team has been scored report-blind throughout. This
+   is not leakage (it makes us weaker, not stronger) but it means "T2" has
+   never actually meant T2 for 1/30th of the league. Fixing it changes the
+   certified baseline's inputs and is the owner's call.
+
+### 2026-08-04 — the Clippers drop is FIXED, and the certification re-run (D171)
+
+§4 above is now **CLOSED**. `report_out_map()` no longer builds its own
+`{full_name: abbreviation}` dict; every consumer resolves team names through
+the new canonical **`nbapred/teams.py`** (`abbrev_for` / `team_id_for` /
+`known_report_names` / `resolve_map`), which knows `"LA Clippers"` and, more
+importantly, **reports an unresolvable name with its row count instead of
+dropping it in silence**. That last property is the actual fix: this was the
+third instance of the same bug class in the register (D119's "63% scrape
+failure", D161's 938 games lost to era abbreviations).
+
+**FIVE consumers carried the defect, not one.** The ingest side had already
+special-cased `"LA Clippers"` (`nbapred/ingest/injury_pdf.py`), so the TABLE was
+always right — only the readers were wrong:
+1. `scripts/prod_by_season.py::report_out_map` — **the T1/T2 tier definition**
+2. `nbapred/model/tanking.py::_comp_c_shutdown` — **inside the fit** (the
+   Clippers' rest/management shutdown signal was structurally blank in every
+   fit the project has ever run)
+3. `nbapred/engine/slate.py` — **the LIVE path**. Unlike D158's defect, this one
+   DID reach production: tonight's Clippers games were predicted with an empty
+   injury-report out-set. It degrades us rather than flattering us, so it is
+   not leakage, but it was a live correctness bug and it is now fixed.
+4. `scripts/bp_ladder.py` (verbatim copy) — fixed, output NOT re-run
+5. `scripts/apr_program.py`
+
+**AUDIT, BOTH DIRECTIONS, ALL 30 FRANCHISES** (`scripts/d171_team_audit.py`):
+`injury_reports_pit` emits 31 distinct `team` strings; 29 matched, and exactly
+two did not — `LA Clippers` (2,514 rows / 2,119 OUT / 1,919 same-day) and
+`da Silva, Tristan` (30 rows, a parser artefact, not a team). In reverse,
+exactly one nba_api `full_name` never appears in any PDF: `Los Angeles
+Clippers`. **No other franchise has a mismatch in either direction.**
+After the fix: 30/31 strings resolve, 0/30 franchises unrepresented, and the
+one remaining artefact is now printed by every run rather than swallowed.
+
+**CONFINEMENT, VERIFIED:** diffing the old and new out-maps, **LAC is the only
+team whose out-set changed** — +1,718 player-slots, 571 new (date,team) cells,
+zero cells lost, total OUT slots 64,580 -> 66,298.
+
+**WHAT IT COST.** The fix makes the model **slightly WORSE (+0.12pp pooled on
+the certified 5)**, which is the sign that confirms it was never leakage. It
+ships because it is correct, not because it helps. It also propagates beyond
+LAC: 1,929 non-LAC games move, because `_comp_c_shutdown` feeds a GLOBAL tank-k
+fit (k(2026-04-09) at the old floor: -2.17831 -> -2.08251).
+
+**TIER LABELS (§3 above) are unchanged and still era-varying** — `T2i` on
+2007-08..2017-18, `T2` from 2018-19 — and D171 prints them per season.

@@ -9591,3 +9591,2132 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
    VERIFIED UNCHANGED after the run;
    nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
    NOT RUN, no gate re-run, no default changed, eval corpus unchanged]
+- D165 RECENCY-BASED AND WITHIN-SEASON CONFIG SELECTION — **THE OWNER'S REFINED
+  PROPOSAL IS TESTED AND IT LOSES ON EVERY AXIS. SELECTING THE CONFIGURATION
+  FROM THE MOST RECENT SEASON ALONE RETURNS -3.13% ON THE SAME 14 UNSEEN
+  SEASONS THAT ALL-HISTORY SELECTION RETURNS +1.66% ON — A PAIRED DELTA OF
+  -4.31 ROI POINTS [-13.10,+4.47] ns — AND IT IS THE ONLY SEASON-WINDOW ARM
+  THAT FAILS TO CLEAR ITS OWN NOISE FLOOR (net +1.29, p = 0.275).** THE REASON
+  IS THE ONE PRE-DECLARED BEFORE ANY NUMBER EXISTED: **A ONE-SEASON WINDOW
+  CARRIES +17.94 ROI POINTS OF MANUFACTURING CAPACITY AGAINST ALL-HISTORY'S
+  +4.73, AND THE DECAY FALLS MONOTONICALLY AS THE WINDOW LENGTHENS (W=1 +17.94,
+  W=2 +12.03, W=3 +4.74, W=5 +4.23, ALL +4.73) WHILE NET-OF-NULL RISES OVER THE
+  SAME RANGE (+1.29, +2.14, +6.63, +6.34, +5.67). A SHORTER SELECTION WINDOW
+  BUYS CAPACITY, NOT EDGE — RECENCY-1's DECAY REPRODUCES D164's +16.92 CAPACITY
+  FIGURE TO WITHIN A POINT ON A COMPLETELY SEPARATE ARM.** AND THE MECHANISM
+  THE PROPOSAL RESTS ON IS REFUTED DIRECTLY: **THE ADJACENCY PREMIUM — a
+  season-k-tuned config's ROI on season k+1 MINUS its mean ROI on every other
+  season — IS +0.085 ROI POINTS OVER 18 TUNING SEASONS, POSITIVE IN 11 OF 18,
+  17-dof CI [-3.77,+3.95] ns, AGAINST A PERMUTATION REFERENCE OF +0.000 AND
+  p = 0.490. THE NEXT SEASON IS NOT MEASURABLY EASIER FOR A CONFIG TUNED ON
+  THIS SEASON THAN A RANDOM OTHER SEASON IS. REGIME CONTINUITY DOES NOT
+  EXIST AT THIS RESOLUTION, AND BY THE PRE-REGISTERED RULE THAT VERDICT
+  OVERRIDES EVERY HEADLINE IN THE ARM TABLE.** THE SECOND HALF OF THE QUESTION
+  — CAN THE GATES ADAPT WITHIN A SEASON — IS ANSWERED HARDER: **RE-SELECTING
+  DURING THE SEASON FROM SEASON-TO-DATE DATA ALONE IS -8.76 ROI POINTS PAIRED
+  AGAINST THE FROZEN ALL-HISTORY CONFIG ON THE IDENTICAL GAMES,
+  [-17.45,-0.07] SIG NEG — IT THRASHES THROUGH 47 CONFIGURATIONS IN 68
+  DECISIONS — AND ADDING SEASON-TO-DATE TO ALL HISTORY IS A NO-OP (-0.12
+  POINTS, 7 CHANGES IN 68).** **NO ARM PASSES: EVERY ONE OF THE SEVEN
+  INTERVALS STRADDLES ZERO, AND EVERY REALISED MDE80 (6.0 to 10.2 POINTS) IS
+  2-4x THE HEADLINE IT IS BEING ASKED TO CERTIFY.** **DIAGNOSTIC. Nothing
+  ships. No production default changed, no gate re-run, eval corpus NOT
+  widened, `nbapred/` and `scripts/bet_engine.py` UNTOUCHED,
+  `scripts/prod_by_season.py` NOT RUN, `data/nba.duckdb` NEVER OPENED.**
+  `data/capstone_pergame.csv` md5 **3b7bbbb78ac73c63273c18a8aa30013c** verified
+  at the START and again at the END — it is not an input to any arm.
+  (0) **WHY THIS ENTRY EXISTS.** D164 put selection inside the walk-forward
+  loop using ALL history and got +1.66% ns. The owner's refinement: *does
+  selecting from RECENT data beat selecting from all history, and can the gates
+  adapt WITHIN a season?* D164 had measured that tuning on ONE season transfers
+  at -1.13% mean OOS — but that averaged over all other seasons, near and far.
+  **Whether season k+1 SPECIFICALLY is easier for a config tuned on season k
+  had never been asked.** §6 asks it, and it is the mechanism the whole
+  proposal depends on.
+  (0a) **PRE-REGISTRATION, WRITTEN AND HASHED BEFORE ANY SCORING CODE FOR THIS
+  RUN WAS WRITTEN OR EXECUTED.** `data/adaptive_sel_prereg.md` sha256
+  **529f21effa39a52279a4e58eeb78514e44c0e5434fa6c59692fa523832f033fa**
+  (`data/adaptive_sel_prereg.sha256`). It closes the family at SEVEN arms, fixes
+  the common scored track, fixes ARM D's burn-in (300 games) and cadence (every
+  200), fixes the eligibility guards, mandates E[max] and the adjacency
+  override, and — §0a — **PREDICTS IN ADVANCE, in these words, that the recency
+  arms will have MORE manufacturing capacity and MORE NEGATIVE noise floors
+  because they select on less data, and that NET OF OWN NULL is therefore the
+  only statistic comparable across arms.** That prediction is confirmed below
+  and the reader is entitled to check the hash against the sequence.
+  (0b) **THREE ANCHORS, ALL EXACT.** (i) D162's POOL19 reproduces: ROI
+  **-3.245%**, cover **50.654%**, 22,742 games, **351 pushes**. (ii) **ARM C IS
+  D164's ARM B AND REPRODUCES IT TO THE DIGIT** — +1.66% pooled, cover
+  53.259%, n = 1,553, 13-dof CI [-4.85,+7.26], **4 selection changes in 13
+  transitions**, and the identical per-season path (+1.38, +22.19, -2.35,
+  -5.93, +6.93, +2.54, -15.84, +13.17, -1.25, -8.77, -4.55, +4.69, +14.70,
+  -10.03) and the identical config path (T3/AWAY/c>.18 -> T3/DOG -> T3/ALL ->
+  T3/AWAY/c>.08 -> T3/ALL/c>.18). (iii) **ARM C's NOISE FLOOR REPRODUCES
+  D164's -4.01% EXACTLY**, because the same seed 20260804 and the same
+  within-slate permutation of the pair `(m_us, p_us)` are used — which also
+  means all seven arms see the SAME permuted data within a draw, so §7's
+  E[max] accounts for the arms' correlation rather than assuming independence.
+  The harness is D164's, imported not rebuilt (`import oc_capacity`).
+  (1) **THE ARM TABLE. COMMON SCORED TRACK 2012-13..2025-26, 14 SEASONS, THE
+  SAME 600-CELL SPACE AND THE SAME ELIGIBILITY GUARD FOR EVERY ARM.** `net` =
+  real minus that arm's OWN null mean (200 draws); `own p` = P(own null >=
+  real); `FWER p` = P(best-of-7 under the null >= real).
+    arm                       ROI      n    cover%  13-dof CI        null   net   own p  FWER p  MDE80  +sns
+    A RECENCY-1 (PRIMARY)   -3.13%  1,893  50.722  [-7.77,+1.55]    -4.42  +1.29  0.275  0.805   6.05  5/14
+    B RECENCY-2             -2.16%  1,639  51.235  [-7.14,+2.79]    -4.30  +2.14  0.160  0.565   6.44  7/14
+    B RECENCY-3             +2.57%  1,893  53.747  [-2.80,+7.12]    -4.06  +6.63  0.000  0.000   6.44  8/14
+    B RECENCY-5             +2.27%  1,752  53.584  [-3.39,+6.87]    -4.08  +6.34  0.005  0.005   6.65  8/14
+    C ALL-HISTORY (D164)    +1.66%  1,553  53.259  [-4.85,+7.26]    -4.01  +5.67  0.000  0.020   7.86  7/14
+    D-ONLINE                -1.15%  1,531  51.768  [-10.63,+5.10]   -3.86  +2.72  0.070  0.310  10.21  7/14
+    D-HYBRID                +2.10%  1,567  53.497  [-4.10,+6.46]    -4.10  +6.20  0.000  0.010   6.84  7/14
+  Breakeven cover 52.381%. **PREREG §9 VERDICT: NO-PASS ON ALL SEVEN. Condition
+  (ii) — beat your own null p95 — passes for B3/B5/C/D-HYBRID; condition (i) —
+  an interval excluding zero — fails EVERYWHERE. Both were required and both
+  were written down first.**
+  (2) **THE PRIMARY ARM IS THE WORST SEASON-WINDOW ARM ON THE BOARD.** Paired
+  per-season delta against ARM C on the identical 14 seasons, 13 dof: **A
+  RECENCY-1 -4.31 [-13.10,+4.47] ns**, B RECENCY-2 -3.38 [-10.25,+3.48], B
+  RECENCY-3 +0.95 [-4.55,+6.46], B RECENCY-5 +0.53 [-4.18,+5.25], D-ONLINE
+  -3.97 [-9.96,+2.02], D-HYBRID -0.03 [-1.22,+1.17]. **NOT ONE RECENCY ARM IS
+  BETTER THAN ALL-HISTORY BY A MARGIN THIS TEST CAN SEE, AND THE OWNER'S OWN
+  ARM IS 4.31 POINTS WORSE. THE ANSWER TO THE HEADLINE QUESTION IS NO.**
+  (3) **WHY — THE MANUFACTURING LADDER, AND IT IS MONOTONE.**
+    arm            mean selection n   in-window ROI   test ROI   DECAY    net of null   sel changes
+    A RECENCY-1            123          +14.82%       -3.13%    +17.94      +1.29        13/13, 14 cfgs
+    B RECENCY-2            239           +9.87%       -2.16%    +12.03      +2.14        13/13, 13 cfgs
+    B RECENCY-3            357           +7.31%       +2.57%     +4.74      +6.63        11/13, 11 cfgs
+    B RECENCY-5            590           +6.50%       +2.27%     +4.23      +6.34        10/13, 11 cfgs
+    C ALL-HISTORY        1,405           +6.38%       +1.66%     +4.73      +5.67         4/13,  4 cfgs
+  **RECENCY-1's +17.94-POINT DECAY IS D164's MEASURED CAPACITY (+16.92) TO
+  WITHIN A POINT, ARRIVED AT BY A DIFFERENT ROUTE.** Selection stability tracks
+  the same axis exactly: RECENCY-1 changes configuration at EVERY ONE of its 13
+  transitions and never repeats one (14 distinct out of 600, T ranging over
+  0-4 with every side and every phase appearing), while all-history changes 4
+  times, uses 4 configurations, and **picks T>=3 with a non-trivial confidence
+  band at every single step**. D164 §5a called that instability "a function of
+  the selection window, not of the space"; this entry measures the function.
+  (4) **THE MECHANISM TEST — THE ADJACENCY EFFECT IS ZERO, AND THIS IS THE
+  FINDING THAT DECIDES THE ENTRY.** For each tuning season k, `c*(k)` = the
+  best of 600 on season k alone; `ADJ(k)` = its ROI on k+1; `FAR(k)` = its mean
+  ROI on every season except k and k+1; `PREMIUM = ADJ - FAR`.
+  **MEAN PREMIUM = +0.085 ROI POINTS over 18 tuning seasons, positive in
+  11 of 18, 17-dof CI [-3.77,+3.95] ns, permutation reference +0.000
+  (p95 +3.207), p = 0.490, NET OF NULL +0.085.** Lag-2 control: +0.167 against
+  a null of +0.750, i.e. **net -0.583**. Per-season premiums run from **-19.61
+  (2018-19) to +12.59 (2023-24)** with no pattern: +3.87, +7.71, +8.45, +3.05,
+  +3.27, -11.49, -3.50, +6.82, -4.40, -3.04, -0.25, -19.61, +0.19, -8.55,
+  +4.58, +1.29, +12.59, +0.55. **THE PROXIMITY OF A SEASON TO ITS TUNING SEASON
+  CARRIES NO INFORMATION WHATSOEVER. PREREG §6's RULE FIRES: THE
+  REGIME-CONTINUITY HYPOTHESIS IS REFUTED, AND NO RECENCY ARM MAY BE DESCRIBED
+  AS EVIDENCE FOR IT REGARDLESS OF ITS HEADLINE.**
+  (5) **WITHIN-SEASON ADAPTATION — IT HURTS, AND THAT ONE IS SIGNIFICANT.**
+  Burn-in 300 games on ARM C's frozen config (so both arms are on identical
+  bets until the first online decision), then re-select at games 300/500/700/
+  900/1100 and apply FORWARD only. Restricted to the POST-BURN-IN games, paired
+  against ARM C on **exactly the same games**:
+    arm         post ROI     n     13-dof CI            C on same games   PAIRED delta
+    D-ONLINE     -3.93%    1,111  [-15.95,-1.86] SIG-       -0.03%        -8.76 [-17.45,-0.07] SIG-
+    D-HYBRID     +0.59%    1,147  [-4.81,+4.29] ns          -0.03%        -0.12 [-1.43,+1.19] ns
+  **RE-SELECTING FROM SEASON-TO-DATE DATA ALONE COSTS 8.76 ROI POINTS AGAINST
+  DOING NOTHING, ON THE SAME GAMES, AND IT IS THE ONLY SIGNIFICANT RESULT IN
+  THE RUN.** It thrashes: **55 configuration changes across 68 decision points
+  and 47 distinct configurations**, because 300-1,100 games is a selection
+  window an order of magnitude thinner than a season and the proportional guard
+  admits 25-90 bets. D-HYBRID — all history PLUS season-to-date — changes the
+  configuration **7 times in 68 decisions** and lands within 0.12 points of
+  simply leaving it frozen: **the within-season information is either useless or
+  drowned, and either way it buys nothing.** This is exactly the asymmetry
+  prereg §8 declared: an underpowered test can REJECT, and here it rejects.
+  (5a) **STRICT CAUSALITY, ASSERTED NOT ASSUMED.** A game must never influence
+  its own bet. Tested by permuting the FUTURE: for every scored season and every
+  decision point, `(m_us, p_us, margin_actual)` were jointly permuted across all
+  games strictly AFTER that point and the online selector re-run. **68 (season,
+  decision-point) pairs, 0 changed decisions.** ARM D is causal by construction
+  and by test.
+  (6) **THE NAMED CASE THE OWNER ASKED FOR: TUNE ON 2024-25, SCORE 2025-26.**
+  Config selected on 2024-25 alone is **T>=3 / ALL / EARLY / c>0.08**, in sample
+  **+34.11% on 121 bets** (D164 ARM A's row, reproduced exactly). **On 2025-26:
+  ROI +0.09%, n = 103 BETS, cover 52.427% against a 52.381% breakeven. i.i.d.
+  Wald CI [-18.41%,+18.59%]. MDE80 on this cell = 26.45 ROI POINTS. K = 1, SO
+  NO SEASON-CLUSTERED INTERVAL EXISTS FOR IT.** Null mean -2.08%, p = 0.36.
+  **STATED PLAINLY AND AS PRE-DECLARED: 103 bets — not the ~1,200 games in the
+  season, because the selected configuration fires on 8% of the slate — CANNOT
+  ESTABLISH A RESULT IN EITHER DIRECTION. THIS IS ONE DRAW FROM ARM A'S
+  DISTRIBUTION, NOT A VERDICT.** What it does illustrate is the decay: +34.11%
+  in sample became +0.09% out of it, i.e. **99.7% of the tuned number was
+  manufacturing** — the same story D164 told with 19 tuning targets, told again
+  with the one target the owner cares about.
+  (7) **THE FAMILY-WISE BURDEN, BECAUSE CHOOSING AMONG SEVEN PROCEDURES IS
+  ITSELF SELECTION.** For each null draw, take the BEST of the seven arms:
+  **E[max of 7 | null] = -1.88% (sd 1.51; p05 -4.11, p50 -2.04, p95 +0.57,
+  max +2.50).** So having seven procedures instead of one is worth **+2.13
+  points of free ROI** against any single arm's ~-4.0% floor. Four arms clear
+  it (B3 FWER p 0.000, B5 0.005, D-HYBRID 0.010, C 0.020); three do not
+  (D-ONLINE 0.310, B2 0.565, **A RECENCY-1 0.805**). **But the four winners are
+  +2.57, +2.27, +2.10 and +1.66 — a 0.91-point spread on intervals ~10 points
+  wide — and the arm that tops the table (RECENCY-3) is NOT distinguishable
+  from the benchmark it would displace (paired +0.95 [-4.55,+6.46]). Picking
+  RECENCY-3 because it is the maximum of this table is precisely the error D164
+  exists to warn about, and this entry does not make it.**
+  (8) **POWER, DECLARED IN ADVANCE AND CONFIRMED AS DAMNING.** Prereg §8 said
+  every arm would land at MDE80 6-11 points and that every positive result must
+  therefore be worded "consistent with" and never "shows". **Realised: A 6.05,
+  B2 6.44, B3 6.44, B5 6.65, C 7.86, D-HYBRID 6.84, D-ONLINE 10.21** (per-season
+  sd 8.07 / 8.60 / 8.60 / 8.89 / 10.49 / 9.14 / 13.63 pp). **NOT ONE ARM COULD
+  HAVE ESTABLISHED ITS OWN HEADLINE. Every positive number in §1 is CONSISTENT
+  WITH a small edge and equally consistent with zero; the negative results in
+  §2, §4 and §5 are the only ones the design can actually support.**
+  (9) **FAMILY (D121's standard, pre-registered).** PRIMARY FAMILY: **1 cell**
+  (ARM A's pooled ROI), 0.05 expected significant under a global null;
+  **observed significant: ZERO.** SECONDARY FAMILY: **9 cells** (6 other arms'
+  pooled ROIs, the adjacency premium, the 2024-25 -> 2025-26 cell, the A-minus-C
+  paired delta), 0.45 expected; **observed significantly POSITIVE: ZERO;
+  significantly NEGATIVE: 1** (D-ONLINE's post-burn-in paired delta, §5, which
+  is in the arm-comparison set rather than the pooled-ROI set and is reported
+  as such). The 600 in-sample selection cells are NOT a test family — they are
+  the selector's own search (D164 §9), and this run adds the corollary that
+  **the 7 PROCEDURES are a test family and are treated as one in §7.**
+  (10) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: **K-A..K-E =
+  2007-08..2025-26** on D161 §0b's coding = E-3/E-2/E-1/E0/E2/E3/E4/E5/E6 on
+  ERAS.md; every arm's SCORED track is the common **2012-13..2025-26 = K-B..K-E**
+  and ARM A's selection windows begin one season earlier. ERA-AVAILABILITY:
+  every input consumed (`m_us`, `p_us`, `open_margin`, `margin_actual`,
+  `game_date`) exists in all 19 seasons — opening SPREADS are the only price
+  series that does, which is why D162's frame is the substrate; **no cell is
+  structurally inert anywhere and no availability-gated feature enters any
+  arm.** AVAILABILITY TIER: BLIND on all 19, empty OUT sets, inherited from
+  D161/D162 — **every level here is a LOWER BOUND and no played-set oracle
+  exists in any code path.** ERA-STABILITY: the primary arm's per-season sd is
+  8.07pp on a -3.13% mean and its early block (k=5..11, -3.09%) is
+  indistinguishable from its late block (k=12..18, -3.12%, OLS slope +0.33
+  points per step) — **ERA-STABLE in the only sense that applies, the null holds
+  in both halves**; no DerSimonian-Laird decomposition is claimed and none is
+  supportable at this noise level. COVID FRAME: 2019-20 and 2020-21 are both
+  scored seasons on the common track; **ex-COVID the arms are A -1.86%, B2
+  -1.94%, B3 +2.68%, B5 +2.90%, C +1.07%, D-ONLINE -1.23%, D-HYBRID +1.67% —
+  every sign and every ordering unchanged. COVID is doing no work anywhere in
+  this entry.**
+  (11) **SECONDARY — EACH ARM ON ITS OWN MAXIMAL TRACK** (never compared across
+  arms, since the tracks differ): A RECENCY-1 K=18 (2008-09..2025-26) **-1.86%**
+  n 2,259 [-5.30,+2.49] MDE80 5.17, 9/18 positive; B RECENCY-2 K=17 -0.45% n
+  1,913 [-5.14,+5.10]; B RECENCY-3 K=16 +2.89% n 2,074 [-3.11,+8.01]; B
+  RECENCY-5 and C ALL-HISTORY are already at K=14. **Given four extra early
+  seasons RECENCY-1 improves from -3.13% to -1.86% and is still negative and
+  still ns.**
+  (12) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not treat any in-window
+  number as evidence of an edge. It does not present the best of the seven arms
+  as a test result — §7 prices that choice. It does not convert B RECENCY-3's
+  +2.57% into anything: it is ns, its MDE80 is 6.44, and it is +0.95 [-4.55,
+  +6.46] against the benchmark. And it does not change the standing
+  recommendation of D121/D126/D142/D148/D161/D162/D163/D164 — **NO CAPITAL AT
+  OPEN OR CLOSE, CLV REMAINS THE YARDSTICK** — which is not in scope here.
+  D164's ARM C/ALL-HISTORY procedure keeps its place on the fresh-season
+  confirmation list (V2 §6) and **this entry adds nothing to that list: the
+  recency variants are not better, and the within-season variants are worse or
+  inert.**
+  [code scripts/as_adaptive.py, scripts/as_chart.py (both new, neither under
+   nbapred/); scripts/oc_capacity.py IMPORTED UNMODIFIED as the harness;
+   data/adaptive_sel_prereg.md (sha256
+   529f21effa39a52279a4e58eeb78514e44c0e5434fa6c59692fa523832f033fa, written
+   and hashed BEFORE any scoring code for this run existed),
+   data/adaptive_sel_prereg.sha256,
+   data/adaptive_sel_notes.md (full working, checkpointed as the run
+   proceeded), data/as_adaptive.json,
+   data/logs/as_adaptive.log, data/logs/as_adaptive.err;
+   charts/adaptive_selection.png;
+   input data/ats19_frame.csv.gz (D162, md5 b9e59afdd54247083184256e2d10a112,
+   22,742 rows, 19 seasons) ONLY — data/nba.duckdb NEVER OPENED;
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged]
+- D166 THE EQUITY PATH — WHAT A FIRM WOULD ACTUALLY HAVE MADE, SEASON BY SEASON,
+  AT THE OPENING SPREAD, UNDER MEASURED MULTI-BOOK EXECUTION. **THE WINDOW
+  QUESTION IS ANSWERED ON A RULE DECLARED BEFORE LOOKING — NOT 3, NOT 5,
+  *MORE*: THE FULL EXPANDING WINDOW — AND THE FIRM-BASELINE PATH IS POSITIVE.
+  AT k=5 MEASURED EXECUTION WITH D163's OUTLIER-REALISM HAIRCUT THE 14 UNSEEN
+  SEASONS RETURN ROI +3.54%, COVER 54.240% AGAINST A 52.381% BREAKEVEN, ON
+  1,553 BETS, FOR A CUMULATIVE +54.9 UNITS AT FLAT 1u — AND THE CURVE IS ABOVE
+  FLAT AFTER EVERY ONE OF THE 14 SEASONS. THE 13-dof CLUSTER-MEAN INTERVAL IS
+  [-3.51%,+8.98%] AND SPANS ZERO, SO THIS IS A CANDIDATE, NOT A FINDING.**
+  THE RETAIL-DEGENERATE ONE-BOOK CASE IS +1.66% / +25.7u AND IS THE SAME
+  D164/D165 ARM REPRODUCED TO THE DIGIT; THE k=8 RAW OPTIMISTIC BOUND IS
+  +4.92% / +76.4u; **THE HAIRCUT NEVER FLIPS THE SIGN AT ANY TIER — IT COSTS
+  10.5 UNITS AT k=5 AND 16.5 AT k=8 AND LEAVES EVERY CURVE ABOVE FLAT.** FIRM
+  FRICTION, PRICED RATHER THAN ASSERTED: EXCLUDING THE OFFSIDE TAIL ENTIRELY
+  (D163's 11.6% OF GAMES WITH A >3pt BEST-WORST RANGE) COSTS 5.5 UNITS
+  (+3.35%, +49.4u); A 50% FILL AT THE BEST PRICE WITH THE REMAINDER AT
+  CONSENSUS COSTS 14.6 (+2.60%, +40.3u); **BOTH TOGETHER STILL LAND AT +2.44%
+  AND +36.0 UNITS, ABOVE THE ONE-BOOK CASE.** **DIAGNOSTIC. Nothing ships. No
+  production default changed, no gate re-run, eval corpus NOT widened,
+  `nbapred/` and `scripts/bet_engine.py` UNTOUCHED, `scripts/prod_by_season.py`
+  NOT RUN, `data/nba.duckdb` NEVER OPENED** (the D163 panels were read from the
+  already-joined `mb_panel_*.json`, so no crosswalk query was needed).
+  `data/capstone_pergame.csv` md5 **3b7bbbb78ac73c63273c18a8aa30013c** verified
+  at the START and again at the END — it is not an input to any arm.
+  (0) **WHY THIS ENTRY EXISTS, AND WHAT IS AND IS NOT NEW.** The owner asked
+  for one thing the register did not hold: **the PATH**. D164 and D165 report
+  pooled ROIs and intervals; neither draws the equity curve, neither prices the
+  walk-forward bet set at anything other than one consensus number, and neither
+  states which calibration window to use on a rule. **NO NEW SELECTION IS MADE
+  HERE.** The 600-cell space, the selection rule, the eligibility guard, the
+  bet convention and the null draws are D164/D165's, imported not rebuilt
+  (`import oc_capacity`; the window loop is D165's `arm_window`; the nulls are
+  read from `data/as_adaptive.json`, 200 draws, seed 20260804). The execution
+  layer is D163's measured panels. **What is new is (i) a stated rule for
+  choosing the window, (ii) the season-by-season path in units, (iii) the
+  multi-book re-pricing of THAT path with every cell labelled MEASURED or
+  EXTRAPOLATED, and (iv) firm-grade friction.**
+  (0a) **FOUR ANCHORS, ALL EXACT.** (i) D162's POOL19 reproduces: ROI
+  **-3.245%**, cover **50.654%**, 351 pushes on 22,742 games. (ii) **All five
+  season-window arms reproduce D165 §1's per-season ROI vectors to 1e-9** and
+  their pooled ROIs to machine precision — RECENCY-1 -3.13%, -2 -2.16%, -3
+  +2.57%, -5 +2.27%, ALL-HISTORY +1.66%. (iii) The k=1 tier IS D164 ARM B: same
+  1,553 bets, same 53.259% cover, same [-4.85,+7.26]. (iv) **The execution
+  layer reproduces D163's published ladders to 0.0002 points.** Realised mean
+  shop gain on the actual bet mix (948 offshore-lattice bets, 605
+  retail-lattice) vs the mix-weighted prediction from D163 §5: k=2 **0.1889 vs
+  0.1897**, k=5 **0.3999 vs 0.3997**, k=8 **0.5069 vs 0.5070**.
+  (1) **THE WINDOW RULE, WRITTEN DOWN BEFORE ANY NEW NUMBER EXISTED**
+  (`data/equity_notes.md`, checkpointed before the scoring script was run).
+  D165 §7 priced the act of choosing among seven procedures at **+2.13 ROI
+  points of free ROI**, so a rule is needed that does not simply take the
+  maximum. **(i)** Restrict to the SEASON-WINDOW arms — the two within-season
+  arms are excluded because D165 §5 rejects them (-8.76 points paired,
+  [-17.45,-0.07] SIG NEG; hybrid a measured no-op at -0.12). **(ii)** Rank by
+  ROI **net of each arm's OWN permutation null**, the only cross-arm
+  comparable statistic, because a shorter window has a more negative floor
+  (D165 §0a predicted this in advance). **(iii) TIE BAND = 2.13 points, D165
+  §7's own measured family-wise burden — a spread smaller than the cost of
+  having had the choice is not a difference. (iv)** Inside the band, take the
+  **LONGEST** window, because D165 §3 measures manufacturing capacity falling
+  as the window lengthens (+17.94 / +12.03 / +4.74 / +4.23 / +4.73 at
+  W=1/2/3/5/all) and selection stability rising (13/13 changes at W=1 vs 4/13
+  at all-history).
+      window        ROI%      n   own null%    net    decay   cfg changes
+      RECENCY-1    -3.13   1,893    -4.42     +1.29   +17.94    13/13
+      RECENCY-2    -2.16   1,639    -4.30     +2.14   +12.03    13/13
+      RECENCY-3    +2.57   1,893    -4.06     +6.63    +4.74    11/13
+      RECENCY-5    +2.27   1,752    -4.08     +6.34    +4.23    10/13
+      ALL-HISTORY  +1.66   1,553    -4.01     +5.67    +4.73     4/13
+  Best net-of-null is RECENCY-3 (+6.63). **Inside the 2.13-point band:
+  RECENCY-3, RECENCY-5 and ALL-HISTORY. Rule (iv) therefore selects
+  ALL-HISTORY (expanding window, 5-season minimum). Runner-up by net-of-null:
+  RECENCY-3; second runner-up RECENCY-5.**
+  **THE ONE-LINE VERDICT ON HIS LITERAL QUESTION — IS IT 5 SEASONS, 3, OR
+  MORE? MORE. USE EVERY SEASON YOU HAVE.** And the audit that the rule was not
+  reverse-engineered: **it walks DOWN the ROI ranking and costs 0.91 headline
+  points** (+1.66% chosen against +2.57% for the maximum). D165 §2's paired
+  deltas already said the three are indistinguishable (RECENCY-3 vs
+  ALL-HISTORY +0.95 [-4.55,+6.46], RECENCY-5 +0.53 [-4.18,+5.25]); this rule
+  is what acting on that admission looks like.
+  (2) **THE EXECUTION MODEL, AND WHY EVERY CELL CARRIES A LABEL.** PURE
+  EXECUTION (D142 §4 / D163 §3), inherited unchanged: **the bet set is frozen
+  by the registered consensus open**; only the transacted handicap varies.
+  Per bet `d = signed(margin_actual - open_margin)` toward our side; tier 1
+  wins iff `d > 0`, tier k wins iff `d + g > 0`, where `g` is the shop gain in
+  spread points against the panel's own consensus, carrying its **EXACT**
+  distribution over all k-subsets (`P(min of a random k-subset = i-th order
+  stat) = C(n-i,k-1)/C(n,k)` — D163's closed form; no Monte Carlo, no seed).
+  HAIRCUT = D142 §5(ii) as tightened by D163 §10: quotes more than 1.5 pts from
+  the panel median carry no weight, weight redistributed, no game dropped.
+    2012-13..2017-18  the game's OWN quotes, KAG offshore panel   **MEASURED**
+    2018-19..2022-23  NO PANEL EXISTS IN ANY SOURCE (D163 §16). Pooled OFFSHORE
+                      law applied — the CONSERVATIVE choice, because D163 §9
+                      measured US retail dispersing 2.84-2.96x more than
+                      offshore and could not date the transition. **EXTRAPOLATED**
+    2023-24           the game's OWN quotes, ESPN US-retail panel  **MEASURED**
+    2024-25, 2025-26  pooled ESPN US-retail law                 **EXTRAPOLATED**
+  **7 of the 14 scored seasons are MEASURED and 7 are EXTRAPOLATED, and the
+  chart shades the extrapolated ones.** SENSITIVITY on the five undatable gap
+  seasons, run and reported rather than hidden: putting them on the RETAIL
+  ladder instead lifts k=5+haircut from +3.54% (+54.9u) to +3.92% (+60.9u) and
+  k=8 raw from +4.92% (+76.4u) to +5.84% (+90.7u). **The conservative number is
+  the one carried above.**
+  (3) **THE TIER LADDER. NEVER A RAW NUMBER WITHOUT ITS HAIRCUT TWIN.**
+      tier                        n   cover%    ROI%   13-dof CI        cum u
+      k=1 raw (retail ref)    1,553   53.259   +1.66  [-4.85,+7.26] ns  +25.7
+      k=2 raw                 1,553   53.881   +2.85  [-4.02,+8.27] ns  +44.3
+      k=2 +haircut            1,553   53.710   +2.53  [-4.21,+8.04] ns  +39.3
+      k=5 raw                 1,553   54.596   +4.21  [-3.12,+9.47] ns  +65.4
+      **k=5 +haircut  FIRM DEFAULT  54.240  +3.54  [-3.51,+8.98] ns  +54.9**
+      k=8 raw (optimistic)    1,553   54.967   +4.92  [-2.65,+10.09] ns +76.4
+      k=8 +haircut            1,553   54.410   +3.86  [-3.25,+9.32] ns  +59.9
+      exchange c=2%  ARITHMETIC ONLY  53.259  +5.39  [-1.36,+11.18] ns  +83.7
+      exchange c=5%  ARITHMETIC ONLY  53.259  +3.81  [-2.84,+9.53] ns   +59.1
+  **STATED PLAINLY BECAUSE THE PREREGISTERED HONESTY REQUIREMENT DEMANDS IT:
+  EVERY TIER'S CUMULATIVE CURVE ENDS ABOVE FLAT, AND THE OUTLIER-REALISM
+  HAIRCUT DOES NOT FLIP ANY OF THEM.** It costs 5.0 units at k=2, 10.5 at k=5
+  and 16.5 at k=8. **AND EVERY INTERVAL SPANS ZERO. Both sentences are the
+  result and neither may be quoted without the other.** The conversion check
+  passes at every tier: realised `dcover / (0.0317276*gain)` = 1.037 / 1.052 /
+  1.053 / **1.084** / 1.062 / 1.106, all inside D163 §7's measured 0.81-1.22
+  band. The EXCHANGE rows are **ARITHMETIC, NOT MEASUREMENT** — we hold ZERO
+  exchange data (D163 §3) and D156 §7a's own caveat (a real exchange has a
+  bid-ask and finite NBA liquidity, so its cost is a FLOOR) applies in full.
+  The mechanism is D156 §7a's, re-derived at even money: commission falls on
+  NET WINNINGS, so an ATS breakeven moves from 52.381% to `1/(2-c)` = 50.505%
+  at c=2% and 51.282% at c=5%, i.e. **-1.876pp and -1.099pp of required cover,
+  against the -1.859pp that a measured, haircut 5-book shop delivers.** For a
+  ~50/50 spread bet, one exchange account at 2% is worth marginally more than
+  five books, and at 5% marginally less.
+  (4) **THE PER-SEASON PATH — THE HEADLINE OBJECT, AND THE SOURCE OF THE
+  INTERVAL.** Flat 1u per bet. `cum` is cumulative units.
+     season   config            n   1-BOOK cov% ROI%   cum |  k=5+HC cov% ROI%   cum | label
+     2012-13  T3/AWAY/c>.18    66   53.12  +1.38    +0.9 | 54.11   +3.28    +2.2 | MEASURED
+     2013-14  T3/AWAY/c>.18    68   64.18 +22.19   +16.0 | 64.69  +23.40   +18.1 | MEASURED
+     2014-15  T3/DOG/c>.18     89   51.14  -2.35   +13.9 | 51.74   -1.22   +17.0 | MEASURED
+     2015-16  T3/DOG/c>.18     69   49.28  -5.93    +9.8 | 49.41   -5.66   +13.1 | MEASURED
+     2016-17  T3/ALL/c>.18     84   56.10  +6.93   +15.6 | 56.75   +8.29   +20.1 | MEASURED
+     2017-18  T3/ALL/c>.18    111   53.77  +2.54   +18.5 | 55.14   +5.21   +25.8 | MEASURED
+     2018-19  T3/ALL/c>.18    101   44.00 -15.84    +2.5 | 44.41  -15.18   +10.5 | EXTRAPOLATED
+     2019-20  T3/AWAY/c>.08    87   59.52 +13.17   +13.9 | 60.45  +15.27   +23.8 | EXTRAPOLATED
+     2020-21  T3/AWAY/c>.08    58   51.72  -1.25   +13.2 | 51.72   -1.26   +23.1 | EXTRAPOLATED
+     2021-22  T3/AWAY/c>.08   113   47.79  -8.77    +3.3 | 47.85   -8.64   +13.3 | EXTRAPOLATED
+     2022-23  T3/AWAY/c>.08   102   50.00  -4.55    -1.4 | 50.27   -4.02    +9.2 | EXTRAPOLATED
+     2023-24  T3/ALL/c>.18    188   54.89  +4.69    +7.5 | 56.21   +7.28   +22.9 | MEASURED
+     2024-25  T3/ALL/c>.18    243   60.08 +14.70   +43.2 | 61.43  +17.23   +64.8 | EXTRAPOLATED
+     2025-26  T3/ALL/c>.18    174   47.13 -10.03   +25.7 | 49.40   -5.66   +54.9 | EXTRAPOLATED
+  (all fourteen configs are T>=3 with a non-trivial confidence band, the family
+  D164 §5a and D162 §7/§14 both isolated; only the side and band move.)
+  **THE PATH IS THE CONFIDENCE INTERVAL AND THE ENTRY PRESENTS IT THAT WAY: the
+  firm-default seasons run -15.18% to +23.40% around a +3.54% mean, per-season
+  sd 10.82pp. That spread is not a footnote to the interval — it IS the
+  interval. 7 of 14 seasons are positive. The one-book path spends 2022-23
+  BELOW FLAT (-1.4u) and only the 2024-25 season pulls it clear.**
+  (5) **THE SINGLE MOST LOAD-BEARING FACT IN THE RUN, AND IT CUTS BOTH WAYS.**
+  Largest single-season influence on pooled ROI is 2.4-2.7 points at every
+  tier, and it is 2024-25 everywhere. **DROP 2024-25 AND THE ONE-BOOK ARM FLIPS
+  NEGATIVE (-0.76%, -10.0 units) WHILE THE FIRM DEFAULT DOES NOT (+1.00%, +13.0
+  units); k=8 raw holds +2.19% / +28.7u.** So the retail result rests on one
+  season and the firm result does not — but +1.00% on 13 seasons is a number no
+  test in this register could distinguish from zero. D164 §7a's reading of
+  2024-25 stands unchanged: it is +2.62 season-sd above the 19-season mean, an
+  ordinary season outlier rather than a selection artefact, and its own
+  configuration is pre-declared.
+  (6) **FIRM FRICTION, BECAUSE ASSUMING FIRM-GRADE EXECUTION WITHOUT
+  FIRM-GRADE COST WOULD FLATTER THE RESULT.** All applied to the DEFAULT tier.
+      arm                                           n effective  ROI%    cum u
+      DEFAULT k=5 measured +haircut                    1,553.0   +3.54   +54.9
+      (a) offside tail EXCLUDED (panel best-worst
+          range > 3.0 pts is simply not bet)           1,475.6   +3.35   +49.4
+      (b) stake cap, fraction f fills at the best
+          price and 1-f at consensus:  f=0.75          1,553.0   +3.07   +47.6
+                                       **f=0.50**      1,553.0   **+2.60**  **+40.3**
+                                       f=0.25          1,553.0   +2.13   +33.0
+      (a)+(b) together at f=0.50                       1,475.6   +2.44   +36.0
+  **f IS A DECLARED CONVENTION, NOT A FITTED PARAMETER** — 0.50 is stated as
+  the midpoint and the 0.25/0.75 rungs are shown so the reader can see the
+  slope rather than trust the choice. For MEASURED seasons (a) is applied
+  per-game from the real panel; for EXTRAPOLATED seasons it is applied as a
+  RATE (the era's measured >3pt share) with the gain law restricted to the
+  surviving games, because no per-game range exists there and the entry will
+  not invent one. **Under the worst combination the strategy still returns
+  +2.44% and +36.0 units, i.e. above the one-book case — but the interval is
+  as wide as ever and the ordering of these rows is arithmetic, not evidence.**
+  (7) **THE UNPRICED RISK, STATED ONCE AND PROMINENTLY: LIMITS.** Best-of-k is
+  by construction always transacted at whichever book is most offside.
+  **D163 §17f measured 11.6% of ESPN23 games carrying a best-worst range above
+  3 points, 4.8% above 5 and 1.2% above 10; 8.1% of best prices sit more than
+  1.5 pts off the other book.** Those are precisely the prices that get
+  limited, lowered or voided. **NOTHING IN §3, §4 OR §6 CHARGES FOR BEING
+  LIMITED OR HAVING A BET VOIDED. THAT IS THE LARGEST KNOWN BIAS IN THE
+  OPTIMISTIC DIRECTION IN THIS ENTRY, AND §6(a)'s 5.5-unit exclusion is a
+  SENSITIVITY, NOT A PRICE FOR IT.** **A SECOND UNPRICED BIAS, SAME DIRECTION,
+  ADDED BY THE FIRM FRAMING: our +0.166pt CLV (D162 §11) is measured as a
+  price-taker with zero size. A firm betting meaningful stake into a soft
+  opening number is itself part of the flow that closes that gap, so some of
+  the measured CLV is mechanically unavailable to anyone large enough to
+  capture it. WE HOLD NO IMPACT DATA AND THIS IS DELIBERATELY NOT MODELLED —
+  the direction is named and the magnitude is unknown.** D163 §11's finding
+  that the biggest shop gains WIN more, not less, is why the haircut is
+  justified by LIMITS and not by adverse selection, and that reading is
+  unchanged here.
+  (8) **THE TWO FACTS THAT BOUND EVERY POSITIVE NUMBER ABOVE, ONE LINE EACH.**
+  (i) **FAMILY-WISE:** D165 §7 measured `E[max of 7 procedures | null] = -1.88%`
+  against a single arm's ~-4.0% floor, i.e. **having had seven procedures to
+  choose from is worth +2.13 ROI points of free ROI**, which is why §1's rule
+  uses that number as its tie band and why the maximum of the window table was
+  not taken. (ii) **POWER:** per-season sd is 10.8-11.0pp at every tier, so
+  **MDE80 is 7.86-8.27 ROI points and it would take ~36 seasons to resolve the
+  firm default's +3.54%, ~154 to resolve the one-book +1.66%, and ~59 to
+  resolve RECENCY-5's +2.27%** (95% half-width equal to the point estimate).
+  **We have 14. Not one number in this entry could have been established by
+  this design, and that was true before the numbers existed.**
+  (9) **FAMILY (D121's standard).** PRIMARY: **1 cell** — the firm-default
+  pooled ROI; 0.05 expected significant under a global null; **observed
+  significant: ZERO.** SECONDARY: the 8 other tier/exchange pooled ROIs and the
+  5 friction arms = **13 cells, 0.65 expected; observed significantly POSITIVE
+  ZERO, significantly NEGATIVE ZERO.** The 600 in-sample selection cells are
+  NOT a test family (D164 §9), the 5 windows ARE and are handled by §1's
+  declared rule rather than by a maximum, and the tier ladder cells overlap
+  almost completely (the same 1,553 bets re-priced), so the counts are UPPER
+  BOUNDS on the surprise in both directions.
+  (10) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: selection windows
+  open in **K-A** and the SCORED track is **2012-13..2025-26 = K-B..K-E** on
+  D161 §0b's coding (E-2..E6 on ERAS.md). ERA-AVAILABILITY: every model input
+  exists in all 19 seasons (opening SPREADS are the only price series that
+  does, which is why D162's frame is the substrate); **the EXECUTION layer is
+  the era-limited one — per-book panels exist only in K-A..K-C (offshore) and
+  K-E's 2023-24 (US retail), and the 2018-19..2022-23 hole is exactly where
+  D163 §9's 2.9x dispersion transition must have happened and cannot be
+  dated.** That is the reason 7 of 14 seasons are labelled EXTRAPOLATED and the
+  reason the conservative ladder is used there. AVAILABILITY TIER: **BLIND on
+  all 14 scored seasons, empty OUT sets, inherited from D161/D162 — every level
+  above is a LOWER BOUND on the model and no played-set oracle exists in any
+  code path.** ERA-STABILITY: not claimable — per-season sd 10.8pp on a +3.54%
+  mean; no DerSimonian-Laird decomposition is attempted and none is
+  supportable. COVID FRAME: 2019-20 and 2020-21 are both scored (+15.27% and
+  -1.26% at the default) and are reported in the path rather than excluded;
+  D165 §10 already showed every arm's sign and ordering survives their removal.
+  CLUSTERING: season, K=14, K-1 = 13 dof cluster-mean t as the shipping
+  statistic per §9.1(4).
+  (11) **CHART** rendered and inspected, **four collision passes** (pass 1: the
+  panel-(a) footnote ran into the break-even line and its label, panel (b)'s
+  legend sat on the 2013-14 bar and the pooled/±1sd labels overlapped the
+  2024-25 bar, panel (c)'s title overran the figure edge; pass 2: both footnotes
+  overflowed the right margin and panel (c)'s tie-band caption was drawn over
+  the 3- and 5-season bars; pass 3: panel (a)'s two-line footnote collided with
+  panel (c)'s title — hspace raised to 0.92 and the footnote split to three
+  lines; pass 4: the tie-band caption moved to the axes' left edge above the
+  bars with a double-headed arrow marking the band). `charts/walkforward_equity.png`
+  — **(a)** cumulative P&L in units across the 14 scored seasons, one line per
+  execution tier with the haircut variants as dashed companions to their raw
+  twins, the firm default drawn thick, break-even marked flat and the
+  EXTRAPOLATED seasons shaded; **(b)** ROI by season at 1 book and at the firm
+  default with the pooled mean and the ±1 season-sd band, so the source of the
+  interval is visible rather than described; **(c)** ROI net-of-null by
+  calibration window with the 2.13pp tie band drawn, so "5, 3, or more?" is
+  answerable from the figure. Every panel is captioned with its n and its
+  measured/extrapolated status.
+  (12) **VERDICT, PLAINLY.**
+  (a) **THE WINDOW: MORE THAN 5 — THE FULL EXPANDING WINDOW, MINIMUM 5
+  SEASONS.** Chosen by a rule declared before looking, which cost 0.91 headline
+  points. RECENCY-3 and RECENCY-5 are the runners-up and are not
+  distinguishable from it by any test this data supports.
+  (b) **THE FIRM-BASELINE BOTTOM LINE, IN ONE SENTENCE: at k=5 measured
+  execution with the outlier-realism haircut, the 14 unseen seasons return
+  +3.54% ROI, 13-dof CI [-3.51%,+8.98%], on 1,553 bets, for +54.9 cumulative
+  units at flat 1u, and the equity curve ends ABOVE FLAT — and it stays above
+  flat after every season on the path.**
+  (c) **THE HAIRCUT DOES NOT FLIP THE SIGN ANYWHERE, AND THE ENTRY SAYS SO AS
+  PLAINLY AS IT SAYS THE INTERVAL SPANS ZERO.** What flips a sign is dropping
+  2024-25 from the ONE-BOOK arm (-0.76%); the firm arm survives it at +1.00%.
+  (d) **THIS IS NOT A LICENCE TO BET AND THE STANDING RECOMMENDATION OF
+  D121/D126/D142/D148/D161/D162/D163/D164/D165 IS NOT CHANGED HERE — NO CAPITAL
+  AT OPEN OR CLOSE, CLV REMAINS THE YARDSTICK.** The reasons are unchanged and
+  are now attached to a picture: the interval spans zero at every tier, the
+  design would need ~36 seasons to resolve the headline, the largest known bias
+  (limits) is unpriced and points the optimistic way, half the path is
+  execution-EXTRAPOLATED, and the whole thing rests on a selection procedure
+  whose own family-wise burden is +2.13 points. What the entry DOES earn is
+  precision about what is being watched: **the all-history walk-forward
+  procedure keeps its place on the fresh-season confirmation list (V2 §6), its
+  next decision is already computable (select through 2025-26, score 2026-27),
+  and the quantity to check against is now a PATH and a unit count, not a
+  single pooled ROI.**
+  (13) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not make a new selection —
+  the space, rule, guard and nulls are D164/D165's. It does not treat any
+  in-window number as evidence. It does not present the best of the five
+  windows as a result; §1 prices that choice and declines it. It does not
+  measure a book panel for 2018-19..2022-23, 2024-25 or 2025-26 — those seven
+  seasons are EXTRAPOLATED and labelled on every table and in the chart. It
+  does not measure an exchange: §3's exchange rows are arithmetic on a
+  commission convention and we hold no exchange data. It does not price limits,
+  own-flow impact, or the BLIND->full-feed tier gap (D161 §6a measured that at
+  54% of the CLV on the moneyline frame and it is NOT netted out here). And it
+  does not re-run a gate, widen the eval corpus, change a default or re-certify
+  anything.
+  [code scripts/wf_equity.py, scripts/wf_equity_chart.py (both new, neither
+   under nbapred/); scripts/oc_capacity.py IMPORTED UNMODIFIED as the harness;
+   data/equity_notes.md (full working, checkpointed as the run proceeded — the
+   window RULE and the execution model were written into it BEFORE the scoring
+   script was executed), data/wf_equity.json, data/logs/wf_equity.log;
+   charts/walkforward_equity.png;
+   inputs data/ats19_frame.csv.gz (D162, md5 b9e59afdd54247083184256e2d10a112,
+   22,742 rows, 19 seasons), data/as_adaptive.json (D165, the registered 200
+   null draws at seed 20260804), data/mb_panel_kag.json and
+   data/mb_panel_espn.json (D163's joined operator panels) —
+   data/nba.duckdb NEVER OPENED;
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged]
+- D167 WHY DOES THE LINE MOVE, AND SHOULD WE STILL BET THE OPEN? — the owner's
+  question ("do we get enough information to make a proper bet at the open, or is
+  that why the closing line takes so long to close?"). **THE LINE MOVES BECAUSE
+  INFORMATION ARRIVES, AND WE ARE BETTING BEFORE IT — SO OUR CLV IS REAL BUT OUR
+  BETS ARE LESS INFORMED THAN THEY COULD BE. BOTH HALVES ARE NOW QUANTIFIED AND
+  THEY DO NOT CANCEL: THE PRICE WE GAIN BY BEING EARLY IS +0.166 pts (19 seasons)
+  / +0.217 pts (modern 5), THE INFORMATION WE GIVE UP IS +0.0875 pts, AND
+  BETTING AT THE OPEN STILL WINS BY +0.079 / +0.130 PTS.** The first use ever
+  made of `data/raw/teamrankings/spread_movement.jsonl`'s TIMESTAMPED intraday
+  history. DIAGNOSTIC ONLY — no gate, no ship, no default changed; read-only on
+  data/nba.duckdb with the 60s retry, no write lock taken.
+  (0) **WHAT WAS BUILT, AND THE ONE INPUT THAT DID NOT EXIST.** 6,587 games /
+  137,993 quote events (two anonymous books, book3 always null; 643 games carry
+  an empty history). Each event carries exactly ONE book, so each book is
+  forward-filled within game and the consensus is the mean of the live books.
+  Usable frame **5,851 games / 134,068 pre-tip events, 2021-22..2025-26**.
+  TIP TIMES ARE IN NO TABLE OF THE DB and in no odds feed (`odds_quotes` 0 rows,
+  `bet_quotes_panel` 0 rows, the ESPN cache holds only the FUTURE 2026-10
+  schedule). They were recovered from the play-by-play wall clock —
+  `playbyplayv3` first action, `"Start of 1st Period (7:15 PM EST)"` — **36,327 /
+  36,686 files parsed (99.02%), joined to 6,494 / 6,587 games (98.6%)**.
+  TIMEZONE VALIDATION IS LOAD-BEARING and is reported, because a 1-hour error
+  would fabricate or destroy the whole 5PM result: minutes from last quote to
+  tip are p25 +6 / **median +17** / p75 +47 with 79.2% inside [0,120]; the
+  hypothetical -1h offset gives median -43 (13.8% in band) and +1h gives +77
+  (77.3%); and the DST control is decisive — **EST games median +16.0 (n=3,980)
+  vs EDT games +17.0 (n=1,871), identical, so `ts_iso` is ET WALL CLOCK with no
+  seasonal offset.** Actual tip runs 11-13 min after the scheduled slot, so every
+  T-30 test is anchored on the SCHEDULED tip (`S-xx`) because that is what the
+  rule is written against, and the hours-to-tip curves are anchored on the ACTUAL
+  tip because that is when betting stops.
+  (1) **THE MOVEMENT PROFILE. 78% OF THE PRICE MOVE IS ALREADY GONE BEFORE THE
+  5PM REPORT EXISTS.** Share of total open->close movement completed, primary
+  statistic **WPC** = `sum_g D_g(t)D_g(T)/sum_g D_g(T)^2` (the price-discovery
+  share; the only version that mean-zero round-trip noise does not inflate), with
+  the naive `sum|D(t)|/sum|D(T)|` beside it as the upward-biased secondary,
+  n=5,851:
+      24h 0.1783 | 12h 0.4408 | 8h 0.5684 | 6h 0.6808 |
+      **4h 0.7570 | 2h 0.7972 | 1h 0.9076 | 0.5h 0.9569**   (|.|ratio 0.8533 /
+      0.8819 / 0.9507 / 0.9759). Per season T-4h 0.7415/0.7369/0.7833/0.7634/
+      0.7582 — no era drift. At a fixed CLOCK time: **77.4% of the move is gone by
+      17:00 ET** (n=5,477 games tipping later), 82.3% by 18:00.
+  Mean |open->close| move 1.5967 pts but mean TOTAL ABSOLUTE VARIATION 5.5566 pts
+  — **the line travels 3.5x further than its net displacement; most of the travel
+  is round trips**, which is why WPC and not |.| is the headline. 22.1% of all
+  absolute variation happens BEFORE game day.
+  (2) **BURST OR SMOOTH — THE IDENTIFICATION, AND IT IS DECISIVE.** A 5PM ET
+  information burst must appear at 5PM ET for EVERY game whatever time it tips; a
+  liquidity burst appears at a fixed lag BEFORE TIP and therefore slides around
+  the clock with the tip slot. Activity rate = points of |line change| per 1,000
+  game-minutes AT RISK (denominator = games whose first quote has landed and
+  whose tip has not):
+      EARLY tip <=19:30 (n=3,193)  pre 15-17 **3.067**  17-18 **6.368**  18-19 8.608   lift vs pre **+107.6%**
+      LATE  tip >=21:00 (n=1,614)  pre 15-17 **4.430**  17-18 **3.059**  18-19 2.827   lift vs pre **-30.9%**
+      ALL   (n=6,494)              pre 15-17   3.255    17-18   4.413    18-19 6.361   lift vs pre  +35.6%
+  **THE POOLED 5PM LIFT IS A COMPOSITION ARTIFACT.** It is carried entirely by
+  early-tip games, for which 17:00-18:00 is simply T-2h..T-1h. Games tipping at
+  21:00 or later — whose players sit on the very same league-wide 5PM report —
+  show NO lift at 5PM at all, and their burst arrives at 20:00-20:30, i.e. at
+  THEIR OWN T-60..T-30. **The burst tracks the TIP, not the clock.** Anchored on
+  the scheduled tip in 10-min blocks there is a single sharp regime change at
+  **S-120** (rate 2.8-3.1 before, 8-12 after, a 3.5x step) and then a flat
+  elevated plateau to tip. FORMAL T-30 TEST: S-180..S-160 3.074 | S-120..S-100
+  4.775 | S-60..S-40 8.518 | **S-40..S-20 (filing window) 9.605** | S-20..S-0
+  8.875 — **the official inactive list produces a +12.8% bump inside an
+  already-elevated plateau, a ripple, not a burst**, against +212% for the T-2h
+  regime change.
+  (3) **BUT THE INFORMATION CHANNEL IS REAL, AND IT HAS ITS OWN PLACEBO BUILT
+  IN.** Churn is D156/H1's own definition (`scripts/adv_h1_news_churn.py`): status
+  changes between the D-1 and D 5PM editions for both teams, plus unresolved
+  statuses at 5PM, plus `late_scratch` = final inactives NOT listed Out at 5PM
+  (name-matched to `nba_players`, 98.12% of report names resolve). The path is cut
+  into segments and each is tested separately:
+      corr(quest, tv_pre5   ) **-0.0238  boot95[-0.0555,+0.0126]  NULL**
+      corr(quest, tv_5to40  ) **+0.3031  boot95[+0.2661,+0.3436]  SIG**
+      corr(quest, tv_last40 ) +0.1096  boot95[+0.0690,+0.1523]  SIG
+      corr(churn_any, tv_pre5) +0.0196 [-0.0164,+0.0555] NULL | tv_5to40 +0.1021 [+0.0663,+0.1365] SIG
+      corr(late_scratch, tv_pre5) -0.0363 [-0.0734,+0.0003] NULL | tv_5to40 +0.1166 [+0.0772,+0.1585] SIG
+  **The number of unresolved injury statuses at 5PM predicts movement in the
+  5PM->S-40 window at +0.303 and predicts movement BEFORE 5PM at exactly nothing.**
+  A game-characteristic confound (star-heavy games attract both more listings and
+  more betting interest) would have loaded on both segments; it loads on one.
+  **THE LEVELS ARE THE POINT THOUGH:** Q4-minus-Q1 on `tv_5to40` is +0.90 pts,
+  against a `tv_pre5` of 4.4-5.0 pts that is the same in both quartiles. Of the
+  mean 5.94 pts of absolute variation per game, **pre-5PM 4.670 (78.6%),
+  5PM->S-40 0.778 (13.1%), last 40 min 0.495 (8.3%).**
+  (4) **PART 1 VERDICT: BOTH MECHANISMS ARE PRESENT AND THEY ARE NOT THE SAME
+  SIZE.** The movement is overwhelmingly tip-relative and overwhelmingly finished
+  before the report lands. The information signature is statistically clean and
+  confined to the last fifth of the movement. **The line is not waiting for
+  information; it is waiting for the game.**
+  (5) **PART 2 — EARLINESS PAYS ZERO. A NO-INFORMATION EARLY BETTOR EARNS
+  NOTHING, AT p=0.0000 AGAINST TWO INDEPENDENT PLACEBOS.** All 19 seasons,
+  n=22,742, spread points of CLV per bet, K-1 cluster-mean t at 18 dof:
+      OUR MODEL                 **+0.16531 [+0.06699,+0.26363] SIG**
+      ALWAYS the OPEN FAVOURITE  +0.01107 [-0.04934,+0.07148] ns
+      ALWAYS the OPEN UNDERDOG   -0.01107 [-0.07148,+0.04934] ns
+      ALWAYS HOME                -0.03424 [-0.07516,+0.00667] ns
+      ALWAYS AWAY                +0.03424 [-0.00667,+0.07516] ns
+      RANDOM SIDE (400 draws)    +0.00068 sd 0.01214 p95 +0.02142 max +0.03186  **p=0.0000**
+      WITHIN-DATE PERMUTATION    -0.00535 sd 0.00958 p95 +0.01116 max +0.02214  **p=0.0000**
+  (the permutation is D147/D162/D165's machinery: permute the pair (m_us,p_us)
+  within slate, 400 draws, seed 20260804, re-derive the side.) Modern 5 seasons:
+  ours **+0.42398 [+0.14925,+0.69870]**, favourite -0.04174 ns, random +0.00245.
+  **The opening number does not drift in any direction a no-information bettor
+  can stand in front of.** NOTE FOR THE RECORD: our side is the OPEN FAVOURITE in
+  only **28.72%** of games — the model is systematically less extreme than the
+  market, so we are usually on the dog. **D115/D121's "the favourite-drift control
+  is VACUOUS because our side IS the favourite by construction" is true of the
+  four SELECTED rules and is NOT true of the raw ATS rule scored here, so on this
+  frame the control is live and it is clean.**
+  (6) **AND IT IS NOT ANTICIPATION OF THE INJURY REPORT EITHER — THE ANSWER THE
+  BRIEF ASKED FOR IN ADVANCE, AND IT COMES OUT AGAINST US.** Frame ats19 x 5PM
+  churn, **n=2,882 = 2023-24 (1,230) + 2024-25 (1,230) + 2025-26 PARTIAL (422)**,
+  frame CLV +0.46432 K=3 [-0.27443,+1.20307]:
+      quest 0 n=1125 **+0.45318**   quest 3+ n= 563 **+0.43849**
+      churn <4 n= 767 +0.54002      churn 12+ n= 583 +0.34332
+      late_scratch 0 n= 665 +0.48713   late_scratch 3+ n= 831 +0.49049
+  Every ladder is FLAT. Paired season-mean differences: quest>=1 minus quest==0
+  **+0.0693 [-0.0685,+0.2071] ns**; churn>=12 minus churn==0 +0.1693
+  [-0.3261,+0.6648] ns; latescr>=3 minus latescr==0 **-0.0266** ns.
+  THE PURE-EARLINESS SUBSET, as pre-specified: strict NO-NEWS (`churn_any==0 AND
+  quest==0 AND qd==0 AND late_scratch==0`) is **n=24-27 and is useless** — it is
+  reported (-0.395, [-1.886,+1.095]) and then discarded, because n=24 cannot carry
+  a claim and saying so is cheaper than pretending. The usable relaxations:
+  **quest==0 & churn_any==0 n=106 CLV +0.60480**; quest==0 n=1,125 +0.45318;
+  late_scratch==0 n=665 +0.48713 — against a frame mean of +0.46432. **CLV IS JUST
+  AS LARGE WHERE NO NEWS BROKE, and on the tightest no-news proxy the point
+  estimate goes the WRONG WAY. The anticipation story is not weakened, it is
+  unsupported.**
+  (7) **THE DECISIVE DECOMPOSITION — 86.5% OF OUR CLV IS BANKED BEFORE THE 5PM
+  REPORT EXISTS.** Intraday path in home-margin space; fav/dog resolved for
+  **5,502/5,502** rows after a BK/GS/NO/NY/PHO/SA alias fix (**the same
+  franchise-code bug class D161 caught — without it 1,662 rows drop silently**);
+  corr(path close, close_margin) **0.9978**. n=5,500, K=5:
+      OPEN     -> 17:00 ET (pre-report)  **+0.18811 [+0.05490,+0.32132] SIG   86.5%**
+      17:00 ET -> S-120                    -0.00362 [-0.02691,+0.01968] ns    -1.7%
+      S-120    -> S-40 (late money)        +0.01029 [-0.00250,+0.02308] ns     4.7%
+      S-40     -> CLOSE (inactive window)  +0.02265 [-0.01494,+0.06025] ns    10.4%
+      TOTAL OPEN -> CLOSE                **+0.21744 [+0.09180,+0.34308] SIG  100.0%**
+  Only the pre-report segment is significant. Split by news, the PRE-REPORT
+  segment is identical across news and no-news (+0.1775 at quest==0 vs +0.1938 at
+  quest>=1 vs +0.1757 at quest>=3); the whole news-related difference lives in the
+  last two segments and is worth **+0.05..+0.08 pts, ns at K=3.**
+  (8) **PART 2 VERDICT: NEITHER (a) NOR (b) AS THE OWNER FRAMED THEM — IT IS A
+  THIRD THING.** Our model anticipates **the market's own early repricing of a
+  number the market has not finished thinking about**. The opening line is not
+  soft in the sense of DRIFTING (a coin-flipper earns +0.0007 pts); it is
+  PROVISIONAL — 78% of the day's repricing happens between the open and 5PM,
+  driven by no clock landmark and by no report, and we are on the right side of
+  it. The availability feed contributes at most **23-37% of our CLV and that
+  contribution is ns.**
+  (9) **PART 3 — THE NETTED TRADE-OFF, ONE UNIT, AND THE OPEN WINS.** Conversions
+  restated so the arithmetic is auditable: sigma = sd(actual margin - opening
+  line) = **12.574** (D162 §6); **phi(0)/sigma = 0.0317276 = 3.1728 pp of cover
+  per point** (D162 §11 — the brief's "3.170pp" is not the register's figure, the
+  code constant is `0.3989422804014327/12.574` at `mb_score.py:43`, and 3.1728 is
+  used throughout); at -110 **dROI = 1.90909 x dCOVER**; and D156 §7b, measured on
+  an IDENTICAL bet set, **+0.00604 nats <-> +0.66pp of ROI, so 1 nat = 18.040 pts
+  of effective edge.**
+  PRICE: D162 **+0.16623 pts** (19 seasons, n=22,740 — reproduced to the digit;
+  its mean-of-season-means is +0.16531, which is the exact centre of its own
+  reported interval, and the 0.0009 difference is pooled-vs-cluster-mean and is
+  stated) = **+0.527pp cover = +1.007pp ROI**; modern 5 seasons +0.21744 =
+  +1.317pp ROI.
+  INFORMATION, D156's ladder through the same map: **T0->T1 (5PM report)
+  +0.00316 nats = +0.345pp ROI = +0.0570 PTS [+0.0438,+0.0704]; T0->T2
+  (report + T-30 inactives) +0.00485 nats = +0.530pp ROI = +0.0875 PTS
+  [+0.0467,+0.1312].**
+      BET AT OPEN  (blind, T0)   price +0.2174 + info +0.0000 = **NET +0.2174 pts** (+1.317pp ROI)
+      BET AT 5:05PM (T1)         price +0.0293 + info +0.0570 = **NET +0.0863 pts** (+0.523pp ROI)
+      BET AT T-30/CLOSE (T2)     price +0.0000 + info +0.0875 = **NET +0.0875 pts** (+0.530pp ROI)
+      [19-season frame: OPEN +0.1662 | 5:05PM +0.0794 | CLOSE +0.0875]
+  **BETTING AT THE OPEN WINS BY +0.130 pts (modern) / +0.079 pts (19-season) =
+  +0.79pp / +0.48pp of ROI. The open is 2.5x / 1.9x the close-arm's net value, and
+  WAITING FOR THE 5PM REPORT IS THE WORST OF THE THREE — you pay 86.5% of the
+  price to buy 65% of the information.** SENSITIVITY: the open still wins if
+  Route A's conversion understates the ladder by 1.5x; it takes a **2.5x**
+  understatement to flip the 19-season answer.
+  (9a) **TWO INDEPENDENT CHECKS ON THE CONVERSION, because one chain is not
+  enough.** ROUTE B (self-contained Gaussian, NOT used in the netting): excess
+  binary log loss for a margin error d is ~ k*d^2 with
+  k = E[phi(z)^2/(2 Phi (1-Phi))]/sigma^2 = **0.001794 per pt^2** measured on the
+  19-season closing-line distribution (0.002013 at z=0), giving T0->T2 a **RMS
+  margin content of 1.644 pts** — the size of a rotation-player absence, the right
+  order of magnitude. **RMS content is NOT edge** (it is the orthogonal error the
+  feed removes; only the part that flips or sizes our side converts), which is
+  exactly why Route A — which already went through a realised bet set — is
+  primary. ROUTE C (empirical ceiling, n=5,500): mean |net repricing 17:00 ->
+  close| = **0.5844 pts** is what a PERFECT-FORESIGHT 5PM bettor could win, and
+  Route A's +0.0875 is **15.0%** of it — a plausible share for "the two official
+  feeds out of everything that can move a line after 5PM", and an independent
+  consistency check. Our own realised CLV in that window is +0.0293
+  [-0.0069,+0.0655] ns.
+  (9b) **RECONCILIATION TO D120/D121 (+1.4..+3.7pp of ROI, pure timing, SIG 16/16
+  cells), AND IT IS NOT A CLEAN PASS.** The all-games arms land at **+1.01..
+  +1.32pp, just BELOW the bottom of D120's band**; the SELECTIVE arms |edge|>=2
+  (+0.25299 pts = +1.532pp) and |edge|>=3 (+0.29498 pts = +1.787pp) land INSIDE
+  it. D120's band was measured on the four SELECTED rules on the moneyline frame,
+  so the selective arms are the like-for-like comparison and they agree — but
+  **on the unselected universe the timing prize is a little smaller than D120's
+  headline band implies, and that is said here rather than smoothed over.**
+  D142's shopping gain (+0.331 pts / +0.94-0.97pp of breakeven at best-of-2) is
+  NOT in this netting: it is available at the open AND at the close, so it cancels
+  in a timing comparison. It is an additive lever, not a timing lever.
+  (10) **THE LIQUIDITY QUESTION, ANSWERED DIRECTLY: THE OPENING MARKET IS QUIET,
+  NOT WIDE.** **WE HOLD NO LIMIT DATA ANYWHERE IN THIS PROJECT** — not in the DB,
+  not in any cached feed — so the "low limits" half of the question cannot be
+  answered and is flagged rather than fudged. What can be measured:
+  (i) TR 2-book header fields, D163's exact method (`mb_diag.py::part_a_b`):
+  **OPEN n=4,668 mean|d| 0.6494 tie 36.29% (D163 reproduced to the digit); CLOSE
+  n=4,691 mean|d| 0.4839 tie 49.67%; paired n=4,656 0.6489 -> 0.4844 = -0.1645
+  (-25.4%).**
+  (ii) **COMPUTING THE CLOSE FOR THE FIRST TIME FOUND A DATA BUG.** In season_end
+  2026, **8.87% of `current_books` rows carry |c1-c2| > 3 pts, up to 48.0** (game
+  22501219 c1=+45.5 vs c2=-2.5 against fav_last -1.5) — a totals field bleeding
+  into the spread slot. Every other season is 0.09-0.40%. Trimmed at |d|<=3 the
+  2025-26 close mean is 0.3206, in line with 0.2988-0.3338 elsewhere.
+  **`current_books` for season_end 2026 is UNUSABLE without a trim; registered so
+  the next reader does not walk into it.**
+  (iii) **THE CONTEMPORANEOUS GAP DOES NOT NARROW, AND THIS LANDS A CAVEAT ON
+  D142/D163.** Forward-filling the intraday path so both books are priced at the
+  SAME INSTANT: first instant both live **0.3298**, last instant both live
+  **0.3406**, paired diff **+0.0213 K=5 t-CI [-0.0992,+0.1417] ns**; by
+  hours-to-tip 12-24h 0.2843 | 6-8h 0.3307 | 1.5-2h 0.3809 | 0-0.25h 0.3547.
+  **The header "open" figure of 0.649 is roughly DOUBLE the contemporaneous figure
+  because the two books do not open at the same time: median |lag| between their
+  first quotes is 2.9 h, p75 6.8 h, p90 12.6 h, and 30.3% of games have the two
+  opens more than 6 hours apart.** A meaningful part of D142/D163's 0.649
+  "opening dispersion" is TIME, not cross-sectional disagreement, and a shopper
+  standing at one instant sees ~0.33, not ~0.65. **This does NOT overturn D142's
+  lever — that lever was priced on multi-operator panels, not on this pair — and
+  it is registered as a caveat, not a refutation.**
+  (iv) THE REAL 9-OPERATOR PANEL (D163's `load_espn_panel` imported unmodified):
+  **OPEN n=1,210 best-worst 1.7715 sd 2.0117 (D163 reproduced exactly); CLOSE
+  n=1,209 1.6055 sd 1.3300; paired 1.7651 -> 1.6055 = -0.1596 (-9.0%), iid 95%
+  [-0.2880,-0.0312]** — **K=1 SEASON, so no season-clustered interval exists and
+  D163 §16 pre-registered exactly that.** Dispersion narrows by 9%, not by
+  anything like convergence; what collapses is the TAIL (sd -34%).
+  (v) Books revise **3.12x** more often near tip than in mid-afternoon
+  (S-180..S-160 3.074 -> S-40..S-20 9.605).
+  **VERDICT: the early market is revised 3x less often than the late market, but
+  the cross-sectional disagreement between books at a single instant is
+  essentially the same at the open as at the close. "Soft" here does not mean "a
+  wider price you can pick off", and §5 shows it does not produce a directional
+  drift either. Whether the early market is thin in SIZE is unanswerable without
+  limit data and is left open.**
+  (11) **ERA / AVAILABILITY STATEMENT (GATE_POLICY_V2 §9, §10).** CLUSTERING:
+  season throughout; the K-1 cluster-mean t is the shipping statistic per §9.1(4)
+  and every headline carries it. **THREE DIFFERENT K's LIVE IN THIS ENTRY AND THEY
+  ARE NEVER MIXED:** the CLV replication and the placebos are **K=19**
+  (2007-08..2025-26); the intraday movement profile and the CLV segment
+  decomposition are **K=5** (2021-22..2025-26 = the only seasons with an intraday
+  feed); every news-conditioned cell is **K=3** (2023-24, 2024-25, 2025-26
+  PARTIAL). Per §9.3 the K=3 and K=5 intervals are treated as the conservative
+  bound and no cluster bootstrap is quoted at K<10. ERA-AVAILABILITY, stated
+  rather than pooled silently (D158's lesson): **2021-22 and 2022-23 have intraday
+  movement but NO 5PM report feed and are EXCLUDED from every news-conditioned
+  cell**; the report feed **stops 2025-12-21**, so 2025-26 is PARTIAL (n=422 of
+  1,230) and is labelled at every appearance; **there is no T-30 report edition in
+  this DB at all** — `injury_reports_pit` holds ONE edition (`05PM`), so the T-30
+  tier is the FINAL `game_inactives` list, exactly as D156 defined it.
+  AVAILABILITY TIER: the model side is **BLIND everywhere** (inherited from
+  D161/D162), which is the whole premise of §9 — the ladder prices what BLIND
+  costs — so no played-set oracle enters any code path here.
+  (12) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not claim the information
+  channel is absent — §3's `quest`-vs-`tv_5to40` result at +0.3031 with a null
+  pre-5PM placebo is the cleanest information finding in the register and it is
+  believed. It does not claim our CLV is skill at forecasting injuries — §6 says
+  the opposite, at K=3 and with wide intervals, and the K=3 intervals cannot
+  EXCLUDE a modest anticipation effect of the size §7 measures (+0.05..+0.08 pts);
+  what they exclude is anticipation being the MAIN story. It does not re-open any
+  ship decision: **the standing recommendation of D121/D126/D142/D148/D161/D162/
+  D163/D164/D165 — NO CAPITAL AT OPEN OR CLOSE, CLV REMAINS THE YARDSTICK — is
+  UNCHANGED.** What it adds is that **when we do transact, the open is the right
+  moment and the 5PM report is not worth waiting for**, and that the +0.166 CLV
+  asset is made of anticipating the market's own morning repricing, NOT of
+  anticipating the injury wire — which means a feed outage threatens D159's CLV
+  bands through SELECTION, not through timing.
+  [code scripts/wlm_chart.py (new, not under nbapred/); scripts/mb_panel.py and
+   scripts/mb_diag.py IMPORTED/REPRODUCED UNMODIFIED; scripts/adv_h1_news_churn.py's
+   churn definition reused verbatim;
+   data/why_lines_move_notes.md (full working, checkpointed as the run proceeded),
+   data/wlm_events.csv.gz (new, 134,068 pre-tip quote events),
+   data/wlm_games.csv (new, 6,587 game headers);
+   charts/why_lines_move.png;
+   inputs data/raw/teamrankings/spread_movement.jsonl (FIRST USE of its intraday
+   history array), data/raw/nba_api/playbyplayv3/*.json (tip times, read-only),
+   data/ats19_frame.csv.gz (D162, md5 b9e59afdd54247083184256e2d10a112),
+   data/raw/sbr_ext/espn_nba_open_close_2023-24.csv (D163),
+   data/nba.duckdb READ-ONLY (read_only=True, 60s retry, NO write lock);
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, no gate run, no default
+   changed, eval corpus unchanged, nothing shipped]
+- D168 STRUCTURAL LOOKAHEAD — THE OWNER'S SHARPEST OBJECTION, QUANTIFIED RATHER
+  THAN ARGUED. **NONE OF D166's +3.54% SURVIVES A MODEL WHOSE STRUCTURE IS NOT
+  FUTURE-INFORMED. THE SAME WALK-FORWARD SELECTION PROCEDURE, ON THE SAME 600
+  CELLS, THE SAME 14 UNSEEN SEASONS AND THE SAME MEASURED k=5 EXECUTION, RETURNS
+  +3.54% (+54.9u) ON THE SHIPPED STACK, +1.68% (+24.8u) WITH THE D73 TANK TERM
+  REMOVED, -0.16% (-2.2u) WITH TANK + D84-A BRIDGE + D62 CARRY REMOVED, AND
+  -3.70% (-47.0u) ON THE STRIPPED FOUR-FACTORS + COMPOSITION + HOME BASELINE.
+  SURVIVAL FRACTIONS 1.00 / 0.48 / 0.38 / -0.05 / -1.05. THE PRE-REGISTERED
+  READING RULE FIRES IN THE DIRECTION THE OWNER SUSPECTED: THE SELECTION
+  PROCEDURE IS **NOT** DOING THE WORK, AND STRUCTURAL CONTAMINATION IS
+  LOAD-BEARING.** THE MECHANISM IS MEASURED IN THE MODEL'S OWN METRIC AND IT IS
+  A CLEAN DIFFERENCE-IN-DIFFERENCES: **THE SHIPPED STACK IS THE ONLY VARIANT ON
+  THE LADDER THAT IS MORE ACCURATE ON THE 5 SEASONS IT WAS DESIGNED ON THAN ON
+  THE 9 IT WAS NOT (+0.98pp of normalized gap); EVERY ABLATION FLIPS THAT SIGN.
+  THE THREE MOST ERA-SPECIFIC TERMS BUY +0.61pp OF NORMALIZED GAP ON THE
+  FUTURE-INFORMED BLOCK AND +3.20pp ON THE BLOCK THEY WERE GATED ON (5.3x), AND
+  +0.79 ROI POINTS vs +7.22 ROI POINTS (9.1x).** AND THE DATABILITY AUDIT THE
+  OWNER ASKED FOR RETURNS THE ANSWER HE EXPECTED: **ZERO of the shipped
+  components can be dated to a gate that used only pre-2021 data — not one.**
+  ON 2024-25: **IT IS A BETTING-OUTCOME OUTLIER, NOT AN ACCURACY OUTLIER —
+  z = +3.46 ON COVER RATE AND ONLY z = -1.45 ON THE MODEL's OWN NORMALIZED GAP;
+  MODEL ACCURACY EXPLAINS 35.6% OF ITS COVER EXCESS AND LEAVES +2.33pp
+  UNEXPLAINED.** ON STAKING: **NOT ONE OF SIX ARMS IS DISTINGUISHABLE FROM FLAT
+  (every paired 13-dof interval spans zero), THE ONLY ARM WHOSE WEIGHTS ARE
+  FITTED TO PAST PROFIT IS THE ONLY ONE THAT LOSES (-2.10 POINTS, DRAWDOWN
+  x1.65), AND WALK-FORWARD KELLY BUYS SIZE, NOT EDGE — STAKE x1.66, DRAWDOWN
+  x1.89, SHARPE 1.467 -> 1.470.** **DIAGNOSTIC. Nothing ships. No production
+  default changed, no gate re-run, eval corpus NOT widened, `nbapred/` and
+  `scripts/bet_engine.py` UNTOUCHED, `scripts/prod_by_season.py` NOT RUN,
+  `data/nba.duckdb` opened `read_only=True` (60s retry) for the component pass
+  ONLY and no write lock taken.** `data/capstone_pergame.csv` md5
+  **3b7bbbb78ac73c63273c18a8aa30013c** verified at the START and again at the
+  END — it is not an input to any arm.
+  (0) **WHY THIS ENTRY EXISTS, AND THE OWNER HAD ALREADY CONCEDED THE POINT.**
+  D166's loop re-selects only the BETTING CONFIG (threshold / side / phase /
+  confidence band) walk-forward. The MODEL underneath is held fixed and its
+  ARCHITECTURE was chosen with full knowledge of 2021-26 — D46 schedule layer,
+  D62 carry, D73 tank, D84-A October bridge, the 50/50 blend, the 7.2 scale.
+  So on 2012-13..2020-21 the model's STRUCTURE is future-informed even though
+  every coefficient is walk-forward. D164 §7a called 2024-25 "ordinary season
+  variance"; that verdict tested CONFIG selection, never MODEL selection.
+  **This entry tests MODEL selection.**
+  (0a) **PRE-REGISTRATION, WRITTEN AND HASHED BEFORE ANY SCORING CODE FOR THIS
+  RUN WAS WRITTEN OR EXECUTED.** `data/structural_prereg.md` sha256
+  **76d79823bd45e0e6d1339ce7d22cc3b711ece3ec7ee5f727f42f4e526b06cddc**
+  (`data/structural_prereg.sha256`). It fixes the seven-rung ladder BY NAME, the
+  survival-fraction statistic, the reading rule in both directions, the staking
+  arms and their walk-forward requirement, the MC drawdown convention and seed,
+  the 13-dof cluster-mean t as the shipping statistic, the 2.13-point tie band,
+  and — §5 — the design's own limits, including the admission **written before
+  the numbers existed** that no rung of this ladder is genuinely free of future
+  information.
+  (0b) **FOUR ANCHORS, ALL EXACT.** (i) `scripts/sl_components.py` reproduces
+  D161 §2's 19-season model table on all 19 seasons (n, ll_us, ll_mkt,
+  normalized gap; 0 mismatches against `data/k19_model.json`), 22,804 games, and
+  D158's certified 2021-22 cell (n=1228, 0.63053 / 0.60429) to five decimals.
+  (ii) The component decomposition is an IDENTITY: `full = 0.5*ff + 0.5*cm + he
+  + b2b + tank + bridge` to <=1.5e-9 on every game, with the bridge term EXACTLY
+  0.0 wherever it does not fire. (iii) V0's `p_us` reproduces D162's
+  `ats19_frame.csv.gz` to **max |dp| = 1.75e-14** on all 22,742 scored games.
+  (iv) **V0 through the D164/D165/D166 loop reproduces D166 TO THE DIGIT** —
+  k=1 +1.66% / 53.259% / 1,553 bets; firm default +3.54% / 54.240% / +54.9u /
+  [-3.51,+8.98]; the identical 14 configurations.
+  (1) **THE ONE STRUCTURAL FACT THAT MADE THIS CHEAP.** `production.Predictor.
+  margin` is an EXACT LINEAR SUM of separable components, so the whole ladder is
+  assembled from ONE 19-season pass emitting the pieces per game (~8 min) rather
+  than six re-runs. Nothing in `nbapred/` was modified; the carry-free and
+  carry-on four-factors legs are rebuilt in the harness from
+  `production.py:428-439` verbatim.
+  (2) **THE LADDER — SAME LOOP, SAME 600 CELLS, SAME GUARD, SAME EXECUTION.**
+  Firm default = D163 k=5 measured panels + the D163 §10 outlier-realism haircut,
+  exactly D166's default tier.
+    variant                        n   1bk ROI%  DEF ROI%  cover%   cum u  surv
+    V0 FULL (shipped)           1553    +1.66     +3.54    54.240   +54.9  1.00
+    V1 -D73 tank                1478    -0.10     +1.68    53.265   +24.8  0.48
+    V2 -tank -D84A bridge       1319    -0.36     +1.35    53.093   +17.9  0.38
+    V3 -tank -bridge -D62 carry 1320    -1.88     -0.16    52.295    -2.2 -0.05
+    V4 STRIPPED (4F+comp+home)  1270    -5.48     -3.70    50.438   -47.0 -1.05
+    V5 FF-ONLY + home           1670    -3.06     -1.79    51.441   -29.9 -0.51
+    V6 NO-HOME (sanity floor)   1280    -3.67     -2.32    51.161   -29.7 -0.66
+  13-dof intervals: V0 [-3.51,+8.98], V1 [-4.81,+8.23], V2 [-5.08,+8.52],
+  V3 [-5.59,+6.76], V4 [-9.40,+2.26], V5 [-4.91,+2.69]. **PAIRED per-season
+  delta vs V0: V1 -1.03 [-2.44,+0.39] ns, V2 -1.02 [-3.42,+1.38] ns, V3 -2.15
+  [-4.68,+0.38] ns, V4 -6.31 [-12.30,-0.32] SIG, V5 -3.85 ns, V6 -4.71 ns.**
+  MDE80 7.56-8.82 points per rung, so **only the stripped rung's collapse is
+  established; the intermediate rungs are point estimates inside intervals that
+  span zero, and the entry says so rather than over-reading its own ladder.**
+  (3) **THE BLOCK SPLIT, AND IT IS THE MOST INFORMATIVE TABLE HERE.** The same
+  paths cut into the 9 seasons the features were NOT chosen on and the 5 they
+  were:
+    variant        future-informed 9 (2012-13..20-21)   chosen-on 5 (2021-26)
+    V0 FULL              +3.15%   +23.1u                   +3.88%   +31.9u
+    V1                   +3.05%   +22.2u                   +0.35%    +2.6u
+    V2                   +2.52%   +18.4u                   -0.09%    -0.5u
+    V3                   +2.36%   +17.4u                   -3.34%   -19.5u
+    V4 STRIPPED          -4.97%   -34.3u                   -2.18%   -12.6u
+  **V3 KEEPS 75% OF V0's OLD-BLOCK ROI AND LOSES 100% OF ITS MODERN-BLOCK ROI.
+  The three most era-specific terms are worth +0.79 ROI points on the seasons
+  nobody had in hand when they were gated and +7.22 points on the seasons they
+  WERE gated on — 9.1x.**
+  (4) **APPROACH (b) — BACKWARD GENERALISATION IN THE MODEL's OWN METRIC
+  (D161's normalized gap, lower = better), on the full 22,804-game frame.**
+    variant       POOL19  scored14  FUTURE-INF 9  CHOSEN-ON 5   old-new
+    V0 FULL       +20.88   +19.58     +19.94        +18.95       +0.98
+    V1 -tank      +21.68   +20.71     +20.11        +21.74       -1.63
+    V2            +22.06   +21.08     +20.67        +21.80       -1.13
+    V3            +21.87   +21.13     +20.54        +22.15       -1.61
+    V4 STRIPPED   +23.42   +22.78     +21.67        +24.70       -3.03
+    V5 FF-ONLY    +25.34   +29.54     +26.21        +35.32       -9.10
+  **THE SHIPPED STACK IS THE ONLY VARIANT THAT IS BETTER WHERE IT WAS DESIGNED.
+  EVERY ABLATION FLIPS THE SIGN.** What each stripped term buys, by block:
+  D73 tank +0.18pp old vs +2.79pp new (**15.9x**); + bridge +0.73 vs +2.85
+  (3.9x); + carry +0.61 vs +3.20 (**5.3x**); + the D46 b2b regressors +1.73 vs
+  +5.75 (3.3x); + the composition leg +6.28 vs +16.36 (2.6x). **This is a
+  difference-in-differences on structure, and it is what structural
+  contamination looks like when it is measured instead of asserted.**
+  (5) **APPROACH (c) — DATABILITY, AND THE PLAIN ANSWER IS THE FINDING.** Every
+  component audited against the gate that installed it: four-factors,
+  opponent-adjusted ratings (D7), availability-composition (D19), the 50/50
+  blend, SCALE=7.2, the D46 schedule layer and its dead-team terms, the D62
+  carry, the D73 tank term, the D84-A bridge, the D90 late-state layer.
+  **ZERO can be dated to a gate that used only pre-2021 data.** The project
+  began 2026-07-26 on a 5-season 2021-26 corpus (D132, 6,148 games); the
+  19-season frame did not exist until D160 on 2026-08-03 and **no gate has ever
+  been run on it.** The nearest thing to an exception is directional, not
+  architectural: D112 re-tested D73 and D90 on the 2021-22 + 2022-23 holdout and
+  DEMOTED both, D90 to default OFF — which is still inside the modern window and
+  which only shows the two most era-specific terms already failed to transfer
+  two seasons backwards. **CONSEQUENCE, STATED AS A LIMIT AND NOT AS A HEDGE:
+  no rung of this ladder is genuinely free of future information, so the honest
+  claim is not "the honest model earns -3.70%" but "the +3.54% is a property of
+  a model architecture selected on 2021-26, and it does not survive the removal
+  of the terms most specific to that era."**
+  (5a) **A SECOND-ORDER FINDING NOBODY ASKED FOR: D164 §5a's SELECTOR-STABILITY
+  RESULT IS ITSELF A PROPERTY OF THE FUTURE-INFORMED MODEL.** D164 §5a
+  celebrated that the all-history selector "picks T>=3 with a non-trivial
+  confidence band at every single step" — 4 configurations out of 600. That
+  holds for V0, V1, V2 and V3 (4-5 distinct cfgs, T=3 at 13 or 14 of 14 steps).
+  **On V4 it does not: 7 distinct configurations, T ranging 5/4/3/2, and MID
+  phase restrictions appearing; on V5, T=0/4/1 with a LATE restriction at 13 of
+  14 steps.** The selector converges on one family because the model hands it
+  one; strip the model and the selector wanders, exactly as D165 §3 found when
+  the WINDOW was shortened.
+  (6) **Q2 — IS 2024-25 SPECIAL IN THE MODEL, OR ONLY IN THE OUTCOME?
+  STANDARDISED AGAINST THE OTHER 18 SEASONS.**
+    quantity                    2024-25   other-18 mean    sd       z
+    normalized model gap        +11.72%      +21.72%      6.90    -1.45
+    ALL-GAMES ATS cover rate    54.065%      50.448%      1.046   +3.46
+    ALL-GAMES ATS ROI            +3.22%       -3.27%      1.87    +3.48
+  2024-25 has the **2nd-smallest normalized gap of 19 seasons**, so the model
+  IS unusually accurate there — but **z = -1.45 does not clear the
+  pre-declared |z| >= 2 bar while the betting outcome clears it twice over.**
+  The mechanism exists and is too small to carry the result: corr(normalized
+  gap, cover rate) = **-0.626** over 19 seasons (-0.771 over the 14 scored),
+  slope -0.116pp of cover per pp of gap, so 2024-25's gap predicts a
+  **51.736%** cover against a realised **54.065%**: **model accuracy explains
+  35.6% of the +3.617pp cover excess and leaves +2.329pp unexplained.**
+  D164 §7a's reading survives with a correction — 2024-25 is an outcome
+  outlier, and the part of it that IS a model-accuracy story is about a third.
+  (7) **Q2 — THE FULL LEAVE-ONE-SEASON-OUT INFLUENCE PROFILE, ALL 14 SCORED
+  SEASONS** (D166 §5 reported only the maximum). Pooled ROI with that season
+  removed / influence in pp:
+    season    1-BOOK drop  infl  |  FIRM drop  infl  | cum u (firm)
+    2012-13     +1.67%   -0.01   |   +3.55%  -0.01   |  +52.7
+    2013-14     +0.72%   +0.94   |   +2.63%  +0.91   |  +39.0
+    2014-15     +1.90%   -0.24   |   +3.83%  -0.29   |  +56.0
+    2015-16     +2.01%   -0.35   |   +3.96%  -0.43   |  +58.8
+    2016-17     +1.36%   +0.30   |   +3.26%  +0.27   |  +47.9
+    2017-18     +1.59%   +0.07   |   +3.41%  +0.13   |  +49.1
+    2018-19     +2.87%   -1.22   |   +4.84%  -1.30   |  +70.2
+    2019-20     +0.97%   +0.68   |   +2.84%  +0.70   |  +41.6
+    2020-21     +1.77%   -0.11   |   +3.72%  -0.19   |  +55.6
+    2021-22     +2.47%   -0.82   |   +4.49%  -0.96   |  +64.7
+    2022-23     +2.09%   -0.44   |   +4.07%  -0.53   |  +59.0
+    2023-24     +1.24%   +0.42   |   +3.02%  +0.52   |  +41.2
+    2024-25     **-0.76%**  +2.42|   +1.00%  +2.54   |  +13.0
+    2025-26     +3.13%   -1.47   |   +4.70%  -1.16   |  +64.8
+  **AT THE FIRM TIER NO SINGLE-SEASON DELETION TURNS THE RESULT NEGATIVE — the
+  range is +1.00% (drop 2024-25) to +4.84% (drop 2018-19). AT THE RETAIL 1-BOOK
+  TIER EXACTLY ONE DOES, and it is 2024-25.** D166 §5 is confirmed and
+  generalised. **BUT +2.54pp is 4.6x the next-largest positive influence
+  (+0.91, 2013-14) and 2.0x the largest negative (-1.30, 2018-19): the profile
+  is broadly supported in SIGN and dominated by one season in SIZE. Both
+  sentences are the result.**
+  (8) **Q3 — STAKING, ON THE IDENTICAL 1,553-BET STREAM AT THE FIRM DEFAULT.
+  EVERY FITTED PARAMETER IS ESTIMATED FROM THE SELECTION WINDOW ONLY (seasons
+  1..k), REFIT AT ALL 14 STEPS, AND ITS PER-STEP VALUE IS IN THE LOG.**
+  STAKE_CAP=3.0u, KELLY_FRAC=0.25, the 0.5/1.0/1.5 ladder and the 100u
+  reference bankroll are DECLARED conventions, not fits.
+    arm                mean u  staked  ROI%   cum u   eq-u  sd/bet sd/sns  RA    RAu  Sharpe  maxDD(p05-p95)  +sns
+    S0 FLAT (D166)      1.000  1553.0  +3.54  +54.9  +54.9  0.950  10.82 0.327 3.808  1.467  30.3(27.6-33.5) 7/14
+    S1 EDGE-PROP cap3   1.044  1621.2  +5.71  +92.6  +88.7  1.068  10.61 0.538 4.925  2.199  24.5(22.7-27.3) 8/14
+    S1 EDGE uncapped    1.047  1625.3  +5.91  +96.1  +91.8  1.075  10.59 0.558 4.989  2.269  24.3(22.5-26.5) 8/14
+    S2 KELLY walk-fwd   1.659  2575.8  +3.77  +97.2  +58.6  1.678  10.32 0.365 4.383  1.470  57.4(50.9-64.8) 7/14
+    S2X KELLY D121 FROZ 2.419  3756.3  +4.19 +157.6  +65.1  2.358  10.57 0.397 4.082  1.696  63.0(57.1-72.3) 8/14
+    S3 CONF ladder      1.100  1708.5  +4.63  +79.1  +71.9  1.116   9.63 0.481 4.705  1.798  26.6(23.9-30.5) 8/14
+    S3 CONF fitted WF   1.097  1704.3  +2.16  +36.8  +33.5  1.119  12.66 0.171 1.828  0.834  50.0(47.5-54.3) 7/14
+  RA = ROI / per-season sd of ROI; RAu = cumulative units / sd of per-season
+  units; Sharpe = cum units / (sd per bet x sqrt(n)); eq-u = the arm rescaled to
+  FLAT's total stake. **maxDD is a 200-draw MONTE CARLO over D163's exact gain
+  law, seed 20260804, median [p05,p95] — declared in the prereg BEFORE the
+  numbers, because at k>1 a bet's outcome is a distribution and an
+  expected-value path would understate drawdown to the point of dishonesty.**
+  1-BOOK tier, realised outcomes and EXACT drawdown: FLAT +1.66% / +25.7u /
+  DD 37.2u; EDGE +3.85% / +62.5u / DD 30.8u; KELLY-WF +2.03% / +52.3u /
+  **DD 71.5u**; CONF ladder +2.72% / +46.4u / DD 30.5u.
+  (8a) **NOT ONE ARM IS DISTINGUISHABLE FROM FLAT.** Paired per-season delta,
+  13 dof, each with its own MDE80: EDGE cap3 **+1.20 [-0.71,+3.11] ns**
+  (MDE80 2.47), EDGE uncapped +1.33 [-0.61,+3.27] ns (2.52), KELLY-WF +0.16
+  [-1.10,+1.42] ns (1.63), KELLY-D121 +0.15 [-1.36,+1.66] ns (1.96), CONF
+  ladder +0.67 [-0.90,+2.24] ns (2.03), CONF fitted **-2.10 [-5.14,+0.94] ns**
+  (3.94). **CONCENTRATION CHECK, BECAUSE §6 SAYS IT MATTERS: the EDGE arm's
+  +1.20 is +4.49 in 2024-25 alone and +0.95 on the other thirteen; KELLY-WF is
+  +2.59 in 2024-25 and -0.03 elsewhere.**
+  (8b) **THE WALK-FORWARD KELLY SLOPE IS NOT ESTIMABLE, AND THAT IS THE
+  FINDING.** Refit at each step on the selected config's own prior-season bets,
+  b runs +0.171, +0.387, +0.042, +0.024, **-0.276, -0.330, -0.224, -0.076,
+  -0.036**, +0.032, +0.104, +0.099, +0.090, +0.280 — **it changes SIGN seven
+  times in fourteen steps. D121's frozen open-arm b = +0.5685 is larger than
+  EVERY one of the fourteen walk-forward estimates, and it was fit on
+  2022-23..2025-26, i.e. on the END of this scored track.** Using it (S2X)
+  trebles the mean stake to 2.42u, doubles the drawdown to 63.0u and adds
+  +0.15 ROI points, [-1.36,+1.66] ns. **THE ENTIRE BENEFIT OF THE FROZEN
+  CALIBRATION IS SIZE, NOT EDGE.** D117's close-arm finding (shrunk-Kelly stakes
+  ZERO) is untouched; this is the open arm and it is a different question.
+  (8c) **DOES VARIABLE STAKING RAISE VARIANCE FASTER THAN RETURN? WITH NUMBERS,
+  AS PRE-DECLARED.** KELLY-WF: stake x1.66, cum units x1.77, per-bet vol x1.77,
+  **max drawdown x1.89**, Sharpe 1.467 -> 1.470 (UNCHANGED) — **YES**.
+  KELLY-D121-frozen: stake x2.42, cum x2.87, **drawdown x2.08** — YES on
+  drawdown. CONF-fitted-walk-forward: ROI 3.54 -> 2.16, per-season sd
+  10.82 -> 12.66, **drawdown x1.65**, RA 0.327 -> 0.171 — **YES, WORST ON BOTH
+  AXES, and it is the ONLY arm whose weights are fitted to past PROFIT.**
+  EDGE-PROPORTIONAL and the DECLARED confidence ladder are the exceptions:
+  ROI up, **drawdown DOWN** (30.3 -> 24.5 and 26.6), Sharpe 1.467 -> 2.199 and
+  1.798. **THE PATTERN, STATED AS A HYPOTHESIS AND NOT AS A RESULT BECAUSE
+  NOTHING HERE IS SIGNIFICANT: staking rules that scale with a PRIOR (edge size,
+  confidence) are free or better; staking rules that scale with FITTED PAST
+  PROFIT buy variance and lose return. That is the same lesson D164 taught about
+  configuration selection, arriving from the sizing side.**
+  (9) **Q4 — ARE WE MISSING ERA-SPECIFIC FEATURES? ONE PARAGRAPH, NO BUILD, AS
+  ASKED.** The candidates a search on the old era would plausibly surface:
+  **PACE / possessions per 48** (the largest measured non-stationarity in the
+  frame and a term the stack has none of — D162 §17 established the production
+  margin is `margin_neutral` by construction and has no opinion about the LEVEL
+  of scoring); the **pre-2015 low-3PT regime** (3PA share .222 in 2007-08
+  against .421 in 2024-25 inside our frame; D160 §13's full measured ramp is
+  .160 (1997-98) -> .421 with its one break at the 1994-97 shortened line), which
+  makes both the 7.2 SCALE and the four-factors eFG weight plausibly
+  era-conditional and which D153 already found several terms to be;
+  **hand-check-era physicality**, which does NOT reach — the rule changed in
+  2004-05 and the frame opens in 2007-08 (D161 §0b); **lockout- and
+  COVID-compressed schedules** (2011-12 at 66 games, D160's separate stratum),
+  where b2b and 3-in-4 density sit far outside the modern range and the D46
+  layer's fixed structure is least likely to transfer; and an **era-interacted
+  home edge**, since D160 §12 measured the old home-margin regime as not
+  overlapping the modern range at all. **COST:** trivial in compute — the
+  component pass here runs the whole 19-season model in ~8 minutes, so a
+  five-candidate battery is under an hour — and expensive in credibility,
+  because D164 priced the search itself: a 600-cell search on one season
+  manufactures **+16.92 ROI points, 100.0% of which reproduces from permuted
+  predictions**, and even a six-cell search manufactures +3.08. A 10-30 cell era
+  battery scored on a 14-season betting track whose MDE80 is 8.10 points cannot
+  clear its own search. **VERDICT, SPLIT AND HONEST: NOT WORTH DOING ON ROI —
+  ever. WORTH DOING ON THE MODEL's OWN LOG LOSS, where the power actually
+  exists (D161 established the 19-season gap at 18 dof with a CI 0.6pp wide on
+  22,804 games), and where a pace/possession term is the one genuinely absent
+  piece of machinery in the register. Search where the power is; never on the
+  endpoint D164 proved is manufacturable.**
+  (10) **FAMILY (D121's standard, pre-registered).** PRIMARY FAMILY: **1 cell**
+  — the survival fraction at the STRIPPED rung; 0.05 expected significant under
+  a global null; **observed significant: ONE** (V4's paired -6.31
+  [-12.30,-0.32]), and it is significant in the DIRECTION THAT DAMAGES THE
+  REGISTER's OWN HEADLINE, which is the only kind of significant result an
+  entry like this can honestly celebrate. SECONDARY FAMILY: the 5 other variant
+  pooled ROIs, the 5 non-flat staking arms and the 14 leave-one-out cells =
+  **24 cells, 1.2 expected; observed significantly POSITIVE ZERO, significantly
+  NEGATIVE ZERO.** The 600 in-sample selection cells are NOT a test family
+  (D164 §9). **THE FAMILY-WISE BURDEN IS RESTATED AND IT IS LARGER HERE THAN IN
+  D165: D165 §7 measured E[max of 7 procedures | null] = -1.88% against a single
+  arm's ~-4.0% floor, i.e. +2.13 ROI points of free ROI. Q3 ADDS SIX STAKING
+  ARMS TO THAT FAMILY. The 2.13-point band is used as the tie band throughout
+  and the maximum of the staking table (+5.91%, EDGE uncapped) is NOT a result —
+  it sits 2.37 points above FLAT on a band of 2.13 and a paired MDE80 of 2.52.**
+  (11) **POWER.** Per-season sd 9.63-12.66pp across every arm and every variant,
+  so **MDE80 is 4.93-8.82 ROI points on the pooled cells and 1.63-3.94 on the
+  paired ones.** D166 §8's arithmetic is unchanged: ~36 seasons to resolve
+  +3.54%. **The paired comparisons are the only ones this design can support,
+  which is why every headline above is paired.**
+  (12) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: selection windows
+  open in **K-A** and the scored track is **2012-13..2025-26 = K-B..K-E** on
+  D161 §0b's coding (E-2..E6 on ERAS.md). ERA-AVAILABILITY: every model input
+  exists in all 19 seasons; the EXECUTION layer is era-limited exactly as D166
+  §10 states (7 of 14 seasons EXTRAPOLATED, the 2018-19..2022-23 panel hole
+  undated). AVAILABILITY TIER: **BLIND on all 19, empty OUT sets, inherited
+  from D161/D162 — every level is a LOWER BOUND and no played-set oracle exists
+  in any code path.** ERA-STABILITY: not claimable at this noise level and none
+  is claimed; **what IS measured is era-CONDITIONALITY OF THE ARCHITECTURE
+  ITSELF (§3, §4), which is a different and newer object than any I2 in the
+  register.** COVID FRAME: 2019-20 and 2020-21 are scored in every arm and are
+  in the leave-one-out profile (influences -0.19 and +0.70 at the firm tier);
+  no verdict here rests on them. CLUSTERING: season, K=14, K-1 = 13 dof
+  cluster-mean t per §9.1(4).
+  (13) **CHART** rendered and inspected, **three collision passes** (pass 1: the
+  rotated per-bar influence labels in panel (b) were drawn at a fixed y and ran
+  through the legend box and the panel caption; pass 2: they were re-anchored
+  above each bar, the y-range opened to 8.4 and the caption moved to the right
+  gutter; pass 3: panel (a)'s -2.2u end label was sitting on the break-even
+  dashed line and every end label within 4u of zero is now nudged clear).
+  `charts/structural_lookahead.png` — **(a)** D166's cumulative equity curve
+  re-drawn for six model structures at the firm-default tier, EXTRAPOLATED
+  seasons shaded, each line direct-labelled with its final unit count;
+  **(b)** the leave-one-season-out influence on the pooled ROI for all 14
+  scored seasons at both tiers, with the full-sample pooled ROI drawn as a
+  reference in each colour and the 2024-25 retail sign-flip called out.
+  (14) **VERDICT, PLAINLY, BECAUSE THE OWNER ASKED PRECISELY BECAUSE HE
+  SUSPECTED IT AND IS ENTITLED TO A STRAIGHT ANSWER.**
+  (a) **WHAT FRACTION OF D166's +3.54% SURVIVES A MODEL WHOSE STRUCTURE IS NOT
+  FUTURE-INFORMED? NONE OF IT. 48% survives removing the single most recent
+  era-specific term; 0% survives removing the three of them; the stripped
+  baseline is -3.70%, i.e. the sign flips. His objection is correct and it is
+  now a number.**
+  (b) **AND THE MECHANISM IS MEASURED, NOT INFERRED: the shipped stack is the
+  only variant on the ladder that is more accurate where it was designed than
+  where it was not, and the era-specific terms pay 5.3x more accuracy and 9.1x
+  more ROI on the block they were gated on.**
+  (c) **WHAT THIS DOES NOT SAY: it does not say the terms are worthless — they
+  improve the model in BOTH blocks — and it does not say the honest number is
+  -3.70%, because §5's audit shows no rung of this ladder is free of future
+  information either. It says the +3.54% is a property of an architecture
+  chosen on 2021-26 and is not evidence of a transferable edge.**
+  (d) **2024-25 IS AN OUTCOME OUTLIER MORE THAN AN ACCURACY OUTLIER** (z=+3.46
+  vs z=-1.45; 35.6% of its cover excess is explained by model accuracy), and at
+  the firm tier the pooled result survives the deletion of any single season
+  while the retail tier does not.
+  (e) **STAKING CHANGES NOTHING THAT MATTERS.** Six arms, not one distinguishable
+  from flat, the fitted-to-profit arm strictly worst, walk-forward Kelly buying
+  size and drawdown at an unchanged Sharpe, and the frozen D121 calibration
+  larger than every walk-forward estimate of the same quantity.
+  (f) **RECOMMENDATION UNCHANGED FROM D121/D126/D142/D148/D161/D162/D163/D164/
+  D165/D166 AND NOW STRENGTHENED FROM A NEW DIRECTION: NO CAPITAL AT OPEN OR
+  CLOSE. CLV REMAINS THE YARDSTICK.** D166's path keeps its place on the
+  fresh-season confirmation list, but the quantity to watch must now be stated
+  with its caveat attached: **the 2026-27 confirmation is the first season on
+  which the model's STRUCTURE will be genuinely out of sample, and it is
+  therefore worth more than the whole 14-season backtest it is being compared
+  against.**
+  (15) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not build a model whose every
+  choice predates 2021 — §5 proves none exists. It does not re-gate any
+  component or propose re-gating one. It does not treat any in-window number as
+  evidence. It does not present the best staking arm as a result; §10 prices
+  that choice and declines it. It does not re-run D163's panels, re-date the
+  2018-19..2022-23 execution hole, price limits, own-flow impact or the
+  BLIND->full-feed tier gap — all inherited from D166 unchanged. And it does not
+  change a default, re-run a gate, widen the eval corpus or re-certify anything:
+  **D158 remains the certified baseline and D159 remains the trading baseline.**
+  [code scripts/sl_components.py, scripts/sl_score.py, scripts/sl_chart.py
+   (all new, none under nbapred/); scripts/oc_capacity.py and
+   scripts/wf_equity.py IMPORTED UNMODIFIED as the harness;
+   data/structural_prereg.md (sha256
+   76d79823bd45e0e6d1339ce7d22cc3b711ece3ec7ee5f727f42f4e526b06cddc, written
+   and hashed BEFORE any scoring code for this run existed),
+   data/structural_prereg.sha256,
+   data/structural_notes.md (full working, checkpointed as the run proceeded),
+   data/sl_components.csv.gz (22,804 games, the production margin decomposed),
+   data/sl_components.json, data/sl_score.json,
+   data/sl_frames/frame_V*.csv.gz (the seven paired variant frames),
+   data/logs/sl_components.log, data/logs/sl_score.log, data/logs/sl_score.out;
+   charts/structural_lookahead.png;
+   inputs data/nba.duckdb (read_only=True, 60s retry, component pass ONLY),
+   data/ats19_frame.csv.gz (D162, md5 b9e59afdd54247083184256e2d10a112),
+   data/k19_model.json (D161, the reproduction anchor),
+   data/mb_panel_kag.json + data/mb_panel_espn.json (D163's operator panels),
+   data/as_adaptive.json (D165's registered nulls, read by wf_equity on import);
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged at the
+   D132 5-season / 6,148-game denomination]
+- D169 ERA-LOCAL MODELS, HELD OUT WITHIN THE ERA — THE OWNER'S GOOD RESPONSE TO
+  D168, TESTED THE ONLY WAY IT CAN HONESTLY BE TESTED. **THE MODEL HALF OF THE
+  PROPOSAL IS WORTH EXACTLY NOTHING: CHOOSING THE ERA'S OWN STRUCTURE FROM
+  D168's SIX-RUNG LADDER ON THE ERA's EARLY SEASONS AND SCORING IT ON THE ERA's
+  HELD-OUT SEASONS RETURNS -0.03 ROI POINTS [-0.92,+0.87] ns AGAINST KEEPING THE
+  SHIPPED STACK, p = 0.465 — AND THAT IS DESPITE THE SELECTOR PICKING EXACTLY
+  THE RUNGS D168's CONTAMINATION STORY PREDICTS (V2 -tank-bridge ON THE OLD ERA,
+  V3 -tank-bridge-carry ON THE MIDDLE ERA, V0 THE SHIPPED STACK ON THE MODERN
+  ONE). EVERY POINT OF THE APPARENT ERA-LOCAL ADVANTAGE IS THE BETTING
+  CONFIGURATION, AND THE ERA BOUNDARY CONTRIBUTES NOTHING TO THAT EITHER: A
+  FIXED 5-SEASON WINDOW THAT KNOWS NOTHING ABOUT ERAS RETURNS +10.13% ON THE
+  SAME SIX HELD-OUT SEASONS AGAINST ERA-LOCAL's +10.83% AND GLOBAL's +5.32%.
+  WHAT IS BEING MEASURED IS SELECTION-WINDOW LENGTH, NOT ERA MEMBERSHIP.** AND
+  THE PRE-REGISTERED PASS RULE FAILS ON BOTH LEGS: **THE PAIRED ERA-LOCAL-MINUS-
+  GLOBAL DELTA IS +5.18 ROI POINTS WITH A 5-dof INTERVAL OF [-3.27,+13.62] THAT
+  SPANS ZERO, AND IT DOES NOT CLEAR ITS OWN PERMUTATION NULL's p95 OF +5.28 —
+  6.0% OF DRAWS FROM PREDICTIONS CONTAINING NO INFORMATION AT ALL BEAT IT, AND
+  THE NULL's MAXIMUM IS +14.64.** **DIAGNOSTIC. Nothing ships. No production
+  default changed, no gate re-run, eval corpus NOT widened, `nbapred/` and
+  `scripts/bet_engine.py` UNTOUCHED, `scripts/prod_by_season.py` NOT RUN,
+  `data/nba.duckdb` NEVER OPENED** (D168's component pass is reused; the
+  production margin is an exact linear sum, so the whole ladder is arithmetic on
+  `data/sl_components.csv.gz` and the six variant frames already on disk — that
+  reuse is what made this run cost 310 seconds instead of a day).
+  `data/capstone_pergame.csv` md5 **3b7bbbb78ac73c63273c18a8aa30013c** verified
+  at the START and again at the END — it is not an input to any arm.
+  (0) **WHY THIS ENTRY EXISTS, AND IT IS A GOOD OBJECTION, NOT A BAD ONE.**
+  D168 measured that the shipped stack is ERA-SPECIFIC and that this is
+  contamination rather than virtue: the era-tuned terms buy +3.20pp of
+  normalized gap on the block they were gated on against +0.61pp elsewhere
+  (5.3x) and +7.22 against +0.79 ROI points (9.1x), and removing the three most
+  era-specific terms erases 100% of D166's +3.54%. **The owner's response — if
+  the model is era-specific, build one per era and test each in its own era — is
+  a real hypothesis with a clean test, but ONLY if the evaluation seasons are
+  held out WITHIN the era**, because D164 priced reporting a model on the
+  seasons that chose it at **+16.92 manufacturable ROI points, 100.0% of which
+  reproduces from permuted predictions.** This entry chooses the structure AND
+  the configuration on the EARLY part of each era, freezes, and scores on the
+  LATE part of the SAME era, never touching the scored seasons.
+  (0a) **PRE-REGISTRATION, WRITTEN AND HASHED BEFORE ANY SCORING CODE FOR THIS
+  RUN EXISTED.** `data/eralocal_prereg.md` sha256
+  **7f0fa5dae1edda2cab90b35b5e158bcbb36631a094d25ff5b519ef6b23888aea**
+  (`data/eralocal_prereg.sha256`). It fixes the era boundaries and the uniform
+  split rule, the four arms, the null, the reading rule in both directions, the
+  manufacturing rule, the family, and — §5 — **the power statement, which says
+  in advance and in these words that the design is BADLY UNDERPOWERED, cannot
+  establish an era-local advantage of any plausible size, and exists to reject
+  one and to compare each arm to its own null.**
+  (0b) **TWO ANCHORS, BOTH EXACT.** (i) D162's POOL19 reproduces on the V0
+  variant frame: ROI **-3.245%**, cover **50.654%**, 22,742 games, **351
+  pushes**. (ii) **The D166/D168 firm default reproduces TO THE DIGIT** —
+  n=1,553, 1-book +1.66%, k=5+haircut **+3.54%**, cover **54.240%**, **+54.9u**,
+  13-dof CI [-3.51,+8.98] — and the GLOBAL arm's per-season path on the six
+  held-out seasons IS D166's (+3.28 / +23.40 / +5.21 / -15.18 / +17.23 / -5.66).
+  (1) **THE ERAS — STRUCTURAL, MEASURED, RESULTS-BLIND, AND ONE OF THEM IS
+  DROPPED FOR BEING TOO THIN RATHER THAN FORCED.** Boundaries from ERAS.md
+  §2/§7 and D161 §0b's K19-ERA coding; **split rule declared once and applied
+  uniformly: HOLD OUT THE LAST TWO SEASONS OF EACH ERA.**
+    era     window              n   selection block      HELD-OUT
+    E_OLD   2007-08..2013-14    7   2007-08..2011-12     2012-13, 2013-14
+    E_MID   2014-15..2018-19    5   2014-15..2016-17     2017-18, 2018-19
+    (drop)  2019-20, 2020-21    2   ---                  ---
+    E_MOD   2021-22..2025-26    5   2021-22..2023-24     2024-25, 2025-26
+  **JUSTIFICATION, ALL MEASURED:** 3PA share is **≤ .260 in every E_OLD season
+  and ≥ .268 in every season from 2014-15** — no overlap, and it is ERAS.md's own
+  E-1 boundary; home margin is **≥ +2.597 in every E_OLD season and ≤ +2.500 in
+  every E_MOD season** (D160 §12: the pre-2011 and 2021-26 ranges do not overlap
+  at all). **E_OLD MERGES ERAS.md's E-3∩frame WITH E-2 AND THE MERGE IS FORCED,
+  NOT PREFERRED:** kept apart, E-3∩frame is 4 seasons whose held-out block **no
+  global comparator can score**, because D166's expanding-window rule needs 5
+  prior seasons and 2012-13 is therefore the earliest globally-scorable season
+  in the whole 19-season frame. **K-D (2019-20, 2020-21) IS DROPPED AND SAID SO
+  PLAINLY: two seasons, both ERAS.md separate strata (the 88-game one-site
+  bubble; the 72-game no-crowd compressed season), and it cannot be split into a
+  selection block and a held-out block at all.** It still enters the GLOBAL
+  arm's expanding window, exactly as in D166. **2011-12 (lockout stratum) sits
+  in E_OLD's SELECTION block only, so it influences a choice and is never a
+  scored number.** E_MOD is not split at the 2023-24 E5 rule-change cluster
+  because both halves would be too thin; that split is run as a pre-registered
+  SENSITIVITY (§8).
+  (1a) **TWO THINGS DECLARED BEFORE SCORING BECAUSE THEY BOUND EVERY NUMBER
+  BELOW.** (a) **ON E_OLD THE ERA's SELECTION BLOCK *IS* ALL PRIOR HISTORY, SO
+  ERA-LOCAL AND GLOBAL CONFIG SELECTION ARE THE SAME ARM BY CONSTRUCTION** and
+  E_OLD is uninformative about the window question (its measured delta is
+  exactly **+0.00**); it remains informative about the MODEL question. (b) **THE
+  THREE ERAS ALSO DIFFER SHARPLY IN OUR OWN DARKO MINUTE COVERAGE** — 3.2-21.8%
+  / 26.6-59.5% / 86.9-100.0% (D161 §2) — which is a property of our stack, not
+  of the sport, and ERAS.md §2b.1 warns that a ramped input mimics a smooth era
+  effect. **Nothing here separates "era" from "our talent feed's coverage
+  ramp", and nothing here claims to.**
+  (2) **THE ARMS.** Model ladder = D168's six rungs BY NAME (V0 FULL, V1 -tank,
+  V2 -tank-bridge, V3 -tank-bridge-carry, V4 STRIPPED, V5 4F+home; V6 NO-HOME is
+  a floor, not a candidate). Config space = D164's 600 cells, selection rule,
+  eligibility guard and tie-break imported from `wf_equity.select` verbatim.
+  **EL** = era-local model x era-local config, 3,600 joint cells, chosen on that
+  era's selection block ONLY. **EC** = shipped V0 + era-local config only.
+  **GF** = shipped V0 + config chosen on ALL prior history and frozen at the era
+  boundary (the matched comparator). **GW** = D166's literal procedure, config
+  re-selected each held-out season. **GF and GW pick the same configuration at
+  every held-out season, so their held-out numbers are identical.** Execution:
+  PRIMARY = D166's firm default (k=5 measured D163 panels + the D163 §10
+  outlier-realism haircut), SECONDARY = k=1 one-book; selection is always on the
+  k=1 payoff, exactly as in D164/D165/D166.
+  (3) **THE HEADLINE TABLE — HELD-OUT ONLY, EVERY ARM BESIDE ITS OWN NULL**
+  (firm default; `null` = mean of 200 within-date permutations of the pair
+  `(m_us, p_us)`, seed 20260804, the SAME permutation index applied to all six
+  variant frames within a draw; `p` = P(own null >= real)):
+    era      arm    n     ROI%   cover%   own null%    net     p     sel ROI%
+    E_OLD    EL    133   +12.92   59.19     -2.50    +15.42  0.005    +10.11
+    E_OLD    EC    134   +13.49   59.49     -3.01    +16.50  0.000    +10.09
+    E_OLD    GF    134   +13.49   59.49     -3.01    +16.50  0.000    +10.09
+    E_MID    EL    258    +2.46   53.67     -2.01     +4.47  0.245    +11.51
+    E_MID    EC    259    +2.07   53.47     -1.63     +3.71  0.260    +10.58
+    E_MID    GF    212    -4.50   50.01     -1.53     -2.97  0.685     +6.74
+    E_MOD    EL    343   +16.33   60.95     -4.06    +20.38  0.000     +6.94
+    E_MOD    EC    343   +16.33   60.95     -2.87    +19.19  0.000     +6.94
+    E_MOD    GF    417    +7.68   56.42     -1.51     +9.19  0.070     +4.22
+    POOLED   EL    734   +10.83   58.08     -2.98    +13.82  5-dof CI [-0.65,+20.43] MDE80 11.48
+    POOLED   EC    736   +10.79   58.05     -2.57    +13.36           [-1.03,+20.87]       11.93
+    POOLED   GF    763    +5.32   55.18     -2.01     +7.33           [-10.21,+19.64]      16.27
+    POOLED   GW    763    +5.32   55.18     -1.74     +7.06           [-10.21,+19.64]      16.27
+  1-BOOK tier: EL +9.15% (null -4.59), EC +9.12% (-4.19), GF/GW +2.76% (-3.74).
+  **K = 2 PER ERA, SO NO PER-ERA INTERVAL IS CLAIMABLE AND NONE IS QUOTED.**
+  (4) **THE PRIMARY STATISTIC, AND IT IS NO-PASS ON BOTH LEGS.** Paired
+  per-season delta over the six held-out seasons, each net of the SAME paired
+  delta computed under the null:
+    tier            comparison   real    5-dof CI        null (sd, p95, max)          p     MDE80
+    firm default    EL - GF     +5.18  [-3.27,+13.62]  -0.88 (4.20, +5.28, +14.64)  0.060   9.21
+    firm default    EC - GF     +5.20  [-2.47,+12.87]  -0.54 (3.95, +5.55, +10.61)  0.070   8.36
+    firm default    EL - EC     -0.03  [-0.92, +0.87]  -0.33 (3.61, +5.75, +11.03)  0.465   0.98
+    1-book          EL - GF     +5.79  [-2.64,+14.22]  -0.75 (4.07, +5.10, +13.67)  0.030   9.19
+    1-book          EL - EC     -0.03  [-0.95, +0.88]  -0.29 (3.56, +5.51,  +9.99)  0.460   1.00
+  **PREREG §6 VERDICT: NO-PASS.** Condition (i), an interval excluding zero,
+  **FAILS at both tiers**; condition (ii), beating the arm's own null p95,
+  **FAILS at the firm default (+5.18 against +5.28)** and passes marginally at
+  1-book. Both were required and both were written down first.
+  (5) **THE MODEL HALF IS WORTH EXACTLY NOTHING, AND THE NULL EXPLAINS WHY.**
+  EL − EC = **-0.03 ROI points [-0.92,+0.87] ns, p=0.465** — per era **-0.49
+  (E_OLD), +0.41 (E_MID), +0.00 (E_MOD)**. The DIRECTION of the choice is
+  exactly what D168 predicts and is worth recording:
+    era      REAL pick                     what the SAME selector picks on NOISE (200 draws)
+    E_OLD    V2 -tank -bridge              V0 28.5%  V2 4.0%  V3 7.5%  V4 23.5%  V5 36.5%
+    E_MID    V3 -tank -bridge -carry       V0 17.0%  V2 5.0%  V3 11.0% V4 24.0%  V5 43.0%
+    E_MOD    V0 FULL, the shipped stack    V0 31.5%  V1 5.0%  V2 12.0% V3 5.0%   V4 15.0%  V5 31.5%
+  **THE OLD ERAS CHOOSE THE STRIPPED-DOWN STRUCTURES AND THE MODERN ERA CHOOSES
+  THE SHIPPED ONE — which is the contamination signature D168 measured, arrived
+  at from the selection side. BUT THE SAME SELECTOR PICKS A RUNG ESSENTIALLY AT
+  RANDOM ON NO-INFORMATION PREDICTIONS, AND THE CHOICE BUYS NOTHING ON THE
+  HELD-OUT SEASONS. The model half of the proposal is NOT IDENTIFIED at this
+  resolution, and no era-local model may be described as better than the shipped
+  one on the strength of this run.**
+  (6) **AND THE ERA BOUNDARY IS DOING NO WORK EITHER — THE WINDOW LENGTH IS.**
+  Same six held-out seasons, V0 only, 600 cells, config selected from the W
+  seasons immediately preceding each held-out season (`WLADDER`, pre-registered):
+    W       sel n   in-window%   held-out 1bk%   held-out k5%   DECAY | null in-win%  null held 1bk%  null DECAY  cfgs
+    1         120     +17.24         -2.11          +0.30      +19.35 |   +12.90        -4.98         +17.88      6
+    2         243     +12.08         +0.63          +2.84      +11.46 |    +7.91        -4.00         +11.90      6
+    3         355     +10.22         +5.48          +7.74       +4.74 |    +6.39        -3.67         +10.05      5
+    5         540      +8.03         +8.33         +10.13       -0.30 |    +3.83        -3.97          +7.80      5
+    ALL     1,278      +6.99         +2.76          +5.32       +4.23 |    +1.90        -3.55          +5.45      2
+  **A FIXED 5-SEASON WINDOW THAT KNOWS NOTHING ABOUT ERAS RETURNS +10.13%
+  (k=5+HC) AND +8.33% (1-book) ON THE SAME SIX HELD-OUT SEASONS, AGAINST THE
+  ERA-LOCAL ARM's +10.83% / +9.15% AND THE GLOBAL ARM's +5.32% / +2.76%** — and
+  it crosses every era boundary it likes (its window for 2017-18 is
+  2012-13..2016-17, straddling E_OLD and E_MID; its window for 2024-25 includes
+  both COVID seasons). **The era-local arm's own windows are 5, 3 and 3 seasons.
+  WHAT THIS EXPERIMENT MEASURES IS SELECTION-WINDOW LENGTH, NOT ERA MEMBERSHIP,
+  AND D165 ALREADY TESTED WINDOW LENGTH DIRECTLY: RECENCY-3 vs ALL-HISTORY IS
+  +0.95 [-4.55,+6.46] ns, and the family-wise burden of having had five window
+  arms to choose from is +2.13 points.**
+  (7) **THE CAPACITY COMPARISON, INCLUDING A CORRECTION TO THE DIRECTION IT WAS
+  EXPECTED IN.** The brief expected era-local's own null to be MORE POSITIVE
+  than global's, since it selects on less data. **IT IS MORE NEGATIVE: pooled
+  null EL -2.98% vs GF -2.01% at the firm default and -4.59% vs -3.74% at
+  1-book. Net-of-own-null therefore FLATTERS the era-local arm by ~0.9-1.0
+  points rather than penalising it, and the pre-registered literal manufacturing
+  rule does NOT fire.** The reason is mechanical and is worth stating because it
+  will recur: a longer selection window estimates each cell's REAL structural
+  base rate more precisely, so even on scrambled predictions the long-window
+  selector transfers slightly better. **THE MANUFACTURING IS REAL AND LARGE; IT
+  SIMPLY LIVES IN THE IN-WINDOW NUMBER AND IN THE DECAY, EXACTLY WHERE D164 AND
+  D165 MEASURED IT.** On PURE NOISE, per era, firm default:
+    era      arm    null IN-WINDOW ROI    null DECAY
+    E_MID    EL          +7.95              +11.17
+    E_MID    EC          +6.19               +9.10
+    E_MID    GF          +1.52               +4.31
+    E_MOD    EL          +5.37              +11.78
+    E_MOD    EC          +4.14               +9.38
+    E_MOD    GF          +0.08               +4.21
+  **THE ERA-LOCAL PROCEDURE MANUFACTURES 4-67x MORE IN-WINDOW ROI AND 2.2-2.8x
+  MORE DECAY THAN THE GLOBAL ONE FROM PREDICTIONS THAT CONTAIN NO INFORMATION AT
+  ALL.** And the direct measure of its capacity to manufacture an ADVANTAGE over
+  global: **the null distribution of (era-local minus global) has mean -0.88, sd
+  4.20, p95 +5.28 and a MAXIMUM of +14.64. THE REAL +5.18 DOES NOT CLEAR ITS OWN
+  p95 AND 6.0% OF NO-INFORMATION DRAWS BEAT IT.** The W-ladder in §6 reproduces
+  D165 §3's monotone shape on our own held-out set: null decay +17.88 / +11.90 /
+  +10.05 / +7.80 / +5.45 against D165's +17.94 / +12.03 / +4.74 / +4.23 / +4.73.
+  (8) **FRAGILITY, AND THE SENSITIVITY.** Leave-one-held-out-season-out on the
+  pooled six (firm default): EL ranges +5.91% (drop 2024-25) to +12.69% (drop
+  2017-18); GF ranges **-0.25% (drop 2024-25)** to +8.56% (drop 2025-26); the
+  paired delta ranges **+2.67 (drop 2018-19)** to +6.78. **The +5.18 rests on two
+  seasons — 2018-19 alone contributes +17.7 points of it (GF -15.18% vs EL
+  +2.55%) and 2025-26 another +11.3 — and the GLOBAL arm's own positive level is
+  entirely 2024-25, the same single-season dependence D166 §5 and D168 §7
+  measured.** PRE-REGISTERED SENSITIVITY, E_MOD split at the 2023-24 E5
+  rule-change boundary (select 2021-22..2022-23, hold out 2023-24..2025-26):
+  EL/EC **+13.21%** (n=471) vs GF **+7.56%** (n=605), paired **+4.91**, null p95
+  +10.22, **p = 0.150**, EL−EC = **+0.00**. Same conclusion, weaker.
+  (9) **POWER, DECLARED IN ADVANCE AND CONFIRMED AS DAMNING.** Prereg §5
+  declared MDE80 21.4 ROI points per era and 12.4 pooled on D166's measured
+  10.82pp per-season sd, and a paired MDE80 of 3.4-9.2 points. **REALISED:
+  pooled MDE80 11.48 (EL) and 16.27 (GF); paired MDE80 9.21 — the very top of
+  the declared range — against a paired point estimate of 5.18.** Realised
+  per-season sd 10.04pp (EL), 14.22pp (GF), 8.05pp (paired). **THIS DESIGN COULD
+  NEVER HAVE ESTABLISHED AN ERA-LOCAL ADVANTAGE OF THE SIZE IT MEASURED, AND THE
+  PREREG SAYS SO IN THOSE WORDS BEFORE THE NUMBERS EXISTED.** A further property
+  of the uniform split rule, noted in the prereg's spirit and reported here: the
+  six held-out seasons contain **the two largest positive seasons of D166's path
+  (2013-14 +23.40%, 2024-25 +17.23%) and two of its three largest negatives
+  (2018-19 -15.18%, 2025-26 -5.66%)** — an unusually high-variance held-out set,
+  which is a consequence of applying one rule uniformly and not a choice.
+  (10) **FAMILY (D121's standard, pre-registered).** PRIMARY FAMILY: **1 cell**
+  (the pooled EL−GF paired delta); 0.05 expected significant under a global
+  null; **observed significant: ZERO.** SECONDARY FAMILY: the 12 arm x era
+  pooled held-out ROIs plus the 3 per-era paired deltas = **15 cells, 0.75
+  expected; observed significantly POSITIVE ZERO, significantly NEGATIVE ZERO**
+  (no per-era cell has a claimable interval at K=2 and none is quoted). The
+  **3,600 in-window selection cells are NOT a test family** (D164 §9) — they are
+  the selector's own search, and this entry is a measurement of exactly how much
+  that search is worth.
+  (11) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: the SELECTION
+  blocks open in **K-A** and the SCORED track is the six held-out seasons
+  **2012-13, 2013-14, 2017-18, 2018-19, 2024-25, 2025-26 = K-B, K-C, K-E** on
+  D161 §0b's coding (E-2, E-1, E6 on ERAS.md). ERA-AVAILABILITY: every model
+  input exists in all 19 seasons; the EXECUTION layer is era-limited exactly as
+  D166 §10 states, and of the six held-out seasons **2012-13, 2013-14, 2017-18
+  are MEASURED (KAG offshore panel) and 2018-19, 2024-25, 2025-26 are
+  EXTRAPOLATED** on the conservative ladder. AVAILABILITY TIER: **BLIND on all
+  19, empty OUT sets, inherited from D161/D162 — every level is a LOWER BOUND
+  and no played-set oracle exists in any code path.** ERA-STABILITY: not
+  claimable at K=2 per era and none is claimed; what IS measured is that
+  **era-LOCAL selection is not distinguishable from a fixed short window, which
+  is a statement about the selection procedure and not about the sport.**
+  COVID FRAME: 2019-20 and 2020-21 are in NO era's selection or held-out block
+  (§1) and enter only the GLOBAL arm's expanding window, as in D166.
+  CLUSTERING: season, K=6 pooled, K−1 = 5 dof cluster-mean t as the shipping
+  statistic per §9.1(4); K=2 per era, which is why no per-era interval appears.
+  (12) **THE HONEST 2021-26 STATEMENT THE OWNER ASKED FOR, WRITTEN FOR THE
+  README AND REPRODUCED HERE VERBATIM SO THE REGISTER OWNS IT.**
+  > **Modern era (2021-22 → 2025-26).** Under the walk-forward procedure — the
+  > betting configuration re-selected each season from all prior seasons, priced
+  > at the opening spread under D163's measured five-book execution with the
+  > outlier-realism haircut — the five modern seasons return **ROI +3.88% on 820
+  > bets, +31.9 units at flat 1u** (one book: +1.53%), against **+3.15% and
+  > +23.1 units on the nine earlier scored seasons** (one book: +1.80%).
+  > **These modern numbers are NOT an out-of-sample result and must not be
+  > quoted as one.** The model's *architecture* — the D62 carry, the D73 tank
+  > term, the D84-A October bridge, the D46 schedule layer, the 50/50 blend, the
+  > 7.2 scale — was chosen on a 2021-26 corpus, so the block being scored is the
+  > block that selected the structure; D168 audited every shipped component and
+  > found **zero** that can be dated to a gate using only pre-2021 data. The one
+  > genuinely clean comparison available is D168's block split, and it points
+  > the wrong way for the modern figure: deleting the three most era-specific
+  > terms costs **+0.79 ROI points on the nine seasons nobody had in hand when
+  > they were gated and +7.22 points on the five they were gated on — a 9.1x
+  > difference-in-differences** (in the model's own accuracy metric, +0.61pp
+  > against +3.20pp of normalized gap, 5.3x), and the shipped stack is the
+  > **only** variant on the six-rung ablation ladder that is more accurate where
+  > it was designed than where it was not. Read together: **+3.88% is a property
+  > of an architecture selected on 2021-26, not evidence of a transferable
+  > edge.** The full 14-season interval spans zero at every execution tier
+  > ([-3.51%, +8.98%] at the firm default), the design's MDE80 is ~8 ROI points
+  > and it would take ~36 seasons to resolve +3.54%, and the first season on
+  > which the model's *structure* is genuinely out of sample is 2026-27.
+  (13) **CHART** rendered and inspected, **three collision passes** (pass 1: the
+  panel-(a) footnote was drawn in data coordinates from x=0 and ran left through
+  the y-axis label, and panel (c)'s legend sat on all three of its own series;
+  pass 2: the footnote was re-anchored to the axes' left edge, panel (c)'s
+  legend was replaced by direct labels with the window ticks colour-coded, and
+  panel (b)'s "null p95" callout was moved off the legend box; pass 3: the
+  y-range of panel (a) was opened to -21 and its x tick marks suppressed so the
+  footnote cleared them, and the null markers were offset 0.32 bar-widths right
+  so the short E_MID bars' value labels no longer sat on a whisker cap).
+  `charts/era_local.png` — **(a)** per era and pooled, held-out ROI for
+  ERA-LOCAL / era-local-config-only / GLOBAL with **each arm's own permutation
+  null drawn beside it** and the 5-dof cluster-mean CI on the pooled group only;
+  **(b)** the primary paired statistic against the distribution the identical
+  procedure manufactures on no-information predictions, with the null p95 and
+  the null maximum marked; **(c)** manufacturing capacity by selection-window
+  length on the same six held-out seasons, with the era-local windows and the
+  global window marked on the axis.
+  (14) **VERDICT, PLAINLY, BECAUSE THE OWNER PROPOSED THIS IN GOOD FAITH AND IS
+  ENTITLED TO A STRAIGHT ANSWER.**
+  (a) **THE PROPOSAL DOES NOT PASS. NO-PASS on both pre-registered legs.** The
+  era-local arm's held-out ROI IS higher than the global arm's (+10.83% vs
+  +5.32% at the firm default), but the paired delta is +5.18 points on an
+  interval of [-3.27,+13.62] with a realised MDE80 of 9.21, and **it does not
+  clear the p95 of what the same procedure produces from predictions containing
+  no information.**
+  (b) **THE MODEL HALF — THE ACTUAL PROPOSAL — IS WORTH -0.03 POINTS AND IS NOT
+  IDENTIFIED.** Choosing the era's own structure from D168's ladder buys nothing
+  on held-out seasons, even though it picks exactly the rungs D168's story
+  predicts, and the same selector picks a rung at random on noise.
+  (c) **WHAT IS LEFT IS A SHORTER SELECTION WINDOW WEARING AN ERA COSTUME.** A
+  fixed 5-season window with no era structure whatsoever matches or beats the
+  era-local arm on the identical held-out seasons; E_OLD, where era-local and
+  global are the same arm by construction, contributes a delta of exactly zero;
+  and D165 already measured that window arm and could not distinguish it from
+  all-history.
+  (d) **SO, TO THE QUESTION AS ASKED — IS ERA-LOCAL MODELLING JUST A
+  SMALLER-SAMPLE VERSION OF THE SAME OVERFITTING? ON THIS EVIDENCE, YES, AND THE
+  NULL IS THE PROOF: the era-local procedure manufactures 2.2-2.8x the decay and
+  up to 67x the in-window ROI of the global one on scrambled predictions, and
+  the advantage it produced on real data sits at the 94th percentile of what it
+  produces on noise.** What it is NOT is disproved — the design is badly
+  underpowered by construction and the prereg said so first — but nothing here
+  licenses building one model per era, and D168's conclusion is unchanged: the
+  +3.54% is a property of an architecture chosen on 2021-26.
+  (e) **RECOMMENDATION UNCHANGED FROM D121/D126/D142/D148/D161/D162/D163/D164/
+  D165/D166/D168: NO CAPITAL AT OPEN OR CLOSE. CLV REMAINS THE YARDSTICK.** The
+  all-history walk-forward procedure keeps its place on the fresh-season
+  confirmation list; this entry adds nothing to that list, because the era-local
+  variants are not better than it by any margin this data can see.
+  (15) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not claim to have built an
+  uncontaminated era-specific model — **all six rungs of D168's ladder are
+  future-informed (D168 §5: zero shipped components can be dated to a pre-2021
+  gate), so the era-local arm CHOOSES AMONG contaminated structures and does not
+  build a clean one; that bias points UPWARD, most of all on E_MOD, and it is
+  declared in the prereg §2 rather than discovered here.** It does not separate
+  "era" from our DARKO coverage ramp (§1a). It does not treat any in-window
+  number as evidence. It does not present the maximum of the 3,600-cell search
+  as a result. It does not re-run the D168 component pass, re-price limits,
+  own-flow impact or the BLIND->full-feed tier gap — all inherited unchanged.
+  And it does not change a default, re-run a gate, widen the eval corpus or
+  re-certify anything: **D158 remains the certified baseline and D159 remains
+  the trading baseline.**
+  [code scripts/el_eralocal.py, scripts/el_chart.py (both new, neither under
+   nbapred/); scripts/oc_capacity.py and scripts/wf_equity.py IMPORTED
+   UNMODIFIED as the harness;
+   data/eralocal_prereg.md (sha256
+   7f0fa5dae1edda2cab90b35b5e158bcbb36631a094d25ff5b519ef6b23888aea, written
+   and hashed BEFORE any scoring code for this run existed),
+   data/eralocal_prereg.sha256,
+   data/eralocal_notes.md (full working, checkpointed as the run proceeded),
+   data/el_eralocal.json, data/logs/el_eralocal.log, data/logs/el_eralocal.out;
+   charts/era_local.png;
+   inputs data/sl_components.csv.gz + data/sl_frames/frame_V*.csv.gz (D168, the
+   six paired variant frames, reused verbatim), data/ats19_frame.csv.gz (D162,
+   md5 b9e59afdd54247083184256e2d10a112), data/mb_panel_kag.json +
+   data/mb_panel_espn.json (D163's operator panels), data/as_adaptive.json
+   (D165's registered nulls, read by wf_equity on import), data/sl_score.json
+   (D168, for the §12 block split) — **data/nba.duckdb NEVER OPENED**;
+   data/capstone_pergame.csv READ ONLY, md5 3b7bbbb78ac73c63273c18a8aa30013c
+   VERIFIED UNCHANGED after the run;
+   nbapred/ UNTOUCHED, scripts/bet_engine.py UNTOUCHED, scripts/prod_by_season.py
+   NOT RUN, no gate re-run, no default changed, eval corpus unchanged at the
+   D132 5-season / 6,148-game denomination]
+
+- D170 THE AVAILABILITY-DATA GAP WAS NOT A SOURCE GAP — **THREE FEEDS
+  BACKFILLED ACROSS THE WHOLE 19-SEASON FRAME, AND THE OWNER'S SUSPICION IS
+  CONFIRMED WITH A NUMBER: 58.4% OF 2024-25's APPARENT SUPERIORITY WAS DATA
+  COMPLETENESS, NOT THE SEASON.** The 19-season pooled normalized gap falls
+  **+20.89% -> +9.50%** and D161's "every level is a LOWER BOUND" is now
+  quantified rather than asserted. **No default changed, no gate re-run, the
+  eval corpus is NOT widened, and D158 remains the certified baseline / D159
+  the trading baseline.**
+  (0) **WHY THIS EXISTS.** D158 measured that scoring a season availability-
+  blind costs it enormously (2021-22 blind 29.52% vs 2024-25 6.30% with full
+  feeds). D159 found the availability feed is ~2/3 of the CLV asset. D161 then
+  ran ALL 19 seasons BLIND *because the feeds did not exist historically* and
+  labelled every level a lower bound. The owner asked the right question: **is
+  2024-25 "best" partly because it is the only era with complete data?** That
+  was untestable while the feeds were missing. This entry makes it testable.
+  (1) **THE HEADLINE FINDING, BEFORE ANY MODEL RUNS: ALL THREE "MISSING" FEEDS
+  WERE INGEST GAPS, NOT SOURCE GAPS.** Probed live, not assumed:
+  * `game_inactives` — BoxScoreSummaryV2's `InactivePlayers` result set is
+    populated **from 2006-07 onward** and returns 0 rows for 2005-06 and
+    earlier. 2006-07 IS the source floor; everything above it was ours.
+    **0 -> 1230/1230 games on every season 2007-08..2021-22.**
+  * `injury_reports_pit` — daily probe of `Injury-Report_YYYY-MM-DD_05PM.pdf`,
+    1.15s spacing, control URL verified at both ends: **403 on every day from
+    season open 2018-10-16 through 2018-12-16, first 200 on 2018-12-17.**
+    That IS a source floor and it is stated as one: **DO NOT CLAIM COVERAGE
+    BEFORE 2018-12-17.** From there to 2023-10-23 was ours. **45,369 ->
+    125,695 rows, 2 seasons -> 8.**
+  * `darko_history` — **darko.app serves the FULL daily series back to
+    1996-11-01, for RETIRED players too** (Kobe 1996-11-01..2016-04-13 n=1777;
+    Duncan, Iverson, Nash, Dirk, Yao, KG likewise). We had fetched 1,009 of the
+    3,934 player_ids in `player_game_stats` — the modern roster universe. **THE
+    RAMP WAS OURS.** 354,600 -> **1,103,818 rows**, 837 -> **2,909 players**.
+  **METHOD NOTE — the CDN IP-blocks and a 403 is therefore AMBIGUOUS.** A ~250-
+  request sweep produced 403s on dates that had returned 200 seconds earlier;
+  the block cleared in ~4 minutes. An early sweep "showed" a 2019-01 start that
+  was pure throttling. Every miss in this entry is re-probed on a later pass
+  behind a known-good control; nothing is declared absent on one look.
+  (2) **COVERAGE, BEFORE -> AFTER.**
+  `game_inactives` (games covered / total): 2007-08..2021-22 all **0 -> 100%**
+  (2011-12 980/990 = 99.0%, 2014-15 1229/1230 = 99.9%; 2006-07 also landed at
+  1224/1230); 2022-23..2024-25 unchanged 100%; 2025-26 1227/1230. Rows
+  **42,313 -> 145,029.** Mean inactives per team-game, and this is itself a
+  measured era signal rather than noise: **0.31-0.48 across 2009-10..2016-17,
+  then 3.90-4.51 from 2017-18 on** — the load-management era arriving in the
+  official lists (raw density 2.20-2.64 in 2006-11, 1.61-2.09 in 2011-17,
+  3.90-4.51 in 2017-26).
+  `injury_reports_pit` report-days per season: 2018-19 **110** (partial by
+  source, from 2018-12-17), 2019-20 **156**, 2020-21 **139**, 2021-22 **168**,
+  2022-23 **169**, 2023-24 168, 2024-25 167, 2025-26 **159 (was ~44)**. All
+  absences are genuine and control-verified: All-Star breaks and the COVID
+  shutdown (2020-03-12..2020-07-29, exactly 140 days).
+  `darko_history` **PIT MINUTE COVERAGE** — the number that actually matters,
+  because `CompositionModel` scores an unrated player as league-average:
+  2007-08 **3.63 -> 99.95%**, 2010-11 **11.24 -> 99.94%**, 2015-16 36.87 ->
+  99.90%, 2020-21 81.21 -> 99.89%, 2021-22 88.75 -> 99.89%; every season
+  1996-97..2025-26 now **98.68-99.95%**. 1,025 of 3,934 player_ids 404 on
+  darko.app (deep-bench / 10-day); they are worth ~0.1% of minutes.
+  (3) **THE DIRECT CORRECTNESS TEST, AS ASKED.** A player listed inactive must
+  not appear in `player_game_stats` with minutes for that game. Non-tautological
+  (V2 `InactivePlayers` vs BoxScoreTraditionalV3). **145,029 inactive rows, 0
+  with minutes>0 — VIOLATION RATE 0.0000%, on every season individually.** The
+  stronger form also holds: `viol_any` = 0, i.e. an inactive player does not
+  appear in that game's box score at all.
+  (4) **THE FORWARD HOLE NOBODY HAD NOTICED.** The league renamed the PDF on
+  2026-01-01 (`_05PM` -> `_05_00PM`). `injury_pdf.py`'s filename regex did not
+  match, `parse_pdf` raised AttributeError, `load_all()` swallowed it as a parse
+  failure — and **97 report-days (2026-01-01..2026-04-12, the whole back half of
+  2025-26) sat in `data/raw/injury_reports/` and had never reached the table.**
+  D167 §11's "the report feed stops 2025-12-21" was a parser bug, not the NBA.
+  (5) **A LANDMINE FOUND BEFORE LOADING, NOT AFTER.** The legacy PDFs use four
+  different column layouts. In the 2018-12-17..2019-11-11 layout the columns are
+  `... Player Name | Category | Reason | Current Status | Previous Status`, and
+  the existing heuristic parser takes the LAST status-like token on the line —
+  **i.e. Previous Status** — and dumps Reason text into `team` (measured: 45-56
+  distinct "teams" in a 30-team league). Loading those files unfixed would have
+  written **systematically wrong statuses into the table the T1/T2 tier is built
+  from.** Fixed with a header-POSITION parser for legacy headers only, which
+  also handles per-PAGE column drift and two-word team names wrapped onto their
+  own line. **The modern path is untouched and verified byte-identical: 40
+  modern report-days re-parsed against the rows already in the DB, 28/28 of the
+  previously-loaded ones match EXACTLY** (the other 12 were newly downloaded).
+  After the fix, 0 bad team strings on every probed legacy file; the
+  name-join yield to `nba_players` is **93.0-96.5% in EVERY season**, i.e. the
+  legacy rows join as well as the modern ones.
+  (6) **A PRE-EXISTING SILENT DROP, REPORTED AND DELIBERATELY NOT FIXED.** The
+  PDFs name the Clippers **"LA Clippers"**; `report_out_map()` maps through
+  nba_api's `full_name` **"Los Angeles Clippers"**; the lookup returns None and
+  the row is discarded. **All 2,514 Clippers OUT rows have never entered a T1 or
+  T2 out-set — in the certified seasons too. One team has been scored
+  report-blind throughout.** 30 more rows are lost to the heuristic parser's
+  upper-case-surname assumption ("da Silva, Tristan" lands in `team`). NOT
+  FIXED HERE: `report_out_map` IS the T2 tier definition and changing it changes
+  the certified baseline's inputs. **Owner's call.** It makes us weaker, not
+  stronger, so it is not leakage — but "T2" has never actually meant T2 for
+  1/30th of the league.
+  (7) **THE RE-SCORE. FOUR ARMS, EACH CONTRAST CHANGING EXACTLY ONE THING.**
+  `darko_history` and `injury_reports_pit` are read INSIDE `nbapred/`
+  (composition talent; `tanking.py::_comp_c_shutdown`) so they move the FIT;
+  **`game_inactives` is read NOWHERE inside `nbapred/`** (verified by grep) and
+  enters only through the caller's out-set construction, so the tier contrast
+  cannot move the fit. Ordering follows from that.
+  A = blind, nothing backfilled (**= D161**); B1 = blind + DARKO; B2 = blind +
+  DARKO + reports; C = **T2** (5PM report OUT-set UNION official pregame
+  inactives, roster window, EMPTY where no feed) + everything.
+  **HARNESS VALIDATION: arm A reproduces D161's `k19_model.json` ll_us to 5
+  decimals on 18 of 19 seasons (delta exactly 0.00000).** The single exception
+  is 2025-26 (0.58929 -> 0.58946, +0.14pp normalized) and its cause is known and
+  benign: the §4 reload gave 2025-26 its missing report-days, which feed the
+  tank shutdown component. Arm C's 2024-25 cell lands at **+6.22%** against
+  D158's independently-certified full-feed **6.30%** — a second, unforced
+  corroboration.
+  **PER-SEASON NORMALIZED GAP (lower is better; tier label is arm C's):**
+```
+  season   tier(C)          A(=D161)      B1      B2       C |   B1-A    C-B2     C-A
+  2007-08  T2i               +26.87   +7.18   +7.18   +6.54 | -19.69   -0.64  -20.33
+  2008-09  T2i               +17.85   -2.44   -2.44   -2.01 | -20.29   +0.43  -19.86
+  2009-10  T2i               +25.69   +4.24   +4.24   +3.78 | -21.45   -0.46  -21.91
+  2010-11  T2i               +23.61   +4.22   +4.22   +1.58 | -19.39   -2.64  -22.03
+  2011-12  T2i-partial       +27.61   +9.74   +9.74   +8.55 | -17.87   -1.19  -19.06
+  2012-13  T2i               +16.67   +7.33   +7.33   +7.06 |  -9.34   -0.27   -9.61
+  2013-14  T2i               +23.90  +11.67  +11.67   +9.82 | -12.23   -1.85  -14.08
+  2014-15  T2i-partial       +20.16  +11.18  +11.18   +9.80 |  -8.98   -1.38  -10.36
+  2015-16  T2i               +13.05   +5.78   +5.78   +5.07 |  -7.27   -0.71   -7.98
+  2016-17  T2i                +9.71   +9.15   +9.15   +7.91 |  -0.56   -1.24   -1.80
+  2017-18  T2i               +27.48  +25.58  +25.58  +22.17 |  -1.90   -3.41   -5.31
+  2018-19  T2                +22.60  +17.27  +17.27  +14.98 |  -5.33   -2.29   -7.62
+  2019-20  T2                +12.12  +11.75  +11.75   +6.26 |  -0.37   -5.49   -5.86
+  2020-21  T2                +36.76  +34.89  +35.14  +26.85 |  -1.87   -8.29   -9.91
+  2021-22  T2                +29.52  +27.42  +27.10  +16.79 |  -2.10  -10.31  -12.73
+  2022-23  T2                +22.34  +23.37  +23.69  +13.21 |  +1.03  -10.48   -9.13
+  2023-24  T2                +20.16  +20.64  +20.20  +16.35 |  +0.48   -3.85   -3.81
+  2024-25  T2                +11.72  +11.80  +11.59   +6.22 |  +0.08   -5.37   -5.50
+  2025-26  T2                +15.01  +14.92  +15.12  +12.21 |  -0.09   -2.91   -2.80
+  POOLED (22,804 games)      +20.89  +12.39  +12.37   +9.50
+```
+  **TIER DISCIPLINE (D158's rule), STATED PER SEASON AND NEVER POOLED SILENTLY:
+  2007-08..2017-18 = T2i (inactives only; no report feed exists), 2011-12 and
+  2014-15 = T2i-partial (one/ten games short), 2018-19..2025-26 = T2.** Mean OUT
+  players per team-game at C: 0.31-0.48 on 2009-10..2016-17, 0.70-0.87 on
+  2017-18..2019-20, 1.09-1.38 on 2020-21..2025-26.
+  (8) **THE ANSWER THE OWNER ASKED FOR, DIRECTLY.** Pre-registered metric:
+  `ADV(s) = mean(norm gap of the other 18) - norm gap(s)`.
+  **2024-25: ADV +10.01pp and RANK 2/19 in D161's arm A. Under B2 — blind
+  still, but with the DARKO ramp removed — ADV collapses to +1.96pp and it
+  falls to RANK 10/19, i.e. MERELY AVERAGE. At the honest T2 tier it recovers
+  to ADV +4.16pp, RANK 5/19.**
+  **SHARE OF 2024-25's APPARENT SUPERIORITY THAT WAS DATA COMPLETENESS: 58.4%.
+  RESIDUAL GENUINELY THE SEASON: 41.6% (+4.16pp of the original +10.01pp).**
+  Decomposed: **the DARKO ramp alone accounts for 82.5% of it**; the report
+  backfill -2.1%; and the availability tier **-22.0%, i.e. the tier GIVES
+  2024-25 ADVANTAGE BACK.** That last sign is the honest complication and it is
+  not buried: the modern era has far more absence to know about (1.32 OUT
+  players per team-game against 0.31-0.48 in 2012-2016), so an honest
+  availability feed helps a modern season more. **Two readings, both defensible,
+  and the register should carry both: (i) 2024-25's edge is 58% data artefact
+  and what remains is mostly "the feed is worth more when there is more
+  absence", which is a property of the ERA and arguably still not the season's
+  own merit; (ii) more conservatively, once every season is scored at the best
+  tier it can reach, 2024-25 is the 5th-best of 19 rather than the 2nd, and 8 of
+  the 11 seasons now ahead of or near it are seasons D161 ranked at the bottom.**
+  Either way the strong form of the D161 reading — "2024-25 is exceptional" —
+  **does not survive.**
+  (9) **THE MECHANISM IS MEASURED, NOT INFERRED, AND THE DESIGN GOT A PLACEBO IT
+  DID NOT HAVE TO BE GIVEN.** corr(DARKO minute coverage GAINED, change in gap
+  B1-A) = **-0.886**; corr(mean OUTs per team-game, change in gap C-B2) =
+  **-0.809**. 16/19 seasons improve on the DARKO arm, 18/19 on the tier arm.
+  **THE PLACEBO: the three seasons that ALREADY had ~100% DARKO coverage
+  (2023-24, 2024-25, 2025-26) move by +0.48 / +0.08 / -0.09pp on B1-A — i.e.
+  not at all — while the seasons with the largest coverage gain fall by up to
+  22pp.** A confound that moved everything equally would have been an artefact;
+  this one moves exactly what it should.
+  (10) **WHAT THIS DOES TO THE REGISTER's HISTORICAL READINGS.** D153's
+  "about HALF the oldest-season deficit is our own starved talent feed, not the
+  era" was directionally right and QUANTITATIVELY TOO MODEST: it is **~73% on
+  2007-08 and ~82% on 2010-11**, and on 2008-09 the model at T2 posts
+  **-2.01%, i.e. it BEATS the market on a season D161 scored at +17.85%.** The
+  four D153 correlations in ERAS.md §2b.1 were computed against a coverage
+  variable that is now CONSTANT at ~99.9% and can no longer be recomputed; they
+  are marked as historical. **The `darko_history` floor of 2003-10-29, recorded
+  in ERAS.md §7 as "THE BINDING FLOOR FOR THE MODEL", is gone — 1996-97..2003-04
+  are now FITTABLE.** They remain UNSCORABLE (`odds_market` starts 2007-08), so
+  **the scorable frame is unchanged at 19 seasons and this entry does not widen
+  the eval corpus.**
+  (11) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe: 2007-08..2025-26,
+  19 seasons, 22,804 games, unchanged from D161. ERA-AVAILABILITY: **this is the
+  row that changed.** `game_inactives` now covers E-3 through E6; the only
+  genuinely absent channel on the old eras is the injury report before
+  2018-12-17, which is a SOURCE floor. AVAILABILITY TIER: **no longer constant
+  across the frame — T2i on 2007-08..2017-18, T2 on 2018-19..2025-26 — and it is
+  labelled per season at every appearance.** NO PLAYED-SET ORACLE is constructed
+  anywhere in `scripts/k19_t2.py`; `player_game_stats` is never used to build an
+  out set. COVID FRAME: 2019-20 and 2020-21 scored in every arm; 2020-21 remains
+  the worst season in the frame at every tier (+36.76 -> +26.85). CLUSTERING:
+  season, K=19; per-season paired SE of the model-minus-market per-game log loss
+  is 0.0047-0.0065, so single-season moves under ~1.3pp normalized are inside
+  noise and the small C-B2 deltas on the oldest seasons are NOT individually
+  significant — the 8-10pp moves on 2020-21/2021-22/2022-23 and the 17-21pp
+  DARKO moves are far outside it.
+  (12) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not claim the model is good —
+  the pooled gap is still **+9.50%** against the market and the market still
+  wins every season but 2008-09. It does not re-certify anything: **D158 remains
+  the certified baseline, D159 the trading baseline, and no gate was re-run, no
+  default flipped, no eval corpus widened.** It does not re-run D161's betting
+  rules, D162's ATS track, D166's equity path or D168's structural ladder on the
+  new feeds — every ROI/CLV number in the register is still computed on the old
+  data and is now KNOWN to be conservative by an unmeasured amount. It does not
+  fix the §6 Clippers defect. It does not ingest the `01PM` report edition,
+  which the probe shows exists back to 2018-12-18 and which D167 §11 wrongly
+  recorded as absent — deliberately, because `report_out_map` has no edition
+  predicate and loading a second edition would silently union two different
+  information sets into T2. **AND IT DOES NOT DECIDE THE OBVIOUS FOLLOW-UP: the
+  certified baseline was fitted and certified on a DB whose historical
+  availability and talent feeds were a small fraction of what is now present.
+  Whether D158 should be re-certified on the backfilled DB is the owner's call,
+  and this entry stops at saying it plainly.**
+  [code scripts/bf_inactives_hist_fetch.py, scripts/bf_inactives_hist_load.py,
+   scripts/bf_darko_hist_fetch.py, scripts/bf_darko_hist_load.py,
+   scripts/bf_injury_pdf_fetch.py, scripts/bf_injury_load.py,
+   scripts/bf_avail_verify.py, scripts/k19_t2.py, scripts/k19_t2_compare.py
+   (all new); nbapred/ingest/injury_pdf.py MODIFIED (filename regex + legacy
+   columnar parser; modern path verified byte-identical);
+   scripts/prod_by_season.py IMPORTED UNMODIFIED (report_out_map, so the T2
+   definition cannot drift), scripts/k19_model.py UNMODIFIED and NOT RE-RUN;
+   data/avail_backfill_notes.md (full working, checkpointed as the run
+   proceeded); data/k19_blindA.json + _pergame.csv (arm A),
+   data/k19_blindB1.*, data/k19_blindB2.*, data/k19_t2.* (22,804 games each);
+   data/logs/bf_inact_hist_{0,1,2}.log, data/logs/bf_darko_hist_*.log,
+   data/logs/bf_darko_r2_*.log, data/logs/bf_injury_pdf.log,
+   data/logs/bf_pdf_probe5.log, data/logs/k19_{blindA,blindB1,blindB2,t2}.log;
+   raw ground truth data/raw/nba_api/boxscoresummaryv2/ (4,914 -> 24,040),
+   data/raw/darko_history/ (1,009 -> 3,934),
+   data/raw/injury_reports/ (500 -> 1,259 PDFs);
+   DB WRITES (batched INSERT..SELECT off registered DataFrames, all network and
+   parsing OUTSIDE the lock, lock-retry yielding 60s to the cron pullers):
+   game_inactives 42,313 -> 145,029 (writes 0.46s/0.32s/0.58s),
+   darko_history 354,600 -> 1,103,818 (11.00s),
+   injury_reports_pit 45,369 -> 125,695 (1.48s/2.17s);
+   nbapred/model/ UNTOUCHED, nbapred/engine/ UNTOUCHED,
+   data/capstone_pergame.csv NOT WRITTEN, no gate re-run, no default changed]
+
+- D171 **THE CLIPPERS DEFECT IS FIXED AND THE BASELINE IS RE-CERTIFIED ON THE
+  BACKFILLED DB: POOLED 14.95% -> 12.87%. SUPERSEDES D158 AS THE CERTIFIED
+  BASELINE**, exactly as D158 superseded D132 and D132 superseded D122. The
+  number got BETTER by -2.08pp, and almost all of that is one season
+  (2021-22, which D158 had to run availability-BLIND and which now runs full
+  T2). D159 remains the trading baseline. **Every ROI/CLV number in the
+  register is still computed on the pre-D170 data and is still a lower bound —
+  this entry does NOT re-run any betting study, and §9 ranks them.**
+  (0a) **CONTROL-HASH FIELD (D134 rule).** New certified artifact
+  `data/capstone_pergame.csv` (md5 **695d40a3545e889267cad403b7acdce8**) vs the
+  superseded one, preserved byte-identical as `data/capstone_pergame_D158.csv`
+  (md5 **3b7bbbb78ac73c63273c18a8aa30013c**, copied aside and hash-verified
+  BEFORE the run): **6,148/6,148 games matched, 0 new-only, 0 old-only; p_us
+  moved on 3,647 games (59.32%), max|dp| 0.154922, mean|dp| 0.011063; p_mkt
+  max|dp| 0.0e+00** (the market column is untouched, as it must be). Mean OUT
+  players per team-game **0.937 -> 1.261 (+0.323)**. Per season, p_us moved:
+  2021-22 **99.6%** (max|dp| .1549), 2022-23 84.6%, 2023-24 37.6%, 2024-25
+  34.2%, 2025-26 40.6%. **THE MOVEMENT IS LARGE AND THE REASON IS NOT SUBTLE:
+  under D158, 2021-22 had NO availability feed in existence (outs/team-game
+  0.000) and ran BLIND; D170 gave it inactives AND reports, so it now runs full
+  T2 on every game.** Env: LATE_STATE, TANK_TERM, ORACLE_MINUTES, INACTIVE_OUTS,
+  REPORT_OUTS, ORACLE_PLAYED_OUTS, OCT_BRIDGE, OCT_BRIDGE_TRAIL, COVID_GUARD,
+  FF_LUCK all UNSET; **TANK_SEASON_FLOOR=2020-21 pinned explicitly (D155)**.
+  The run PRINTED ITS OWN TIER (`AVAILABILITY TIER: T2-HONEST`) and every season
+  resolved to `full T2-HONEST`; **ORACLE_PLAYED_OUTS was unset and the oracle
+  redirect never fired**. COMMAND: `env -u ORACLE_PLAYED_OUTS -u ORACLE_MINUTES
+  -u REPORT_OUTS -u INACTIVE_OUTS TANK_SEASON_FLOOR=2020-21
+  PROD_JSON_OUT=data/prod_by_season_D171.json python scripts/prod_by_season.py`.
+  (1) **THE DEFECT D170 §6 REPORTED AND LEFT: FIXED, AND IT WAS IN FIVE PLACES,
+  NOT ONE.** The injury PDFs spell the Clippers **"LA Clippers"**; nba_api's
+  `full_name` is **"Los Angeles Clippers"**. Five consumers each built
+  `{full_name: abbreviation}` inline and wrote `if ab:` — so an unresolvable
+  name was discarded **without a word**. The INGEST side had already
+  special-cased the alias (`nbapred/ingest/injury_pdf.py`), so the table was
+  always right and only the readers were wrong:
+  1. `scripts/prod_by_season.py::report_out_map` — **the T1/T2 tier definition
+     itself**, i.e. the certification input;
+  2. `nbapred/model/tanking.py::_comp_c_shutdown` — **INSIDE the fit**: the
+     Clippers' rest/management shutdown signal has been structurally blank in
+     every fit this project has ever run;
+  3. `nbapred/engine/slate.py` — **the LIVE path.** Unlike D158's defect, this
+     one DID reach production: tonight's Clippers games were predicted with an
+     empty injury-report out-set. Direction is unfavourable to us, so it is not
+     leakage, but it was a live correctness bug;
+  4. `scripts/bp_ladder.py` (a verbatim copy) — fixed, output NOT re-run;
+  5. `scripts/apr_program.py`.
+  **THE FIX IS A CANONICAL MODULE, NOT A SPECIAL CASE:** new `nbapred/teams.py`
+  (`abbrev_for` / `team_id_for` / `known_report_names` / `resolve_map`),
+  resolving exact full_name -> explicit alias -> unique-nickname suffix, and
+  **REPORTING any unresolved string with its row count instead of dropping it.**
+  That last property is the point: this is the THIRD instance of this bug class
+  in the register (D119's "63% scrape failure" that was a mapping bug; D161's
+  938 games lost to era abbreviations), and all three were silent.
+  (2) **THE 30-TEAM AUDIT, BOTH DIRECTIONS, AS ASKED**
+  (`scripts/d171_team_audit.py`, read-only). `injury_reports_pit` emits **31**
+  distinct `team` strings. 29 matched exactly. Two did not:
+```
+  DROP  LA Clippers          rows=2514  OUT=2119  OUT@sameday=1919  2018-12-17..2026-04-12
+  DROP  da Silva, Tristan    rows=  30  OUT=  16  OUT@sameday=  10  (parser artefact, NOT a team)
+```
+  **REVERSE DIRECTION: of the 30 nba_api `full_name`s, exactly ONE never appears
+  in any PDF — `Los Angeles Clippers`. No other franchise has a mismatch in
+  either direction.** After the fix: **30/31 strings resolve; 0 of 30 franchises
+  unrepresented**; the remaining `da Silva, Tristan` (10 same-day OUT rows,
+  0.015% of slots — D170 §6's upper-case-surname parser assumption) is now
+  PRINTED by every run rather than swallowed, and is not fixed here because
+  fixing it means re-parsing PDFs, i.e. a DB write.
+  Also surfaced and dismissed with a reason: `nba_games` carries era abbrevs
+  CHH/NJN/NOH/NOK/SEA/VAN absent from nba_api, but they cannot touch
+  `report_out_map` (the report feed starts 2018-12-17, by which date every
+  franchise uses its modern abbrev) and k19 already carries D161's crosswalk.
+  (3) **CONFINEMENT, VERIFIED RATHER THAN ASSERTED** (`d171_fix_verify.py`).
+  Diffing the old and new out-maps: **LAC is the ONLY team whose out-set
+  changed.** +1,718 player-slots, 571 new (date,team) cells, **zero cells
+  lost**; total OUT slots 64,580 -> 66,298 (+2.66%).
+  (4) **THE NEW CERTIFIED TABLE** (norm = (ll_us − ll_mkt)/(ln2 − ll_mkt)):
+```
+  season    n     ll_us    ll_mkt      raw    norm   | D158 ll_us  D158 norm   delta
+  2021-22  1228  0.61935  0.60429  +0.01506  16.95%  |   0.63053     29.52%  -12.57pp
+  2022-23  1230  0.63346  0.62437  +0.00909  13.21%  |   0.63385     13.78%   -0.57pp
+  2023-24  1230  0.59921  0.58086  +0.01835  16.34%  |   0.59906     16.21%   +0.13pp
+  2024-25  1230  0.58872  0.58155  +0.00717   6.43%  |   0.58857      6.30%   +0.13pp
+  2025-26  1230  0.58631  0.57114  +0.01517  12.43%  |   0.58553     11.79%   +0.64pp
+  POOLED   6148  0.60541  0.59244  +0.01297  12.87%  |   0.60750     14.95%   -2.08pp
+```
+  D158's registered numbers were **RE-DERIVED from the preserved artifact and
+  match the register to five decimals on all six rows** — the comparison
+  baseline is verified, not quoted from memory.
+  (5) **DECOMPOSITION: HOW MUCH IS D170's BACKFILL, HOW MUCH IS THE FIX.** An
+  extra arm ran the identical command with the fix reverted
+  (`data/capstone_pergame_D171_noclipfix.csv`):
+```
+  season     D158   backfill  +clipfix |  backfill  clipfix   total
+  2021-22  29.52%    16.79%    16.95% |   -12.73    +0.16    -12.57
+  2022-23  13.78%    13.21%    13.21% |    -0.57    +0.00     -0.57
+  2023-24  16.21%    16.35%    16.34% |    +0.14    -0.01     +0.13
+  2024-25   6.30%     6.22%     6.43% |    -0.08    +0.21     +0.13
+  2025-26  11.79%    12.21%    12.43% |    +0.42    +0.22     +0.64
+  POOLED   14.95%    12.75%    12.87% |    -2.20    +0.12     -2.08
+```
+  **THE CLIPPERS FIX COSTS +0.12pp — IT MAKES THE MODEL SLIGHTLY WORSE. That is
+  the sign D170 §6 predicted, and it is the sign that confirms this was never
+  leakage.** It ships because it is CORRECT, not because it helps. Fix-only
+  per-game: 2,077/6,148 moved (33.78%), max|dp| 0.082886; **410 LAC games
+  (148 moved) but ALSO 1,929 non-LAC games**, because `_comp_c_shutdown` feeds a
+  GLOBAL tank-k fit — k(2026-04-09) at the old floor **-2.17831 -> -2.08251**.
+  (6) **THE 19-SEASON RE-EVAL, EVERY SEASON LABELLED WITH THE TIER IT CAN
+  ACTUALLY REACH (D158's rule, never silently mixed).** `k19_t2.py --tier t2`,
+  plus a NEW `--tier t2i` arm (inactives only) added so the 5PM report can be
+  PRICED rather than assumed:
+```
+  season   tier          n     ll_us    ll_mkt     norm | D170 C    d  |   T2i   report worth  outs/tm
+  2007-08  T2i         1230  0.57737  0.56927   +6.54% |  +6.54  +0.00 |     -        -        0.42
+  2008-09  T2i         1230  0.56313  0.56568   -2.01% |  -2.01  +0.00 |     -        -        0.46
+  2009-10  T2i         1230  0.58322  0.57889   +3.78% |  +3.78  +0.00 |     -        -        0.39
+  2010-11  T2i         1230  0.57824  0.57640   +1.58% |  +1.58  +0.00 |     -        -        0.48
+  2011-12  T2i-partial  990  0.59635  0.58731   +8.55% |  +8.55  +0.00 |     -        -        0.39
+  2012-13  T2i         1228  0.58949  0.58161   +7.06% |  +7.06  +0.00 |     -        -        0.32
+  2013-14  T2i         1230  0.59708  0.58662   +9.82% |  +9.82  +0.00 |     -        -        0.31
+  2014-15  T2i-partial 1230  0.58587  0.57422   +9.80% |  +9.80  +0.00 |     -        -        0.41
+  2015-16  T2i         1230  0.57897  0.57288   +5.07% |  +5.07  +0.00 |     -        -        0.38
+  2016-17  T2i         1230  0.61814  0.61169   +7.91% |  +7.91  +0.00 |     -        -        0.44
+  2017-18  T2i         1230  0.61585  0.59383  +22.17% | +22.17  +0.00 |     -        -        0.70
+  2018-19  T2          1230  0.60939  0.59464  +14.98% | +14.98  +0.00 | +15.45%  -0.47pp     0.83
+  2019-20  T2          1058  0.61670  0.61173   +6.10% |  +6.26  -0.16 |  +6.99%  -0.89pp     0.87
+  2020-21  T2          1080  0.63823  0.61794  +26.98% | +26.85  +0.13 | +28.13%  -1.15pp     1.13
+  2021-22  T2          1228  0.61935  0.60429  +16.95% | +16.79  +0.16 | +18.35%  -1.40pp     1.38
+  2022-23  T2          1230  0.63346  0.62437  +13.21% | +13.21  +0.00 | +14.76%  -1.55pp     1.19
+  2023-24  T2          1230  0.59921  0.58086  +16.34% | +16.35  -0.01 | +16.97%  -0.63pp     1.09
+  2024-25  T2          1230  0.58872  0.58155   +6.43% |  +6.22  +0.21 |  +7.04%  -0.61pp     1.32
+  2025-26  T2          1230  0.58631  0.57114  +12.43% | +12.21  +0.22 | +12.36%  +0.07pp     1.33
+  POOLED (tier labelled per season)  22804  0.59832  0.58833  +9.53% | +9.50  +0.03
+```
+  K=19 season-cluster-mean t on the raw pooled gap **[+0.00695, +0.01307] SIG**.
+  **The 11 pre-2018-19 seasons are bit-identical to D170's C arm, as they must
+  be** — no report feed exists there and TANK_SEASON_FLOOR=2020-21 keeps the
+  Clippers-sensitive shutdown component out of them. Only report-covered seasons
+  move, which is itself an independent confinement check on the fix.
+  (7) **THE OWNER'S QUESTION, ANSWERED DIRECTLY: "now that we have all the DARKO
+  information, is there any other gap from the rest of the seasons to 2024-25?"**
+  **THE DECISIVE FACT IS WHICH TABLES THE MODEL OPENS.** Grepped over the shipped
+  path (`fit_production` + `CompositionModel` + four_factors / travel /
+  october_bridge / latestate / tanking): the certified model reads **exactly
+  SEVEN tables** — `nba_games`, `player_game_stats`, `nba_players`,
+  `darko_history`, `darko_dpm`, `injury_reports_pit`, `odds_market` — plus
+  `game_inactives`, which is read nowhere inside `nbapred/` and enters only
+  through the caller's out-set. Per-season census in
+  `scripts/d171_gap_census.py` and docs/STAT_INVENTORY.md. Enumerated:
+  **(a) `game_inactives` — CLOSED.** 99.0-100% on all 19 seasons.
+  **(b) `darko_history` — CLOSED.** PIT minute coverage **100.0% on every one of
+  the 19 seasons**. There is no DARKO ceiling and no residual DARKO gap.
+  **(c) THE INJURY REPORT BEFORE 2018-12-17 — PERMANENT, AND THE ONLY REMAINING
+  MODEL-VISIBLE ASYMMETRY.** Priced directly rather than extrapolated from
+  D170's C−B2 contrast (which confounds the tier with the era's absence
+  density): paired per-game T2 vs T2i on **n=9,516** modern games, mean paired
+  dLL **-0.000707**, season-clustered **-0.000709 ± 0.000141, t = -5.02 (K=8),
+  7/8 seasons improve** = **-0.741pp normalized**. Whether it would be worth
+  that much to a 2012-16 season is **NOT estimable at K=8** (corr with absence
+  density +0.36 / -0.11, both noise), so it is given as a RANGE and not a point:
+  the report adds only **+0.08..+0.20 OUT/team-game** on top of inactives at
+  modern density, and 2012-16 carries **0.39** total OUT/team-game against
+  **1.14** modern (ratio 0.34), giving **UPPER bound -0.74pp (no density
+  scaling), LOWER bound -0.25pp (worth scales with the information added)**.
+  Either end is small beside the 17-21pp the DARKO backfill moved those seasons.
+  **(d) THE ERA PROPERTY — REAL DIFFERENCE, NOT A DATA GAP.** Three independent
+  reasons (`scripts/d171_era_density.py`, full table in docs/ERAS.md): (i)
+  players listed inactive who nevertheless logged minutes = **0 on every one of
+  the 19 seasons**, so the official list is complete and correct in BOTH eras;
+  (ii) the RAW official density roughly **DOUBLES at exactly 2017-18** (3.6-4.2
+  -> 7.8-9.0), the season the NBA instituted its injury-report policy — that is
+  the league's list, not ours; (iii) rotation depth is **FLAT** (10.0-10.6 vs
+  10.5-10.8 players used per team-game), so it is not a roster-size artefact.
+  The one real change in our own filter points the same way: `kept%` (share of
+  the inactive list surviving the 12-day roster window) rises **8.1-10.5% ->
+  12-18%**, i.e. modern absences are concentrated among players IN the active
+  window — the load-management signature exactly. **VERDICT: the feed is worth
+  more now because there is more absence to know about. That is the ERA.**
+  **(e) EVERY OTHER COVERAGE ASYMMETRY IS INVISIBLE TO THE CERTIFIED MODEL.**
+  `possessions_v2` (PBP/zone) 0% before 2018-19 and only **62.1% on 2024-25**;
+  `lineup_stints` identical; `game_officials` 0% before 2022-23; tracking /
+  `defended_fg` sparse throughout; `schedule_features` **2025-26 ONLY** (D135
+  confirmed — 0 rows on all 18 other seasons); `odds_hist_sbr` stops after
+  2022-23. **None of these is read by the shipped model**, so none contributes
+  to any per-season gap today. They bound FUTURE work, not this number.
+  `odds_market` itself is complete on all 19 seasons (~1,310/season), so the
+  BENCHMARK has no era gap; odds panel DEPTH does (D163: 2 books early vs up to
+  9 operators modern), but that is an EXECUTION-study asymmetry.
+  **(f) IS 2024-25 STILL SPECIAL? ADV(s) = mean(norm gap of the other 18) −
+  norm gap(s), D170's pre-registered metric:**
+```
+  arm                                        2024-25 gap     ADV    rank   best season
+  D161 arm A (blind, pre-backfill DARKO)          11.72%  +10.01    2/19   2016-17
+  D170 B2 (blind, full DARKO + reports)           11.59%   +1.96   10/19   2008-09
+  D170 C  (T2, pre-Clippers-fix)                   6.22%   +4.16    5/19   2008-09
+  D171    (T2, Clippers-FIXED)                     6.43%   +3.97    6/19   2008-09
+```
+  **FINAL RESIDUAL: ADV +3.97pp, RANK 6/19. 60.3% of 2024-25's apparent
+  superiority was data completeness; 39.7% survives** (D170 said 58.4%/41.6%;
+  the Clippers fix moves it 1.9pp further toward "data"). **The best season in
+  the whole 19 is 2008-09, where the model BEATS the market at -2.01%.** The
+  strong form of D161's reading — "2024-25 is exceptional" — does not survive;
+  the conservative reading stands: once every season is scored at the best tier
+  it can reach, 2024-25 is the 6th-best of 19, and most of what remains is the
+  era property in (d) rather than the season's own merit.
+  (8) **CHARTS REGENERATED (9), each rendered and inspected, titles naming the
+  new certification and tier**: `logloss_by_season_normalized.png`,
+  `progress_by_ship.png`, `logloss_continuous_current.png` (make_charts_cert);
+  `status_logloss_h2h.png`, `status_trading_h2h.png` (make_status_charts);
+  `history_normalized_gap.png`, `history_logloss_by_season.png`
+  (make_history_charts via the new `d171_history_charts.py`);
+  `k19_model_and_rules.png` (k19_chart with `K19_STATS=`);
+  `walkforward_equity.png` (re-rendered for its staleness label ONLY — the study
+  behind it was NOT re-run). **FOUR REAL LABEL-COLLISION FIXES, found by looking
+  at the renders, not by assuming**: (i) the cert suptitle overflowed the figure
+  at BOTH ends once "CERTIFIED D171" was added — split to two lines; (ii) the
+  status suptitle could not go to two lines at all (the barh panel's own
+  multi-line title collides) — kept to one and raised to y=1.02; (iii)
+  `chart_normgap` hard-coded `ylim(0, ...)`, which **silently clipped 2008-09's
+  -2.01%, the single most important point on the chart** — now floors below the
+  minimum and draws a "we BEAT the market below this line" rule; the same
+  latent bug in `k19_chart`'s `xlim(0, ...)` is fixed the same way, and its
+  negative bar label is parked right of zero because to the left it collided
+  with the season tick; (iv) single-season era bands (E3/E4/E5) are narrower
+  than their own labels — now staggered vertically instead of running together.
+  (9) **WHAT THIS ENTRY DELIBERATELY DID NOT RE-RUN, AND THE RANKED LIST.** D170
+  flagged that every ROI/CLV number in the register is computed on the OLD thin
+  data and is therefore **conservative by an unmeasured amount**; that is still
+  true and this entry does not change it. **NONE of D161/D162/D166/D168/D169 was
+  re-run.** Ranked by (expected movement x load-bearingness), as follow-up the
+  owner must decide on separately:
+  **1. D162's ATS/19-season betting track** (`ats19_score.py`) — the model's
+     probabilities moved on 59.3% of certified games and on every report-covered
+     season; every downstream rule inherits it. Biggest expected move.
+  **2. D161's frozen-rules ladder across 19 seasons** (`k19_rules.py`,
+     `bp_ladder.py`) — its out-sets were blind AND Clippers-blind; the RULES
+     panels of `k19_model_and_rules.png` are still its old vintage and are
+     labelled STALE on the chart.
+  **3. D166/D168's walk-forward equity + structural ladder** (`wf_equity.py`,
+     `sl_components.py`, `oc_capacity.py`) — the +3.54% headline and the whole
+     6-rung ablation are computed on pre-backfill probabilities.
+  **4. D159's trading baseline / CLV decomposition** — D159 attributed ~2/3 of
+     the CLV asset to the availability feed; that feed is now materially richer.
+  **5. D169's era-local selection** (`el_eralocal.py`) — a null result, so the
+     re-run is confirmatory rather than corrective, but its era arms are exactly
+     where the backfill bites hardest.
+  **6. D163's line-shopping / execution panels** — least affected (they price
+     the MARKET, not us), re-run last.
+  (10) **ERA STATEMENT (GATE_POLICY_V2 §10).** Eval universe unchanged: certified
+  corpus 2021-22..2025-26, 6,148 games; 19-season frame 2007-08..2025-26, 22,804
+  games. **THE CORPUS IS NOT WIDENED BY THIS ENTRY.** AVAILABILITY TIER:
+  T2-HONEST on all five certified seasons (a change from D158, where 2021-22 was
+  BLIND and 2022-23 was inactives-only) and era-varying on the 19 — **T2i
+  2007-08..2017-18, T2 2018-19..2025-26, labelled at every appearance**. NO
+  PLAYED-SET ORACLE anywhere: `ORACLE_PLAYED_OUTS` unset, the run printed its
+  tier, and `player_game_stats` is never used to build an out set. COVID FRAME:
+  2019-20 and 2020-21 scored and labelled as separate strata, never pooled.
+  CLUSTERING: season, K=19 (K=8 for the report-price contrast); per-season paired
+  SE 0.0047-0.0065, so single-season moves under ~1.3pp are inside noise — which
+  covers the +0.13/+0.13/+0.64pp moves on 2023-24/2024-25/2025-26 and the
+  per-season report-worth numbers, but NOT the -12.57pp on 2021-22 or the
+  -0.741pp pooled report price.
+  (11) **TESTS.** Full suite: **127 passed, 2 failed** — `test_tanking.py::
+  test_live_virtual_rows_match_gate_table` and `::test_fit_k_walkforward_old_
+  floor_is_unchanged`. **BOTH WERE ALREADY RED BEFORE THIS ENTRY'S CHANGES,
+  PROVEN BY BISECT** (stash the D171 edits, re-run: identical two failures).
+  They are **D170 collateral**: both pin a CONSTANT derived from a DB vintage
+  that no longer exists, and D170's report backfill moved `_comp_c_shutdown`'s
+  inputs under them. Exact drift, measured directly:
+  registered ship value **-2.26990**; D170 backfilled DB without the Clippers
+  fix **-2.17831**; with it **-2.08251**. **NOT re-pinned here** — re-pinning a
+  certification-adjacent fixture is the owner's call, on the same principle by
+  which D170 left the Clippers map alone, and it is on the follow-up list.
+  (12) **WHAT THIS ENTRY DOES NOT CLAIM.** It does not claim the model is good:
+  the certified pooled gap is still **+12.87%** against the market and the market
+  still wins **18 of 19** seasons. It does not claim the Clippers fix improved
+  anything — it costs +0.12pp. It does not widen the eval corpus, flip a default
+  other than the (now correct) name resolution, or re-run any gate. It does not
+  re-run a single betting/ROI study, so every such number in the register remains
+  a lower bound of unmeasured size (§9). It does not fix the `da Silva, Tristan`
+  parser artefact (10 same-day OUT rows) or ingest the `01PM` report edition. It
+  does not re-pin the two failing tanking fixtures. And it does not touch
+  `capstone_pergame_pre_cert.csv`, `_d122cert.csv` or `_d132_leaky.csv`.
+  [code nbapred/teams.py (NEW, canonical name resolution);
+   nbapred/model/tanking.py, nbapred/engine/slate.py, nbapred/ingest/injury_pdf.py,
+   scripts/prod_by_season.py, scripts/bp_ladder.py, scripts/apr_program.py
+   MODIFIED (name resolution only);
+   scripts/k19_t2.py MODIFIED (adds the `t2i` tier arm; `blind`/`t2` untouched);
+   scripts/make_charts_cert.py, make_status_charts.py, make_history_charts.py,
+   k19_chart.py, wf_equity_chart.py MODIFIED (titles + label-collision fixes);
+   scripts/d171_team_audit.py, d171_fix_verify.py, d171_cert_table.py,
+   d171_gap_census.py, d171_era_density.py, d171_k19_analyze.py,
+   d171_report_price.py, d171_k19_stats.py, d171_history_charts.py (all NEW);
+   data/recert_notes.md (full working, checkpointed as the run proceeded);
+   data/capstone_pergame.csv REWRITTEN (md5 695d40a3545e889267cad403b7acdce8),
+   data/capstone_pergame_D158.csv (the superseded artifact, preserved
+   byte-identical, md5 3b7bbbb78ac73c63273c18a8aa30013c),
+   data/capstone_pergame_D171_noclipfix.csv (the decomposition arm),
+   data/prod_by_season_D171.json, data/d171_*.json,
+   data/k19_d171_t2.json + _pergame.csv (22,804 games),
+   data/k19_d171_t2i.json + _pergame.csv (9,516 games),
+   data/logs/d171_cert.log, d171_cert_noclipfix.log, d171_k19_t2.log,
+   d171_k19_t2i.log;
+   charts/ 9 files regenerated (§8);
+   docs/LEAKAGE.md, docs/ERAS.md, docs/STAT_INVENTORY.md updated;
+   DB data/nba.duckdb READ-ONLY THROUGHOUT — retry_s=60 on every connect, ZERO
+   writes, no table altered; scripts/k19_model.py, k19_analyze.py, k19_rules.py,
+   ats19_score.py, wf_equity.py, sl_components.py, el_eralocal.py NOT RUN]

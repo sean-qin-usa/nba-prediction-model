@@ -48,9 +48,9 @@ the project.
 | | |
 |---|---|
 | Seasons evaluated | **19** (2007-08 … 2025-26), contiguous |
-| Market beats the model in | **19 of 19 seasons** |
-| Normalized gap, live injury feed | **11.45%** of the market's skill-above-coinflip |
-| Normalized gap, availability-blind | **20.88%** (K=19, significant) |
+| Market beats the model in | **18 of 19 seasons** — we beat it in 2008-09 |
+| Normalized gap, certified 5-season corpus | **12.87%** of the market's skill-above-coinflip |
+| Normalized gap, all 19 seasons | **9.53%** |
 | Frozen betting rules, 15 unseen seasons | **−5.60% ROI, significantly negative** |
 | Closing-line value (CLV) | **+0.0066/bet, significant, era-stable, placebo p=0.000** |
 | Model's worth over a no-information bettor | **+1.67pp of ROI** |
