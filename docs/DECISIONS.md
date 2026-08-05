@@ -14174,3 +14174,32 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   archived + retired from repo; README charts section updated and both figures
   embedded inline; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB not
   touched]
+
+- D191 **THE 2023-26 EQUITY PATH, PUBLISHED WITH THE HAIRCUT LINE ON THE SAME
+  AXES.** Owner: "push this graph with haircut version as well."
+
+  `charts/equity_2023_26_k8_haircut.png` — the 500-bet walk-forward path over
+  2023-24..2025-26 at k=8, drawn twice:
+
+  | arm | cum | ROI |
+  |---|---|---|
+  | best of 8 books, raw | **+43.62u** | **+8.72%** |
+  | after outlier-realism haircut | **+29.82u** | **+5.96%** |
+  | **charged by the haircut** | **13.80u** | **2.76 pts** |
+
+  **BOTH ON ONE AXES, DELIBERATELY.** D181 removed the haircut from the headline
+  by instruction, which is legitimate — but publishing the two paths as separate
+  figures would let either be quoted alone, and the gap between them IS the
+  execution assumption. Drawn together, the 13.80u the haircut charges is
+  impossible to miss, and it is annotated in-figure rather than left to a
+  caption. The haircut charges for the 8.1% of best-of-N prices sitting >1.5
+  points off the next book — precisely the prices a book limits, lowers or voids.
+
+  Figure also carries, in the subtitle rather than a footnote, the two facts that
+  bound the reading: the season-clustered 95% CI on the raw path is
+  **[-6.72%, +24.17%]** and therefore contains zero, and **2024-25 alone supplies
+  65% of the P&L**.
+
+  [SCOPE: `scripts/d190_equity_haircut.py` NEW (read-only); one chart NEW;
+  no existing chart altered; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED;
+  DB not touched]

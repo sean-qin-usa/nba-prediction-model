@@ -227,6 +227,8 @@ level this repository reports under (see *Execution* below):
 | 2025-26 | 135 | +9.63u | **+7.14%** |
 | **2023-26 pooled** | **500** | **+43.62u** | **+8.72%** |
 
+![equity raw vs haircut](charts/equity_2023_26_k8_haircut.png)
+
 **All three seasons are positive at k=8.** After the outlier-realism haircut —
 which charges for the 8.1% of best-of-N prices that sit >1.5 points off the next
 book and are the ones that get limited or voided — the same window returns
@@ -404,6 +406,7 @@ manufactures from nothing.**
 | `logloss_continuous_2019_26.png` | rolling-100 log loss, model vs market, one panel per season on the corrected 2019-26 frame |
 | `frame_model_2019_26.png` | per-season normalized gap on the corrected frame, pooled 13.59% |
 | `frame_betting_k8_2023_26.png` | every bet on the multi-book panel in order, with the per-season split and the 95% interval |
+| `equity_2023_26_k8_haircut.png` | the same 500-bet path drawn **raw and after the outlier-realism haircut** — the gap between the lines is the execution assumption |
 | `sim_report_equity.png` | the institutional-format equity path (see `docs/SIM_REPORT.md`) |
 
 Charts superseded by a re-certification are moved out of this repository rather
