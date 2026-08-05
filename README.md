@@ -19,7 +19,7 @@ and each is defined by **what data exists**, never by which window looked best.
 | | frame | why this window | what it is not |
 |---|---|---|---|
 | **Model accuracy** | **2018-19 onward** | The daily injury report — the input the availability leg is built on — begins **2018-12-17**. Before that the shipped model cannot run as designed. | Not the best-scoring window. It is the *worst* one. See below. |
-| **Betting** | **2023-24 → 2025-26** | The only seasons with a **measured multi-book price panel**. Earlier seasons infer the multi-book price from a shopping law rather than observing it. | Not a profitable-window selection. It includes the flattest of the three seasons. |
+| **Betting** | **2023-24 → 2025-26** | The recent block, reported because it is the era the model was built for. **Correction:** only **2023-24** has a genuinely measured multi-book panel at the open (7.74 books/game); 2024-25 has 1.00 and 2025-26 has 1.03, so their multi-book price is a modelled uplift. | Not a profitable-window selection — it includes the flattest of the three. But not a fully measured one either. |
 
 **The model frame is the less flattering choice, and that is the point.** Pooled
 over the seasons before the injury feed exists, the model sits **6.81%** behind
@@ -180,6 +180,9 @@ book and are the ones that get limited or voided — the same window returns
 |---|---|---|---|
 | **2023-26 (K=3)** | **+8.72%** | **[−6.72%, +24.17%]** | 18.5pp |
 | 2024-26 (K=2) | +11.86% | [−39.97%, +63.70%] | 55.3pp |
+
+See `docs/SIM_REPORT.md` for the full 14-season version of this table in
+institutional report format, and for the measured-vs-modelled breakdown.
 
 **This is why the window is 2023-26 and not 2024-26.** Dropping 2023-24 raises
 the point estimate to +8.33% and widens the interval to ±57 points — an interval

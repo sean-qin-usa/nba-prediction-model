@@ -13740,3 +13740,71 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   scripts (no script logic changed); 8 superseded renders ARCHIVED not deleted;
   README headline tier -> k=8; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED;
   no model refit; DB READ-ONLY THROUGHOUT]
+
+- D181 **k=9 TIER ADDED (MAX BOOKS OBSERVED AT THE OPEN) AND A
+  SIMULATION-PERFORMANCE REPORT WRITTEN IN INSTITUTIONAL FORMAT. THE WORK
+  UNCOVERED A FALSE CLAIM I HAD PUT IN THE README TWO PUSHES EARLIER.** Owner
+  supplied a US Treasury cash/futures basis-RV sim report and asked for the same
+  format at max k with the haircut removed.
+
+  **MAX k IS 9, NOT 8.** The panel holds 16 distinct operators. At the OPEN the
+  observed books-per-game distribution tops out at **9** (256 games), so
+  `TIERS = [1, 2, 5, 8]` was leaving the true ceiling untested. Added 9 and
+  re-ran (`WF_TAG=_D181 AS_TAG=_D173`; the run aborts on its own reproduction
+  guard if the adaptive tag is not matched to the D173 arms — that guard worked).
+
+  | tier | ROI | cum | 95% CI |
+  |---|---|---|---|
+  | k=1 raw | +1.83% | +31.6u | [-2.44, +6.63] |
+  | k=5 raw | +3.96% | +68.6u | [-0.69, +8.60] |
+  | k=8 raw | +4.58% | +79.3u | [-0.25, +9.24] |
+  | **k=9 raw** | **+4.63%** | **+80.3u** | **[-0.20, +9.30]** |
+  | k=9 +haircut | +3.65% | +63.3u | [-0.86, +8.37] |
+  | exchange c=2% | +5.58% | +96.7u | **[+1.15, +10.56] SIG** |
+
+  **THE 9th BOOK IS WORTH +0.05 ROI POINTS.** The ladder has flattened out well
+  before the ceiling; 8 and 9 are the same number. Also worth stating plainly:
+  **~60% of the reported edge is execution, not model** — the identical bets at
+  one retail book return +1.83%.
+
+  **CORRECTION TO MY OWN README (D179).** I wrote that 2023-24..2025-26 was "the
+  only window with a MEASURED multi-book price panel". **That is false and I
+  should have checked the panel before asserting it.** Measured books/game at the
+  OPEN: **2023-24 = 7.74** (max 9, 94.7% of games with >=2), **2024-25 = 1.00**
+  (0.0% with >=2), **2025-26 = 1.03** (3.4%). `wf_equity.py:46` says so directly
+  — `RETAIL_MEASURED = ("2023-24",)`, `RETAIL_EXTRAP = ("2024-25", "2025-26")` —
+  and I did not read it. Across the 14-season frame the split is **7 measured**
+  (2012-13..2017-18 offshore + 2023-24) **/ 7 modelled**. README corrected.
+
+  **THE EXTRAPOLATION IS NOT WHAT IS CARRYING THE RESULT** (the check that had to
+  be run once the error was found): measured seasons return **+5.65%** (K=7,
+  n=780) against **+3.79%** (K=7, n=953) on modelled ones. The error was in the
+  claim, not in the direction of the number.
+
+  **REPORT (`docs/SIM_REPORT.md`, `charts/sim_report_equity.png`).** Full window
+  758 sessions / 1,733 bets / 14 seasons, k=9 raw, no haircut, flat $10k stake:
+  net **$802,501**, $1,059/day, **Sharpe 0.5**, win days **47%**, max drawdown
+  **-$305,240**, edge **463 bps**. 10/14 seasons profitable; two seasons
+  (2014-15, 2024-25) supply **61%** of net PnL; season-clustered 95% CI
+  **[-0.12%, +9.38%]** contains zero.
+
+  **THREE FORMAT-DRIVEN HONESTY POINTS** the source document's schema forced into
+  the open, all of which belong in the register:
+  1. **Sharpe must not be annualised at sqrt(252).** This strategy trades ~54
+     sessions a season. sqrt(252) reports 1.2; the honest sqrt(54) reports
+     **0.5**. Any future Sharpe in this project uses realised session count.
+  2. **Win days are 47%, below half.** Profit comes from winning days being
+     bigger, not more frequent — the opposite profile to a market-making book,
+     and a fatter-tailed one.
+  3. **A 463 bps "edge" is not comparable to a market-maker's sub-bps edge.** It
+     is large only because turnover is ~$23k/day rather than ~$1B/day. Quoting
+     the bps figure alongside an institutional report without that sentence would
+     be actively misleading.
+
+  [SCOPE: `scripts/wf_equity.py` TIERS 8 -> 9 (additive only, no selection rule,
+  band or existing tier touched; backup at scratchpad/wf_equity.py.bak);
+  `scripts/d181_report_tables.py` NEW; `scripts/d181_sim_chart.py` NEW;
+  `data/wf_equity_D181.json` + `wf_perbet_D181.json` + `d181_report.json` NEW;
+  `docs/SIM_REPORT.md` NEW; `charts/sim_report_equity.png` NEW; README betting-
+  frame claim CORRECTED; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB
+  READ-ONLY THROUGHOUT]
