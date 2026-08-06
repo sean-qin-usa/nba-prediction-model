@@ -428,6 +428,14 @@ charts/             current results only
 tests/              153 tests, including leakage and reproducibility guards
 ```
 
+**On the hand-set constants** (ridge 25, link scale 7.2, the 50/50 blend,
+`n/(n+600)`): see `docs/CONSTANTS.md`, which separates constants that are
+*derivable* from training data at zero degrees of freedom from those that can
+only be *searched*. Short version: 7.2 is a plug-in implied by the residual SD of
+NBA margins, not a tuning choice; the 50/50 blend is suboptimal by 0.18% of RMSE
+because the two legs correlate at 0.945; and one of our own audit numbers in that
+file had to be retracted mid-analysis.
+
 Suggested reading order: `docs/DECISIONS.md` (the register),
 `docs/GATE_POLICY_V2.md` (how a change earns its way in), `docs/LEAKAGE.md`
 (what counts as legitimate information), `docs/OCTOBER_RUNBOOK.md` (how the live

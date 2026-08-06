@@ -14203,3 +14203,78 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d190_equity_haircut.py` NEW (read-only); one chart NEW;
   no existing chart altered; NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED;
   DB not touched]
+
+- D192 **CAN THE HAND-SET CONSTANTS BE CALIBRATED EMPIRICALLY? YES FOR SOME, AND
+  THE USEFUL AXIS IS NOT TUNED-VS-FIXED BUT DERIVABLE-VS-SEARCHABLE. ALSO
+  CONTAINS A RETRACTION OF THIS ENTRY'S OWN FIRST ATTEMPT.** Owner relayed an
+  outside critique of architecture-level selection bias and asked whether
+  constants could be calibrated instead of hand-set at round values.
+
+  **THE CRITIQUE'S CENTRAL POINT IS CONCEDED AND ALREADY IN THE REGISTER.** The
+  architecture was developed on 2021-26 and inserted into earlier walk-forward
+  runs; the walk-forward tests parameter refitting and betting-rule selection but
+  NOT the architecture. The ablation flipping +3.54% -> -3.70% is exactly that
+  evidence and is in the README. Nothing to relitigate.
+
+  **THE FRAMEWORK (`docs/CONSTANTS.md`, new).**
+  - **TYPE A — DERIVABLE**: a deterministic function of a quantity estimable on
+    the training fold. Recomputed by formula inside every fold, consumes ~ZERO
+    degrees of freedom, out-of-sample BY CONSTRUCTION, needs no held-out data.
+  - **TYPE B — SEARCHABLE**: no closed form, chosen by held-out comparison.
+    Consumes DOF, needs the nested design the critique describes, and on 7
+    seasons mostly manufactures noise (D165: 600 cells buy +16.92 ROI points from
+    nothing).
+  The programme is to move constants B -> A where a derivation exists, not to
+  tune everything and not to leave everything alone.
+
+  **C1 LINK SCALE 7.2 IS NOT A FREE PARAMETER — TYPE A, CONFIRMED.** A logistic
+  of scale s has SD s*pi/sqrt(3); matching the margin-residual normal gives the
+  plug-in s = sigma*sqrt(3)/pi using training residuals only. Margin-residual SD
+  **13.653** -> plug-in **7.527**; full-frame 1-D MLE **7.721**; shipped **7.2**.
+  Walk-forward (estimate on 1..k, score k+1): mean delta **-0.000212 nats**,
+  season-clustered **t=-1.58 (K=5), ns**; fitted scale stable at **7.81-7.98**
+  across folds. So 7.2 is slightly tight, costs **1.6% of the model-market gap**,
+  and re-deriving it per fold is free and marginally better. **The single
+  clearest B->A move available.**
+
+  **C2 THE 50/50 BLEND IS SUBOPTIMAL, NEARLY COSTLESSLY — AND TWO INDEPENDENT
+  METHODS AGREE.** Inverse-variance w = (var_b - cov)/(var_a + var_b - 2cov) is
+  Type A. Residual var ff **211.52**, comp **203.43**, cov **196.09**
+  (**corr 0.945**) -> **w = 0.322**, bootstrap 95% CI **[0.225, 0.418]**, which
+  **EXCLUDES 0.5** (P(w>0.5)=0.000). The register's earlier held-out log-loss
+  SEARCH independently preferred **~0.30**. **A closed form and a search agreeing
+  means the 30/70 preference was never a search artifact.**
+  But the objective is flat: blend residual RMSE **14.1796 at w=0.322** vs
+  **14.2050 at w=0.5** — the entire distance is **0.025 pts, 0.18%**. Cause: at
+  corr 0.945 the denominator var_a+var_b-2cov = **22.8**, only **10.8%** of a leg
+  variance, so the optimum sits in a very shallow bowl. **0.5 is genuinely
+  suboptimal and nearly costless; keeping it is defensible, and the defensible
+  REASON is the flatness, not the round number.**
+
+  **C3 RETRACTION OF MY OWN FIRST PASS.** The first attempt estimated k for
+  n/(n+600) via a between/within variance decomposition on TEAM MARGINS, got
+  **k~9**, and was about to report the shipped 600 as **65x too large**. **That
+  was wrong and is retracted — it compared two different objects.** n/(n+600)
+  (`latestate.py:70` C_SHRINK, `tanking.py:46`) shrinks a **FITTED COEFFICIENT**
+  where **n = active fit rows**, not a team's game count; it is a burn-in guard
+  (0.143 at n=100, 0.500 at n=600, 0.952 at n=12,000). At realistic row counts it
+  is ~0.9-0.95, a mild residual shrink. What IS free is where burn-in releases,
+  and the Type-A alternative is `b^2/(b^2+se^2)` from the fit's own standard
+  error. **Not implemented; recorded as the strongest remaining B->A candidate.**
+
+  **HALL OF SHAME:** I nearly published "the shipped shrinkage is 65x too large"
+  off a variance decomposition that measured a different quantity than the
+  constant governs. **Before comparing an estimate to a shipped constant, read
+  what the constant is applied to.** A units/object mismatch produces a
+  confident, precise, entirely wrong number — and this one would have been
+  published in response to an outside critique, which is the worst possible
+  moment to be wrong.
+
+  **STILL UNVALIDATED, ranked as the next B->A candidates:** ridge 25 (standard
+  derivations exist — generalised cross-validation or marginal likelihood, both
+  fold-internal), team_home_ridge 200, lookback and roster windows.
+
+  [SCOPE: `scripts/d192_empirical_constants.py` NEW (read-only);
+  `data/d192_constants.json` NEW; `docs/CONSTANTS.md` NEW; NO GATE RUN; NO
+  PRODUCTION MODEL DEFAULT CHANGED; no constant altered anywhere in the model;
+  DB READ-ONLY]
