@@ -1,7 +1,7 @@
 # NBA Prediction Model
 
 A market-blind NBA win-probability model, and the full research record behind
-it: **a register that runs to D188, most entries rejections.** Results summary [here](nba_model_and_strategy_review.pdf).
+it: **a register that runs to D192, most entries rejections.** Results summary [here](nba_model_and_strategy_review.pdf).
 
 ---
 
