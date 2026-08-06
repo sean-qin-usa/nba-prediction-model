@@ -14278,3 +14278,74 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/d192_constants.json` NEW; `docs/CONSTANTS.md` NEW; NO GATE RUN; NO
   PRODUCTION MODEL DEFAULT CHANGED; no constant altered anywhere in the model;
   DB READ-ONLY]
+
+- D193 **THE IDENTICAL-FRAME MODEL / OPEN / CLOSE BENCHMARK — THE MODEL DOES NOT
+  BEAT THE OPENING LINE AS A GENERAL FORECASTER, AND OUR ONE PROFITABLE SEASON
+  WAS THE MARKET'S WORST OPENING SEASON RATHER THAN OUR BEST MODELLING.**
+  Priority 1 of an outside roadmap: the repo reported model LL and CLOSING LL on
+  the 2019-26 frame but OPENING LL only on a different 1,892-game moneyline
+  frame. Those cannot be combined. They are now computed on identical games:
+  **n=8,237** carrying model, open AND close (of 8,239 in frame).
+
+  **(A) MARGIN SPACE — no devig, no link, no conversion of any kind:**
+
+  | source | RMSE | MAE | bias |
+  |---|---|---|---|
+  | model | **13.6533** | 10.6943 | -0.2718 |
+  | **opening line** | **13.5958** | 10.5950 | -0.1677 |
+  | closing line | **13.3692** | 10.4201 | -0.1354 |
+
+  **THE OPENING LINE IS MORE ACCURATE THAN OUR MODEL** (-0.0575 pts RMSE).
+  open->close improvement +0.2266 pts; open->model **-0.0575**.
+  **CAPTURE FRACTION (margin) = -0.254.**
+
+  **(B) PROBABILITY SPACE — each source gets its OWN walk-forward logistic
+  scale, so none is handicapped by another's calibration.** Pooled: model
+  **0.60524**, open **0.60501**, close **0.59257**. Fitted scales 7.887 / 7.834 /
+  7.759.
+  - LL(open) - LL(close) = **+0.01244**  (all the open->close information)
+  - LL(open) - LL(model) = **-0.00023**  (what we recover)
+  - **CAPTURE FRACTION = -0.019.** Per season **[-0.173, -0.169, -0.663, +0.670,
+    -0.862]**, mean -0.240, 95% CI [-0.975, +0.496], **positive in 1 of 5**.
+
+  **THE 2024-25 EXPLANATION, WHICH REFRAMES THE ENTIRE BETTING RESULT.** The one
+  season with positive capture is 2024-25 (+0.670) — the same season supplying
+  **65% of the walk-forward P&L**. Its open->close gap was **+0.02311**, against
+  0.01308 / 0.00863 / 0.00979 / 0.00748 in the others: **roughly 3x the typical
+  season, i.e. the openers that year were unusually uninformative.** Our model's
+  own 2024-25 log loss (0.58857) is ordinary — essentially the same as 2025-26's
+  0.58659. **So our best season was the market's worst opening season, not our
+  best modelling.** That is a market-side explanation for the profit
+  concentration, and it predicts the edge does not persist unless openers stay
+  soft.
+
+  **WHAT THIS DOES AND DOES NOT OVERTURN.** It does NOT contradict the ATS
+  result (50.65% cover vs a coin flip, significant): that is a SELECTED subset,
+  and a selector can be right about which games to bet while the general
+  forecast is not better than the opener. It DOES mean the README's framing must
+  distinguish the two, and it means **the deployable model should take the
+  opening line as its prior rather than ignoring it** — the roadmap's item 2 is
+  now motivated by measurement rather than principle.
+
+  **CANARY SHIPPED (`scripts/canary.py`).** Nine checks, every one traceable to a
+  failure that actually happened here: odds_quotes populated (FAIL in-season —
+  the logger has never run and the open-price CLV record is unrecoverable if it
+  is down on opening night), >=2 books at the open, injury-feed freshness,
+  DARKO freshness, team-name resolvability (the four-instance bug class),
+  non-002 contamination in bet_paper, tank-floor drift, CLV inside the D178
+  band, and calibration sanity. Exit 1 on any FAIL so cron can alert.
+  First run: 4 pass / 3 warn / 0 fail. Two of the warns are known and open —
+  `odds_quotes` empty, and `da Silva, Tristan` still in the injury table because
+  the D178 parser fix was never followed by a reload.
+
+  **ONE CANARY BUG CAUGHT BY WRITING IT:** I first classified tank-floor drift as
+  FAIL. `tanking.floor_audit`'s own contract says drift does NOT mean anything is
+  broken — it means the data now supports a different floor and moving there is a
+  gated model change. Downgraded to WARN. **A monitor that cries wolf on a
+  working safeguard is worse than no monitor**, and the derived floor is now
+  1996-97 vs pinned 2020-21 precisely because D170's backfill extended box-score
+  coverage — the pin is doing its job.
+
+  [SCOPE: `scripts/d193_open_benchmark.py` NEW (read-only); `scripts/canary.py`
+  NEW (read-only, never writes); `data/d193_open_benchmark.json` NEW; NO GATE
+  RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB READ-ONLY]

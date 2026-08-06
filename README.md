@@ -338,6 +338,40 @@ data at all.**
 
 ## Three things we got wrong about our own method
 
+### We do not beat the opening line as a general forecaster
+
+The most important number in this repository, and the last one computed
+(`D193`). Model, opening line and closing line scored on **identical games** —
+8,237 of the 8,239 in the 2019-26 frame carry all three:
+
+| source | margin RMSE | log loss |
+|---|---|---|
+| our model | 13.6533 | 0.60524 |
+| **opening line** | **13.5958** | **0.60501** |
+| closing line | **13.3692** | **0.59257** |
+
+**The opening line is more accurate than our model** — by 0.0575 points of RMSE,
+and by a hair in log loss. The fraction of open-to-close information the model
+captures is **−0.019 in probability space and −0.254 in margin space**. It is
+positive in **1 of 5** scored seasons.
+
+**And that one season explains the betting record.** 2024-25 is the only season
+with positive capture (+0.670), and it supplies **65% of the walk-forward P&L**.
+Its open-to-close gap was **+0.02311 — about three times the other seasons**
+(0.0131, 0.0086, 0.0098, 0.0075). Our own log loss that season was ordinary. So
+**our best season was the market's worst opening season, not our best
+modelling** — a market-side explanation for the profit concentration, and one
+that does not predict persistence.
+
+This does **not** contradict the ATS result below (50.65% cover against a coin
+flip, significant). A selector can be right about *which* games to bet while the
+general forecast is no better than the opener. But the two claims are different,
+and conflating them would be the most flattering error available here.
+
+The direct consequence: **a deployable model should take the opening line as its
+prior and predict its residual**, rather than forecasting the game independently
+and comparing afterwards.
+
 ### CLV is a monitor, not an objective
 
 Closing-line value resolves in weeks where ROI needs decades, which is why it is
@@ -464,7 +498,14 @@ python scripts/pull_nba_daily.py
 python scripts/build_features.py
 python scripts/prod_by_season.py       # the capstone backtest
 python -m pytest tests/ -q
+python scripts/canary.py                # pre-flight / in-season tripwire
 ```
+
+`scripts/canary.py` runs nine checks, each traceable to a failure that actually
+happened in this project — feed staleness, the multi-book logger never having run
+in-season, the team-name join bug class, non-regular-season contamination,
+tank-floor drift, CLV band breach, and calibration sanity. It exits non-zero on
+any hard failure so it can be wired to cron.
 
 **Not included:** the 13 GB DuckDB corpus, raw API captures, and all
 credentials. The ingest scripts rebuild the corpus from public sources; raw files
