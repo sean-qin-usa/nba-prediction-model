@@ -44,29 +44,34 @@ Flat $10,000 per bet, stated not implied.
 
 | window | days | net PnL | PnL/day | Sharpe (ann.) | win days | max drawdown | trades/day | edge (bps) |
 |---|---|---|---|---|---|---|---|---|
-| First half (2012-13 – 2018-19) | 417 | $408,295 | $979 | 0.6 | 50% | −$140,029 | 1.7 | 567 |
-| Second half (2019-20 – 2025-26) | 565 | $809,335 | $1,432 | 1.1 | 53% | −$240,301 | 1.6 | 911 |
-| **Full window** | **982** | **$1,217,630** | **$1,240** | **0.9** | **51%** | **−$340,651** | **1.6** | **757** |
+| First half (2019-20 – 2021-22) | 224 | −$30,637 | −$137 | −0.1 | 45% | −$240,301 | 1.5 | −94 |
+| Second half (2022-23 – 2025-26) | 341 | $839,972 | $2,463 | **2.0** | 58% | −$97,948 | 1.7 | 1,492 |
+| **Full window (2019-26)** | **565** | **$809,335** | **$1,432** | **1.1** | **53%** | **−$240,301** | **1.6** | **911** |
 
 ![equity](../charts/sim_report_equity_offset.png)
 
-**Against the market-blind arm on the same 14 seasons:** net $1,217,630 against
-$769,855, Sharpe 0.9 against 0.5, win days 51% against 48%, edge 757 bps against
-433, at a comparable max drawdown (−$340,651 against −$343,893).
+**Against the market-blind arm on the same seven seasons:** net $809,335 against
+$490,095, Sharpe 1.1 against 0.6, win days 53% against 50%, edge 911 bps against
+474 — at a *shallower* max drawdown (−$240,301 against −$316,647).
+
+**The split is stark and must be read.** The first three seasons lose money at
+Sharpe −0.1; the last four make $839,972 at Sharpe 2.0. That recent block is also
+the block the architecture was developed on.
 
 ## The number that decides it, and it is not significant
 
 | | market-blind | **market-offset** |
 |---|---|---|
-| pooled ROI (n-weighted) | +4.33% | **+7.57%** |
-| season-clustered mean | +4.12% | **+5.52%** |
-| **95% CI (K=14)** | **[−1.32, +9.55]** | **[−0.62, +11.66]** |
+| pooled ROI (n-weighted) | +4.74% | **+9.11%** |
+| cumulative | +49.0u | **+80.9u** |
+| season-clustered mean | +3.14% | **+6.67%** |
+| **95% CI (K=7)** | [−5.79, +12.07] | **[−2.75, +16.08]** |
 | verdict | contains zero | **contains zero** |
-| seasons profitable | 9/14 | **10/14** |
+| seasons profitable | 4/7 | **5/7** |
 
-**Both intervals contain zero.** The offset arm is closer to clearing it and is
-better on every point estimate, but on 14 seasons of a strategy this volatile,
-neither is established.
+**Both intervals contain zero.** The offset arm is better on every point estimate
+and closer to clearing zero, but seven seasons is the price of an honest frame
+and it is not enough to resolve an effect this size.
 
 > **A correction made while writing this file.** An earlier draft reported the
 > offset interval as **[+1.43, +13.71] — excluding zero** — and would have
@@ -79,17 +84,10 @@ neither is established.
 > zero. The production pipeline had been reporting the correct figure all along;
 > the report generator was the thing that was wrong.
 
-## Per-season attribution (14 seasons)
+## Per-season attribution (2019-26)
 
 | season | net PnL | Sharpe (ann.) | win days | edge (bps) |
 |---|---|---|---|---|
-| 2012-13 | $113,758 | 1.6 | 64% | +1,806 |
-| 2013-14 | −$59,668 | −1.3 | 37% | −1,705 |
-| 2014-15 | $79,523 | 1.0 | 44% | +811 |
-| 2015-16 | $4,741 | 0.1 | 51% | +43 |
-| 2016-17 | $140,969 | 1.4 | 50% | +1,165 |
-| 2017-18 | $165,280 | 1.5 | 52% | +1,181 |
-| 2018-19 | −$36,306 | −0.3 | 46% | −237 |
 | 2019-20 | −$42,814 | −0.4 | 40% | −360 |
 | 2020-21 | −$57,089 | −0.6 | 46% | −607 |
 | 2021-22 | $69,266 | 0.6 | 50% | +618 |
@@ -97,13 +95,12 @@ neither is established.
 | 2023-24 | $211,992 | 1.9 | 57% | +1,377 |
 | **2024-25** | **$503,966** | **3.8** | **65%** | **+2,400** |
 | 2025-26 | $48,472 | 0.5 | 56% | +505 |
-| **ALL** | **$1,217,630** | **0.9** | **51%** | **+757** |
+| **ALL** | **$809,335** | **1.1** | **53%** | **+911** |
 
-Season ROI dispersion **10.63pp**, min −17.05%, max +24.00%. **2024-25 alone is
-$503,966 of $1,217,630 — 41%.** That is the season `D193` identified as having
-the worst openers of the frame, which is precisely the condition an
-opener-anchored strategy should exploit; it is also why the result is not
-evenly earned.
+Season ROI dispersion **10.18pp**, min −6.07%, max +24.00%. **2024-25 alone is
+$503,966 of $809,335 — 62%.** That is the season `D193` identified as having the
+worst openers of the frame, which is precisely the condition an opener-anchored
+strategy should exploit — and precisely why the result is not evenly earned.
 
 ## The measured-panel window, 2023-26
 
@@ -134,13 +131,17 @@ concentration reads on it directly: **84% means the other two seasons produced
 16% between them.** The offset arm is less concentrated, positive in all three,
 and bets *less*.
 
-## Execution ladder (same bets, execution varied)
+## Execution ladder
+
+Reported on the 14-season frame because that is what `wf_equity` emits natively.
+**These are reference figures only** — the primary result is the 2019-26 block
+above. The ladder's shape (monotone in k) is the transferable part.
 
 | tier | ROI | cum | 95% CI |
 |---|---|---|---|
 | k=1 raw | +4.55% | +73.1u | [−2.97, +8.44] |
 | k=5 raw | +6.86% | +110.4u | [−1.17, +10.89] |
-| **k=9 raw** | **+7.57%** | **+121.8u** | [−0.62, +11.66] |
+| **k=9 raw (14-season, for reference only)** | +7.57% | +121.8u | [−0.62, +11.66] |
 | k=9 +haircut | +6.77% | +108.8u | [−1.13, +10.80] |
 | exchange c=2% | +8.37% | +134.6u | **[+0.59, +12.40]** |
 

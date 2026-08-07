@@ -47,9 +47,9 @@ observed at the open** — with no outlier-realism haircut.
 
 | window | days | net PnL | PnL/day | Sharpe (ann.) | win days | max drawdown | trades/day | staked ntl/day | edge (bps) |
 |---|---|---|---|---|---|---|---|---|---|
-| First half (2012-13 – 2018-19) | 302 | $279,761 | $926 | 0.4 | 45% | −$195,953 | 2.5 | $25k | 377 |
-| Second half (2019-20 – 2025-26) | 559 | $490,095 | $877 | 0.6 | 50% | −$316,647 | 1.9 | $19k | 474 |
-| **Full window** | **861** | **$769,855** | **$894** | **0.5** | **48%** | **−$343,893** | **2.1** | **$21k** | **433** |
+| First half (2019-20 – 2021-22) | 228 | $50,868 | $223 | 0.2 | 46% | −$120,207 | 1.7 | $17k | 133 |
+| Second half (2022-23 – 2025-26) | 331 | $439,226 | $1,327 | 0.9 | 52% | −$217,511 | 2.0 | $20k | 673 |
+| **Full window (2019-26)** | **559** | **$490,095** | **$877** | **0.6** | **50%** | **−$316,647** | **1.9** | **$19k** | **474** |
 
 Edge is net PnL per dollar of staked notional. Unlike a two-legged basis trade,
 a spread bet has one leg, so notional is the stake and is not doubled. Dollar
@@ -139,12 +139,12 @@ Each line is one season's independently-scored book.
 | 2025-26 | $97,819 | $2,038 | +0.9 | 56% | 2.8 | $28k | +725 |
 | **ALL** | **$802,501** | **$1,059** | **0.5** | **47%** | **2.3** | **$23k** | **+463** |
 
-**Nine of fourteen seasons are profitable; five are not.** Unlike a multi-tenor
+**Four of seven seasons are profitable; three are not.** Unlike a multi-tenor
 book, these are sequential rather than concurrent, so they cannot diversify each
 other — there is no portfolio effect and the aggregate Sharpe does not exceed the
 best season. Season ROI dispersion is **8.23pp** (min −7.45%, max +23.15%), and
-the season-clustered 95% confidence interval is **[−1.32%, +9.55%]** — it
-includes zero.
+the season-clustered 95% confidence interval is **[−5.79%, +12.07%]** around a
+clustered mean of **+3.14%** — it includes zero.
 
 > **Interval corrected.** An earlier version of this line reported
 > **[−1.10%, +9.77%]**. That interval had been centred on the n-weighted pooled
