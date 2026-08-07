@@ -14914,3 +14914,47 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   both SIM_REPORTs and the README re-cut to 2019-26 with the offset arm primary;
   NO PRODUCTION MODEL DEFAULT CHANGED — promoting the offset construction to the
   shipped default remains a re-certification]
+
+- D208 **SHOULD THE SUMMARY REPORT 3 OR 4 SEASONS? NEITHER. THE Sharpe-2.0 THAT
+  PROMPTED THE QUESTION IS WHAT WINDOW SELECTION BUYS FROM NOTHING.** Owner:
+  "should we give summary trades on last 3 or 4 seasons? if sharpe 2, lets make
+  it 4." The Sharpe 2.0 came from a first-half/second-half split *I had just
+  shown him*, so choosing the window on it is endpoint-driven selection — the
+  exact procedure D182 and D187 rejected.
+
+  **EVERY CONTIGUOUS WINDOW INSIDE THE HONEST FRAME** (offset arm, k=9):
+
+  | length | best window | best ROI | mean of ALL windows of that length | **selection buys** |
+  |---|---|---|---|---|
+  | 3 | 2022-23..2024-25 | +16.95% | +9.03% | **+7.92 pts** |
+  | 4 | 2022-23..2025-26 | +14.92% | +9.33% | **+5.59 pts** |
+  | 5 | 2021-22..2025-26 | +13.47% | +9.94% | +3.53 pts |
+  | 6 | 2020-21..2025-26 | +11.08% | +10.34% | +0.74 pts |
+  | **7 (the frame)** | 2019-20..2025-26 | **+9.11%** | +9.11% | **0.00** |
+
+  **THE AVERAGE WINDOW IS ~+9% AT EVERY LENGTH.** +9.03 / +9.33 / +9.94 / +10.34
+  / +9.11. There is no recency signal here at all — shortening the window does
+  not find a better regime, it finds a better *draw*. The entire apparent gain
+  from "report the last 3 or 4" is the +5.6 to +7.9 points that picking the best
+  window manufactures.
+
+  **AND THE ONE 'SIGNIFICANT' WINDOW IS SELECTED.** 2021-22..2025-26 shows
+  CI [+1.49, +21.05], excluding zero — and it is the best of only three
+  five-season windows. That is not a finding, it is the maximum of three draws.
+
+  **DECISION: the summary stays on the full 2019-26 frame.** It is the only
+  window whose selection cost is zero by construction, and its +9.11% is
+  indistinguishable from the average of every sub-window at every length — which
+  is the strongest evidence available that it is the unbiased estimate.
+
+  The recent block is still reported, but as a LABELLED SUB-ANALYSIS with its
+  selection cost stated inline, never as the headline. Same treatment D182 gave
+  the month filter.
+
+  **HALL OF SHAME:** I produced the first-half/second-half split as honest
+  disclosure of uneven earning, and it immediately became a candidate headline.
+  **Disclosing a favourable subset creates the temptation to promote it.** When
+  reporting a split, report what selecting on it would cost in the same breath.
+
+  [SCOPE: analysis only; no code changed; no default changed; summary frame
+  UNCHANGED at 2019-26]

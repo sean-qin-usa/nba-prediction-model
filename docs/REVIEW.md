@@ -73,6 +73,24 @@ $490,095, Sharpe 0.6, edge 474 bps.
 **+$839,972 at Sharpe 2.0** — and that recent block is also the block the
 architecture was developed on.
 
+### Why the summary is not cut to the last three or four seasons
+
+The recent block looks much better: 2022-26 returns **+14.92%** against the
+frame's +9.11%, at Sharpe 2.0. That is a selection, not a regime.
+
+| window length | best window | mean of **all** windows of that length | selection buys |
+|---|---|---|---|
+| 3 seasons | +16.95% | +9.03% | **+7.92 pts** |
+| 4 seasons | +14.92% | +9.33% | **+5.59 pts** |
+| 5 seasons | +13.47% | +9.94% | +3.53 pts |
+| **7 (the frame)** | **+9.11%** | +9.11% | **0.00** |
+
+**The average window returns ~+9% at every length.** Shortening does not find a
+better regime, it finds a better draw — and the full frame is the only window
+whose selection cost is zero by construction. One five-season window even shows a
+significant interval; it is the best of three, which is the maximum of three
+draws rather than a finding. (`D208`)
+
 ### On the measured-panel window (2023-26)
 
 | tier | market-blind | **market-offset** | delta |
