@@ -15332,3 +15332,46 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d209_make_review_pdf.py` sizes and spacing; `docs/REVIEW.md`
   three clauses trimmed; PDF 3 pages, 0 unembedded fonts, 2 URI annotations; no
   numbers or findings changed]
+
+- D221 **EDITORIAL PASS: THE REPORT READ LIKE THE REGISTER IT WAS EXTRACTED
+  FROM.** Owner, on a language critique: "many extraneous comments that a reader
+  can infer... many short 5 word sentences that are abrupt and do not seem
+  professional" and "i like mathy language so im not sure about following these
+  to a t."
+
+  **THE DIAGNOSIS WAS RIGHT AND MORE PRECISE THAN "SENTENCES ARE TOO SHORT."**
+  Mean sentence length was already ~19 words. The defect was RHYTHM: runs of 3-7
+  word fragments (`Simulated.` / `Settlement-only fills.` / `Props before
+  sides.`) alternating with 40-46 word multi-clause sentences. That is the shape
+  of an audit log, which is literally what the document was extracted from.
+
+  **WHAT WAS CHANGED.** Bold-fragment-plus-compressed-explanation converted to
+  full sentences throughout Methodology, Caveats and Next steps; the two longest
+  sentences (46 and 40 words) split; and meta-commentary a reader can infer
+  removed — "Series are distinguished by line style as well as colour" describes
+  the figure the reader is looking at.
+
+  **ONE ITEM WAS A CORRECTNESS FIX, NOT TONE.** The report said "What is learned
+  is only the correction; everything else is handcrafted and declared." **That is
+  false.** The team ratings, availability probabilities, schedule coefficients and
+  the offset coefficients are all *estimated*; what is fixed ex ante is the
+  architecture and its transformations. Reworded accordingly. The sentence was
+  written to answer the handcrafted-architecture criticism and in doing so
+  undersold what the model actually fits.
+
+  **WHERE THE CRITIQUE WAS NOT FOLLOWED.** Several proposed terminology swaps
+  trade precision for blandness and were declined: "honest denominator" became
+  "primary estimate" (accepted — clearer), but "Not next" -> "Current priority"
+  inverts the meaning and was rejected, and the mathematical register the owner
+  prefers was kept throughout — interval notation `[0.33, 0.37]`, `m_blind −
+  m_open`, seasons `1…k`.
+
+  **TWO LAYOUT DUPLICATIONS REMOVED, which also paid for the longer prose.** A
+  small execution table on page 1 restated the full ladder on page 3; it is now
+  one sentence carrying the single-book figure with a pointer. The seven-row
+  seasonal log-loss table restated the chart directly above it; collapsed to the
+  pooled row. Document back to **3 pages**, and the page-2/3 boundary no longer
+  splits the central market-comparison conclusion mid-sentence.
+
+  [SCOPE: `docs/REVIEW.md` editorial pass and two table removals; PDF rebuilt,
+  3 pages, 0 unembedded fonts, 2 URI annotations; no computed number changed]
