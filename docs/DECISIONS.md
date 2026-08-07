@@ -14548,3 +14548,54 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/prod_by_season_opentime.json` NEW; `scripts/prod_by_season.py` gains
   `OPEN_TIME_OUTS` (additive switch, DEFAULT UNCHANGED, backup in scratchpad);
   NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB READ-ONLY]
+
+- D200 **THE PARTICIPATION MODEL — THE DIRECT FIX FOR D199, AND IT WORKS.**
+  D199 established that at the open we know only the LAST PUBLISHED status, and
+  that the missing 18-19% is worth 33% of our deficit to the market. The response
+  is not to accept a degraded hard out-set but to **forecast it**: replace the 0/1
+  carry-forward flag with a calibrated `P(out tonight | as-of-open information)`.
+
+  Design declared before scoring. Unit: player-team-gameday with a same-day label.
+  Features strictly T0: last published status, days since it, consecutive prior
+  Out reports, consecutive prior Questionable/Doubtful reports, team rest.
+  L2 logistic, Newton-IRLS, walk-forward 1..k -> k+1. **Incumbent to beat (D176):
+  the hard carry-forward rule "out tonight iff out on the last report".**
+
+  | | Brier | log loss |
+  |---|---|---|
+  | hard carry-forward (incumbent) | 0.13145 | 0.53177 |
+  | **participation model** | **0.10437** | **0.34924** |
+
+  **Brier -20.6%, better in 4/4 seasons.**
+
+  **WHERE THE GAIN COMES FROM — the two numbers that matter:**
+  - players last listed **QUESTIONABLE** (2,006 rows in the last scored season)
+    are **actually out 28.9%** of the time. The model says **26.5%**. **The hard
+    rule says 0.000** — it treats every one of them as definitely available.
+  - players last listed **OUT** are **actually out 91.5%**. The model says 92.4%.
+    **The hard rule says 1.000** — it over-commits on the 8.5% who do play.
+
+  So the carry-forward out-set is wrong in BOTH directions, and a calibrated
+  probability fixes both. Fitted coefficients are sensible and monotone in
+  severity: ls_Out +2.06, ls_Doubtful -0.08, ls_Questionable -0.60,
+  ls_Probable -1.38; streak_out +0.06 (a long-standing absence persists),
+  streak_q -0.10 (a chronic Questionable tends to play), rest -0.09.
+
+  **BLOWOUT TRAP — MY DECISION, AS ASKED.** Participation is fitted with NO
+  game-state or competitiveness feature. A player's minutes are truncated by a
+  blowout and the blowout is caused by the margin being predicted, so any
+  expected-margin, pace or total input would leak the outcome backwards into the
+  availability leg. Rest and schedule are admissible (fixed before tip);
+  competitiveness is not, and none appears. **Validation is on the availability
+  label directly (Brier/LL), never on downstream game log loss** — otherwise an
+  improvement here is indistinguishable from a change anywhere else in the stack.
+
+  **NOT YET INTEGRATED.** The composition leg currently takes a hard OUT set;
+  consuming `1 - P(out)` as a weight is a production change requiring a gate and a
+  re-certification. **The measured prize is D199's 4.30 points of normalized gap;
+  this entry establishes that the input needed to chase it is materially better
+  than the incumbent, not that the gap has been recovered.**
+
+  [SCOPE: `scripts/d200_participation.py` NEW (read-only);
+  `data/d200_participation.json` NEW; NO GATE RUN; NO PRODUCTION MODEL DEFAULT
+  CHANGED; composition leg UNCHANGED; DB READ-ONLY]
