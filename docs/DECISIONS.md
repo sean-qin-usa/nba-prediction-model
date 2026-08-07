@@ -15423,3 +15423,43 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `docs/REVIEW.md` market-comparison section rebalanced and diagnostics
   paragraph removed; PDF 3 pages, 0 unembedded fonts, 1 verified link annotation;
   no computed number changed]
+
+- D223 **FINAL EDITORIAL CYCLE ON THE REPORT.** Reviewer's remaining items, of
+  which the owner asked for all but the Execution-to-page-3 move.
+
+  **PAGE FLOW.** Forced a break before "The model", which produced the intended
+  split — page 1 strategy/headline/equity, page 2 the model and accuracy, page 3
+  considerations onward — and stayed at 3 pages this time. **The break alone
+  relocated the orphan rather than removing it:** page 2 then ended with the
+  "Considerations" heading stranded above its own content. Fixed generally with
+  `keepWithNext=1` on both heading styles AND on the rule that follows a heading,
+  so no heading can strand at a page bottom regardless of where content falls.
+  All three pages now end mid-paragraph rather than on a heading.
+
+  **THREE WORDING CORRECTIONS.**
+  - "honest denominator" -> "the full seven-season frame ... serves as the primary
+    reference". The original was self-conscious and grammatically awkward.
+  - "the era of the measured multi-book panel" was **too broad and I had already
+    corrected this class of overstatement once in D218**. Only 2023-24 carries a
+    genuine panel. Now: "the recent execution-study window. Multi-book prices are
+    observed directly in 2023-24 and inferred in the two seasons after it."
+  - "worth +0.0012 of log loss" was **ambiguous by sign convention**, since higher
+    log loss is worse. Checked the register's convention (positive denotes
+    improvement, e.g. PAID_RETROSPECTIVE's "+0.0005-0.0015") and restated
+    explicitly: "improves log loss by 0.0012 nats combined, an effect whose
+    interval contains zero."
+
+  **TWO LONG SENTENCES SPLIT** (the 45-word architecture sentence and the
+  best-of-N caveat).
+
+  **SEVEN-SEASON ROW GIVEN EQUAL VISUAL WEIGHT.** Previously the 3-season row was
+  bold and the 7-season row plain, which invited exactly the cherry-picking read
+  the document argues against. Both rows are now bold and labelled by role —
+  "recent execution headline" and "primary full-frame reference".
+
+  **NOT DONE, per the owner:** moving Execution wholly onto page 3.
+
+  [SCOPE: `docs/REVIEW.md` wording and table emphasis;
+  `scripts/d209_make_review_pdf.py` keepWithNext on headings and heading rules;
+  PDF 3 pages, 0 unembedded fonts, 1 verified link annotation on page 1; no
+  computed number changed]

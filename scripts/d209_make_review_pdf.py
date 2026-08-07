@@ -66,11 +66,11 @@ S = {
                          alignment=TA_LEFT, spaceAfter=2),
     "h2": ParagraphStyle("h2", fontName="DejaVu-Bold", fontSize=10.5,
                          leading=12.5, textColor=NAVY, spaceBefore=7,
-                         spaceAfter=1.5, borderWidth=0, borderPadding=0,
+                         spaceAfter=1.5, keepWithNext=1, borderWidth=0, borderPadding=0,
                          underlineWidth=0),
     "h3": ParagraphStyle("h3", fontName="DejaVu-Bold", fontSize=8.8,
                          leading=11, textColor=INK, spaceBefore=5,
-                         spaceAfter=2),
+                         spaceAfter=2, keepWithNext=1),
     "p": ParagraphStyle("p", fontName="DejaVu", fontSize=7.5, leading=9.9,
                         textColor=INK, spaceAfter=3.4),
     "li": ParagraphStyle("li", fontName="DejaVu", fontSize=7.5, leading=9.9,
@@ -172,9 +172,10 @@ def build():
                 flow.append(HRFlowable(width="100%", thickness=1.1, color=NAVY,
                                        spaceBefore=2, spaceAfter=4))
             if lvl == 2:
-                flow.append(HRFlowable(width="100%", thickness=0.7,
-                                       color=RULE, spaceBefore=1,
-                                       spaceAfter=3.5))
+                hr = HRFlowable(width="100%", thickness=0.7, color=RULE,
+                                spaceBefore=1, spaceAfter=3.5)
+                hr.keepWithNext = 1
+                flow.append(hr)
             i += 1
             continue
         if ln.startswith("!["):
