@@ -372,6 +372,43 @@ The direct consequence: **a deployable model should take the opening line as its
 prior and predict its residual**, rather than forecasting the game independently
 and comparing afterwards.
 
+### ⚠️ A bet-time information mismatch, and what survives it
+
+The model's availability leg is built on the **5PM injury report** and **pregame
+inactives**. Both are published *after* the opening line. Every open-priced
+result in this repository therefore gave the model information the bettor did not
+have (`D199`).
+
+**Exposure, measured:** 81.9% of a team's out-set is already known from the prior
+report, but **18.1% is new on the day** (19.3% minutes-weighted), and 44.3% of
+team-days carry at least one late scratch.
+
+**Cost, measured** — rebuilding the out-set by carry-forward from the last report
+strictly *before* game day, with no inactives:
+
+| availability | log loss | normalized gap |
+|---|---|---|
+| certified (same-day + inactives) | 0.60541 | 12.87% |
+| **as-of-open (honest)** | **0.60973** | **17.17%** |
+
+**The late information is worth 33% of the model's entire deficit to the market.**
+
+**What this does to the two architectures — the important part:**
+
+| | contaminated | **honest** |
+|---|---|---|
+| market-blind capture vs opener | +0.075 | **−0.104** |
+| **offset-model capture vs opener** | +0.313 | **+0.222** |
+
+**The market-blind model's edge over the opener flips negative once it can only
+see what a bettor could see. The offset model degrades ~29% and stays clearly
+positive** — because its ridge already shrinks the model edge to ~35% of face
+value, it was never leaning on the contaminated signal.
+
+Every open-priced ROI/ATS/CLV figure below was produced under the contaminated
+availability set. **They are optimistic by an unquantified amount** and are being
+re-run on the honest one.
+
 ### The fix that follows: anchor on the opener
 
 If the model does not beat the opening line standing alone, the deployable form

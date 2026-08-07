@@ -14455,3 +14455,96 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   NEW; `data/d195_offset.json` NEW; systemd user unit NEW; crontab @reboot line
   REMOVED; `REPO_NOTE.md` NEW (remote removed from nba_model); NO GATE RUN; NO
   PRODUCTION MODEL DEFAULT CHANGED; the offset model is a CHALLENGER, not shipped]
+
+- D197 **THE CANONICAL POINT-IN-TIME FRAME (roadmap item 1).**
+  `data/pit_frame.csv.gz`, 8,239 games 2019-20..2025-26, 26 columns, every one
+  labelled with the information tier at which it becomes knowable: **T0** before
+  the opener (gidx, rest, TRAILING absence load), **T1** the opener, **T2** the
+  same-day 5PM report, **T3** pregame inactives, **T4** the close, **T5** the
+  outcome. Coverage T0 100/95.7%, T1 100%, T2 95.7%, T3 99.8%, T4 100%, T5 100%.
+  Open/close probabilities use ONE shared logistic transform so neither source is
+  advantaged (D193's rule). **Two bugs found while building it, both silent:**
+  the oc frame stores `game_id` as an INT (`20700001`) while the DB uses the
+  zero-padded VARCHAR (`0022400211`), so every DB join returned nothing (T3 read
+  0.0%); and the inactives merge added 10 rows through duplicate keys. Both are
+  now guarded by row-count assertions.
+
+- D198 **ITEMS 3 AND 5.**
+  **STACK (item 3): no change earned.** Ridge shrunk toward the incumbent (0.5,
+  0.5) on m_ff/m_comp: unshrunk OLS is (+0.337, +0.739) at RMSE 14.2147 against
+  the incumbent's 14.2316 — **0.12%**. Consistent with D192 (components correlate
+  0.945; flat loss surface). Component coverage is 3 seasons, so there is no
+  held-out season to earn a change with. **Incumbent retained.**
+  **CONDITIONAL VARIANCE (item 5): SHIPS THE CONTROL TEST.** Student-t(nu=5) with
+  log sigma linear in T0/T1 uncertainty inputs, walk-forward, against the shipped
+  sigmoid(mu/7.2): pooled LL **0.60518 vs 0.60549**, mean delta **-0.000316**,
+  **t=-4.08 (K=5) SIGNIFICANT, better in 5/5 seasons.** But the effect is tiny and
+  the mechanism is NOT what was hypothesised: fitted sigma varies only ~0.5% per
+  SD of its strongest input (sd 0.11-0.38 around a mean of ~11.3). **Essentially
+  all of the gain is the intercept — the model wants sigma ~11.3, i.e. a link
+  scale nearer 7.8 than 7.2, which is exactly D192's finding arriving by a second
+  route.** The conditional part contributes almost nothing. Recorded as
+  confirmation of the link-scale result, NOT as evidence for state-dependent
+  variance.
+
+- D199 **BET-TIME LEAKAGE: THE OWNER ASKED THE RIGHT QUESTION AND THE ANSWER IS
+  YES, WORTH 33% OF OUR ENTIRE DEFICIT TO THE MARKET.** Owner: "do we have
+  lookahead leakage because we are oracling injuries/lineups but betting at open?"
+
+  **THE MISMATCH.** `docs/LEAKAGE.md` licenses the 5PM report and pregame
+  inactives as LEGITIMATE inputs, justified by "close forms after these". **That
+  is a CLOSE-TIME licence.** Every open-priced betting study in this repo uses a
+  model built on those inputs while transacting at a price posted BEFORE them.
+  The policy was never wrong; it was applied to the wrong bet time.
+
+  **EXPOSURE, MEASURED.** Comparing each team-day's out-set to the previous
+  report: **81.9% of tonight's out-set was already known, 18.1% is new on the
+  day**; minutes-weighted the new share is **19.3%**; **44.3%** of team-days carry
+  at least one late scratch, and only **35.3%** are unchanged. Late scratches are
+  marginally heavier than known absences (18.93 vs 17.87 MPG), so talent-weighting
+  does not rescue it.
+
+  **COST, MEASURED.** New `OPEN_TIME_OUTS=1` in `prod_by_season.py` rebuilds the
+  out-set BY CARRY-FORWARD from the most recent report strictly before game day,
+  and drops the inactives union entirely.
+
+  | availability | ll_us | normalized gap |
+  |---|---|---|
+  | CERTIFIED (same-day + inactives) | 0.60541 | **12.87%** |
+  | **AS-OF-OPEN (carry-forward)** | **0.60973** | **17.17%** |
+
+  **+0.00433 nats, gap widens 4.30 points. The late information is worth 33% of
+  the model's entire deficit to the market.**
+
+  **A CONSTRUCTION ERROR I MADE AND CAUGHT.** My first as-of-open query used only
+  rows with `report_date < game_date`. The archive holds 93,110 same-day rows and
+  32,594 previous-evening rows, so that query covered a minority of game-days and
+  outs/team collapsed to 0.22-0.35 against a true ~1.2. **A bettor at the open
+  knows the LAST PUBLISHED STATUS CARRIED FORWARD, not only explicitly-advance
+  reports.** Rebuilt as carry-forward: coverage 100%, outs/team 0.40-0.59.
+
+  **THE RESULT THAT MATTERS — THE OFFSET ARCHITECTURE SURVIVES, THE STANDALONE
+  MODEL DOES NOT.** Same games, same protocol, only the availability inputs
+  change:
+
+  | | contaminated | **honest** |
+  |---|---|---|
+  | market-blind capture vs opener | +0.075 | **-0.104** |
+  | **offset-model capture vs opener** | +0.313 | **+0.222** |
+
+  **The market-blind model's apparent edge over the opener FLIPS NEGATIVE once it
+  can only see what a bettor could see. The offset model degrades ~29% and stays
+  clearly positive.** That is the strongest argument yet for the market-anchored
+  architecture: because its ridge already shrinks the model edge to ~35% of face
+  value (D195), it was never leaning on the contaminated signal.
+
+  **WHAT THIS INVALIDATES.** Every open-priced ROI/ATS/CLV figure in this
+  repository was produced with a model that saw ~19% of its availability signal
+  after the price it transacted at. They are OPTIMISTIC by an unquantified amount
+  and must be re-run on `OPEN_TIME_OUTS=1` before being quoted again.
+
+  [SCOPE: `scripts/d197_pit_frame.py`, `scripts/d198_stack_and_variance.py` NEW;
+  `data/pit_frame.csv.gz`, `data/capstone_pergame_opentime.csv`,
+  `data/prod_by_season_opentime.json` NEW; `scripts/prod_by_season.py` gains
+  `OPEN_TIME_OUTS` (additive switch, DEFAULT UNCHANGED, backup in scratchpad);
+  NO GATE RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB READ-ONLY]
