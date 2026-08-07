@@ -30,22 +30,22 @@ seasons are excluded from scoring on principle: the daily injury report begins
 | 2024-25 | 1.00 | 210 | +50.40u | +24.00% | 3.81 |
 | 2025-26 | 1.03 | 96 | +4.85u | +5.05% | 0.54 |
 | **2023-26 pooled, best of 9 books** | — | **460** | **+76.44u** | **+16.62%** | **2.25** |
-| 2023-26 pooled, after outlier haircut | — | 460 | +66.03u | +14.36% | — |
 | 2019-26, all seven scored seasons | — | 888 | +80.93u | +9.11% | 1.10 |
 
 ROI is P&L per unit staked. Sharpe is annualized by √(sessions per season), not
 √252, which would inflate it 1.8×. Prices are the best of 9 books, but that panel
-is measured only in 2023-24, so the multi-book figures are modelled for every
-other season. The haircut row charges for the 8.1% of best-of-N prices that sit
-more than 1.5 points off the next book. The last row is the full scored frame and
-is the honest denominator: the three-season block is the recent end of it, not a
-separate result.
+is measured only in 2023-24, so the multi-book figures are modelled for every other
+season, and best-of-N is the strongest assumption in this document — see the
+caveats. The last row is the full scored frame and is the honest denominator: the
+three-season block is the recent end of it, not a separate result.
 
 ![equity](../charts/review_equity.png)
 
-*All 888 bets in date order at the opening spread and −110; flat 1u, so the path
-is a running sum and nothing is re-selected within it. Trough is −23.1u at bet
-161. The first three seasons lose money; the last four make +83.5u.*
+*All 460 bets of the three recent seasons, in date order at the opening spread and
+−110; flat 1u, so the path is a running sum and nothing is re-selected within it.
+Max drawdown is −7.75u at bet 372. Across the full seven-season frame the path is
++80.93u on 888 bets, with a −23.1u drawdown; the first three of those seasons lose
+money and the last four make +83.5u.*
 
 Pooled over the three recent seasons ROI is +16.62% with a season-clustered 95%
 interval of [−9.29%, +37.83%]; over all seven it is +9.11% with an interval of
@@ -85,13 +85,16 @@ convention; only the offset layer above it sees the price.
 
 ## How it compares to the two market prices
 
-![log loss](../charts/logloss_compact_2019_26.png)
+![log loss](../charts/logloss_line_2019_26.png)
 
-Per-season log loss measured against the opening line, which is the zero line. Levels
-differ by about 0.01 nats while each series own rolling path swings 0.30, so a
-levels chart leaves all four overlapping and illegible; the differences are the
-readable form. Pooled over 2019-26: opening line 0.60839,
-closing line 0.59799, offset construction 0.60589, market-blind model 0.61217.
+Rolling log loss measured against the opening line, which is the zero line, across
+all seven scored seasons. Levels differ by about 0.01 nats while each series' own
+rolling path swings 0.30, so a levels chart leaves all four overlapping and
+illegible; the difference is the readable form. Pooled over 2019-26: opening line
+0.60839, closing line 0.59799, offset construction 0.60589, market-blind model
+0.61217. This figure keeps the full frame deliberately — forecast accuracy has no
+reason to be cut to the recent block, and more seasons make the comparison
+sharper.
 
 **The market-blind model is the only series above the opener.** It does not beat
 the price it would transact at, and it is beaten decisively by the close. The
@@ -152,8 +155,16 @@ it was never leaning on the contaminated signal.
   selection rule. No capital has ever been deployed.
 - Multi-book pricing is measured in 2023-24 only (7.74 books/game) and modelled
   elsewhere; 2024-25 and 2025-26 observe 1.00 and 1.03 books per game at the open.
-- Passive-fill and best-of-N assumptions are optimistic, exchange fees and account
-  limits are not modelled, and competing flow is absent from the replay.
+- **Best-of-N pricing is the single most optimistic assumption here.** Always
+  transacting at the best of nine books means always transacting at whichever book
+  is furthest offside, and those are precisely the numbers that are unavailable in
+  size, moved before the bet lands, or withdrawn from an account that keeps taking
+  them. Applying an outlier charge — no credit for the 8.1% of best-of-N prices
+  sitting more than 1.5 points off the next book — costs about 2.3 ROI points, and
+  even that is a partial model. It does not capture staking limits at soft books,
+  reduced maximums on the best number, or account restriction, which in practice
+  arrive faster than any price effect. Exchange fees and account limits are not
+  modelled at all, and competing flow is absent from the replay.
 - Neither arm is the production default; promoting one is a re-certification.
 - The full register of 211 decisions, most of them rejections — including four
   team-name join bugs, an availability leak, two wrong evaluation frames and a

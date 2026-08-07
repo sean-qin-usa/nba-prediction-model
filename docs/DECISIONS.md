@@ -15063,3 +15063,53 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d211_logloss_4way.py`, `scripts/d212_logloss_compact.py` NEW;
   2 charts NEW; `docs/REVIEW.md` restored and re-emphasised; PDF rebuilt to 3
   pages; no numbers changed, no model default changed]
+
+- D214/D215 **LOG-LOSS CHART BACK TO A LINE FORM; EQUITY CUT TO THE HEADLINE
+  WINDOW; OUTLIER HAIRCUT MOVED OUT OF THE TABLE.** Owner: "change bar chart to
+  graph, and headline results graph with pnl should only be last 3 or 4 years,
+  your call but i think 3" and "get rid of outlier haircut i think and maybe
+  mention in caveats."
+
+  **LINE, NOT BARS, AND NOT SEVEN PANELS.** D211's 7-panel line chart was right
+  at full width and illegible in the report column; D212 solved that with bars,
+  which the owner did not want. `scripts/d214_logloss_line.py` is the form that
+  satisfies both: ONE continuous panel across all seven scored seasons, dashed
+  season dividers, still plotted as a difference from the opening line because
+  the four levels differ by ~0.01 nats against ~0.30 of rolling swing. Legible at
+  9.6 inches and at 6.9.
+
+  **EQUITY CUT TO 2023-26 (460 bets, +76.44u)** so the figure and the headline
+  table describe the same block — they disagreed before. The annotation changed
+  from raw trough to **max drawdown (-7.75u at bet 372)**: on a block that rises
+  from bet 1 the raw minimum is -0.09u at bet 2 and says nothing. The caption
+  still carries the full-frame path (+80.93u on 888 bets, -23.1u drawdown) so the
+  recent block is never mistaken for the whole record. **The log-loss figure
+  deliberately keeps all seven seasons** — forecast accuracy has no reason to be
+  cut to the recent block, and more seasons sharpen the comparison.
+
+  **OUTLIER HAIRCUT OUT OF THE HEADLINE TABLE, INTO THE CAVEATS**, and stated
+  more honestly there than the row did. The row implied the haircut was the
+  execution correction; it is a partial one. What the caveat now says: always
+  transacting at the best of nine books means always transacting at whichever book
+  is furthest offside, and those are exactly the numbers unavailable in size,
+  moved before the bet lands, or withdrawn from an account that keeps taking them.
+  The outlier charge costs ~2.3 ROI points and **does not capture staking limits,
+  reduced maximums on the best number, or account restriction — which in practice
+  arrive faster than any price effect.**
+
+  **OWNER ASKED WHETHER A PROFESSIONAL WOULD RECOGNISE THIS.** Yes, instantly,
+  though not under this name — "outlier realism haircut" is our term. A pro would
+  call it not being able to get down at the outlier, or simply getting limited,
+  and would likely say the price-based framing understates it, because
+  restriction arrives before the number moves. The caveat is written to be
+  recognisable in those terms rather than ours.
+
+  **GITHUB HEADER** added to the running page header
+  (`github.com/sean-qin-usa/nba-prediction-model`, left) with the frame and the
+  simulated disclaimer right. First attempt overlapped the two strings; the repo
+  reference now replaces the redundant title, which duplicated the H1 below it.
+
+  [SCOPE: `scripts/d214_logloss_line.py` NEW; `scripts/d210_review_equity.py`
+  window 2023-24+ and drawdown annotation; `scripts/d209_make_review_pdf.py`
+  header; `docs/REVIEW.md` haircut row removed and caveat expanded; PDF rebuilt,
+  3 pages; no numbers changed, no model default changed]
