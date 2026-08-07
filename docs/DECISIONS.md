@@ -15284,3 +15284,22 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `docs/REVIEW.md` four corrections + condensed feature paragraph;
   `scripts/d209_make_review_pdf.py` PageBreak support added (currently unused);
   PDF rebuilt, 4 pages, 0 unembedded fonts; no computed number changed]
+
+- D219 **CLICKABLE REPO LINK AND THE RULE UNDER THE TITLE.** Owner: "make sure
+  link is clickable. i also want the line under the title again, looks better."
+
+  **LINK.** The github reference was plain text. The markdown renderer now emits
+  a real PDF `<link>` annotation for markdown links with an http/mailto target,
+  and additionally auto-links bare `github.com/...` strings (guarded so it never
+  double-wraps an existing link). Verified structurally rather than visually:
+  `/URI` actions in the file = **2**, resolving to
+  `https://github.com/sean-qin-usa/nba-prediction-model`. A blue underline that
+  is not an annotation is not a link, so the check is on the annotation.
+
+  **TITLE RULE.** Restored the navy rule directly beneath the H1, matching the
+  owner's original. Section headings keep their lighter rule; the title's is
+  heavier (1.1pt navy vs 0.7pt pale) so the hierarchy reads.
+
+  [SCOPE: `scripts/d209_make_review_pdf.py` inline-link handling and H1 rule;
+  PDF rebuilt, 4 pages, 0 unembedded fonts, 2 URI annotations; no content or
+  numbers changed]

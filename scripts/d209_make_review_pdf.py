@@ -49,7 +49,8 @@ from reportlab.lib.pagesizes import LETTER                        # noqa: E402
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet  # noqa: E402
 from reportlab.lib.units import inch                              # noqa: E402
 from reportlab.platypus import (BaseDocTemplate, Frame, HRFlowable,  # noqa: E402
-                                Image, PageTemplate, Paragraph, Spacer,
+                                Image, PageBreak, PageTemplate, Paragraph,
+                                Spacer,
                                 Table, TableStyle)
 
 NAVY = colors.HexColor("#1f3864")
@@ -91,7 +92,17 @@ def inline(s: str) -> str:
     """markdown inline -> reportlab mini-HTML."""
     s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     s = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", s)
-    s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
+    # markdown link -> a real PDF link annotation
+    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)",
+               lambda m: (f'<link href="{m.group(2)}" color="#1f3864">'
+                          f'{m.group(1)}</link>')
+               if m.group(2).startswith(("http", "mailto")) else m.group(1), s)
+    # bare github.com/... -> clickable, without duplicating an existing <link>
+    if "<link" not in s:
+        s = re.sub(r"(?<![\w/])((?:https?://)?github\.com/[\w./-]+)",
+                   lambda m: (f'<link href="https://'
+                              f'{m.group(1).replace("https://", "")}" '
+                              f'color="#1f3864">{m.group(1)}</link>'), s)
     s = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s)
     s = re.sub(r"(?<!\*)\*([^*]+?)\*(?!\*)", r"<i>\1</i>", s)
     s = re.sub(r"`([^`]+)`", r'<font face="DejaVuMono">\1</font>', s)
@@ -156,6 +167,10 @@ def build():
             lvl = len(m.group(1))
             flow.append(Paragraph(inline(m.group(2)),
                                   S["h1" if lvl == 1 else "h2" if lvl == 2 else "h3"]))
+            if lvl == 1:
+                # the owner's original carries a rule directly under the title
+                flow.append(HRFlowable(width="100%", thickness=1.1, color=NAVY,
+                                       spaceBefore=2, spaceAfter=4))
             if lvl == 2:
                 flow.append(HRFlowable(width="100%", thickness=0.7,
                                        color=RULE, spaceBefore=1,
@@ -196,6 +211,10 @@ def build():
                 flow.append(Paragraph(inline(" ".join(parts)), S["li"],
                                       bulletText="\u2022"))
             flow.append(Spacer(1, 3))
+            continue
+        if ln.strip() == "<!--PAGEBREAK-->":
+            flow.append(PageBreak())
+            i += 1
             continue
         if ln.strip() in ("", "---"):
             i += 1

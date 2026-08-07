@@ -65,7 +65,7 @@ for i, s in enumerate(seasons):
 
 per = {k: [loss[k][(f["season"] == s).to_numpy()].mean() for s in seasons]
        for k in SRC}
-fig, ax = plt.subplots(figsize=(9.6, 3.6), dpi=200)
+fig, ax = plt.subplots(figsize=(10.6, 3.0), dpi=200)
 x = np.arange(len(seasons))
 for k in ("open", "close", "offset", "blind"):
     c, ls, mk, lab = STYLE[k]

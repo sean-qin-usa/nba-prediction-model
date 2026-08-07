@@ -48,7 +48,7 @@ def main():
     seas = [b["season"] for b in bets]
     n = len(ev)
 
-    fig, ax = plt.subplots(figsize=(9.6, 3.5), dpi=200)
+    fig, ax = plt.subplots(figsize=(10.6, 2.85), dpi=200)
     ax.axhline(0, color=INK2, lw=0.9, ls="--", zorder=3)
     ax.plot(np.arange(n), cum, color=NAVY, lw=1.5, zorder=5)
 
