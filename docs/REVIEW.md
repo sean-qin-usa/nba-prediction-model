@@ -4,7 +4,13 @@ Code, data pipeline and the full research register: **github.com/sean-qin-usa/nb
 
 ## Strategy
 
-Directional value-taking against the opening point spread in NBA regular-season games. A market-blind margin model prices every listed game; its disagreement with the opening spread is then spent, at about a third of face value, as a correction *to* the opening spread — `m_final = open_margin + f(x)`, with `f` a ridge shrunk hard toward zero and fitted walk-forward. A single side is taken when the corrected margin still disagrees with the line by more than a walk-forward selected threshold, at the best number available across books. Every position is one side of one game at −110, entered at the open and held to settlement: no hedge, no offsetting leg, no in-game management, no exit. Flat 1 unit per bet, so nothing compounds. No calendar filter.
+Directional value-taking against the opening point spread in NBA regular-season games. A market-blind margin model prices every listed game; its disagreement with the opening spread is then spent, at about a third of face value, as a correction *to* the opening spread. What is learned is only the correction; everything else is handcrafted and declared:
+
+```
+m_offset = m_open + f( m_blind − m_open ,  rest differential ,  |m_open| )
+```
+
+`f` is a ridge shrunk hard toward zero, fitted walk-forward. Its coefficient on the fundamental disagreement is 0.33–0.37 in every fold. A single side is taken when the corrected margin still disagrees with the line by more than a walk-forward selected threshold, at the best number available across books. Every position is one side of one game at −110, entered at the open and held to settlement: no hedge, no offsetting leg, no in-game management, no exit. Flat 1 unit per bet, so nothing compounds. No calendar filter.
 
 Selection is the strategy. The book below is 460 bets out of roughly 3,690 regular-season games in the window, about 12% of the slate. A side is taken only where the corrected margin disagrees with the opening spread by more than the walk-forward threshold, so the cover rate on the selected book is not the cover rate on the slate.
 
@@ -21,6 +27,14 @@ Simulation: 460 bets, 3 seasons, 2023-24 → 2025-26. The configuration is selec
 | 2019-26, all seven scored seasons | — | 888 | +80.93u | +9.11% | 1.10 |
 
 ROI is P&L per unit staked; Sharpe is annualized on realised sessions. The multi-book panel is measured only in 2023-24, so the pooled figures are modelled for 2024-25 and 2025-26. The last row is the full scored frame, the honest denominator against which the three-season block is its recent end.
+
+| execution | 2023-26 ROI |
+|---|---|
+| 1 book, observed | +10.63% |
+| 2 books | +12.91% |
+| **best of 9 books, the reported tier** | **+16.62%** |
+
+Best-of-nine is the largest practical weakness in the headline, so the single-book number sits beside it: about two-thirds of the reported ROI survives with no shopping at all.
 
 ![equity](../charts/review_equity.png)
 

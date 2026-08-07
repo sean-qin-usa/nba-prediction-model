@@ -15165,3 +15165,62 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   NEW; `scripts/d209_make_review_pdf.py` header/rules/typography;
   `docs/REVIEW.md` restructured; README gains the Limits section; PDF rebuilt to
   3 pages; no numbers changed]
+
+- D217 **AN OUTSIDE REVIEW CAUGHT A REAL RENDERING DEFECT AND THREE STALE CLAIMS.
+  EVERY CHECKABLE ASSERTION IT MADE WAS CORRECT.** Reviewer compared the
+  published PDF against the owner's original and raised: unembedded fonts, README
+  staleness, a duplicated heading, and report scripts referenced by the register
+  but absent from the repository. **All four verified and all four true.**
+
+  **FONT EMBEDDING — the serious one.** `pdffonts` reported **emb=no on all five
+  faces** (Helvetica, Helvetica-Bold, Helvetica-Oblique, Courier, Symbol).
+  ReportLab's base-14 fonts are legal PDF but carry no outlines, so the viewer
+  substitutes; on systems without metric-compatible faces that renders as merged
+  or wildly-spaced glyphs. **The text extracted cleanly the whole time, which is
+  exactly why I had not caught it** — I verified extraction, not rendering.
+  Fixed by registering DejaVu as TrueType. Three attempts were needed and the
+  sequence is worth recording:
+  1. registering the faces and setting every `fontName` -> still one Helvetica;
+  2. `bulletFontName` and an explicit table `FONTNAME` -> still one Helvetica;
+  3. **`rl_config.canvas_basefontname = "DejaVu"`** -> zero. ReportLab registers
+     its base font before any document object exists, so `setFont()` in a page
+     callback is always too late.
+  `pdffonts` now reports **0 unembedded faces**, and that check is the acceptance
+  criterion for this artifact from now on.
+
+  **STALE CLAIMS, all corrected:** README said the register "runs to D207" while
+  `DECISIONS.md` reached D216; README described the PDF as "retained for history
+  and predates three corrections" when it is in fact regenerated from
+  `docs/REVIEW.md` on every build; and a sed edit had left the literal duplicated
+  heading `Why the model looks era-specific### Why the model looks era-specific`.
+
+  **SCRIPTS NOW PUBLISHED.** The register cited `d209_make_review_pdf.py`,
+  `d210_review_equity.py`, `d214_logloss_line.py` and others that existed only in
+  the private tree. 17 report/analysis scripts copied across, so the register's
+  references resolve and the figures are reproducible.
+
+  **ADOPTED FROM THE REVIEW:** body type raised 7.5 -> 8.3pt with 11pt leading;
+  the offset equation written out explicitly as
+  `m_offset = m_open + f(m_blind − m_open, rest differential, |m_open|)` so a
+  reader can see immediately what is learned versus handcrafted; and **a
+  single-book execution row placed beside the headline** rather than buried in a
+  caveat — best-of-nine is the largest practical weakness in the number, so the
+  observed one-book figure (+10.63%, about two thirds of the reported ROI) now
+  sits next to it.
+
+  **NOT ADOPTED:** the suggestion to re-add the full research-record section. The
+  owner had just removed it deliberately; it lives in the README under "Limits of
+  the result". Splitting the difference by restoring a "compact evidence /
+  limitation table" would reintroduce what was cut.
+
+  **HALL OF SHAME:** I verified this PDF by extracting its text and by rendering
+  it to PNG on a machine that happens to have Helvetica metrics. **Neither test
+  can see an unembedded font.** Checking that a document *renders here* is not
+  checking that it renders anywhere; for any published artifact, verify the
+  embedded resources, not just the output.
+
+  [SCOPE: `scripts/d209_make_review_pdf.py` font embedding via rl_config +
+  TrueType registration, body size, table FONTNAME; `scripts/d210_review_equity.py`
+  and `scripts/d216_logloss_season.py` flatter aspect for page balance;
+  `docs/REVIEW.md` explicit equation + execution row; README three corrections;
+  17 scripts published; no numbers changed]

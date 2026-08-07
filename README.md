@@ -1,7 +1,7 @@
 # NBA Prediction Model
 
 A market-blind NBA win-probability model, and the full research record behind
-it: **a register that runs to D207, most entries rejections.** Results summary: **[docs/REVIEW.md](docs/REVIEW.md)**  (the earlier [PDF](nba_model_and_strategy_review.pdf) is retained for history and predates three corrections).
+it: **a register that runs to D217, most entries rejections.** Results summary: **[docs/REVIEW.md](docs/REVIEW.md)**, rendered to [PDF](nba_model_and_strategy_review.pdf) from that same file so the two cannot drift.
 
 ---
 
@@ -237,7 +237,7 @@ points at every execution tier including a single book**, so the improvement is
 model rather than shopping, and it is positive in **3/3** seasons on **fewer**
 bets.
 
-### Why the model looks era-specific### Why the model looks era-specific
+### Why the model looks era-specific
 
 The walk-forward loop re-selects the *betting configuration* honestly, but the
 *model architecture* was chosen on a 2021-26 corpus and handed to every step as
