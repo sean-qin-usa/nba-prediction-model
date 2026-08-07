@@ -372,6 +372,41 @@ The direct consequence: **a deployable model should take the opening line as its
 prior and predict its residual**, rather than forecasting the game independently
 and comparing afterwards.
 
+### The fix that follows: anchor on the opener
+
+If the model does not beat the opening line standing alone, the deployable form
+is not "forecast the game and compare" — it is **forecast the opener's error**:
+
+```
+m_final = open_margin + f(x)
+```
+
+with `f` a ridge shrunk hard toward zero (λ by generalised cross-validation
+inside each training fold) on five features knowable at the open. Walk-forward,
+same games, same protocol (`D195`):
+
+| source | RMSE | log loss | capture |
+|---|---|---|---|
+| market-blind model | 13.7294 | 0.60524 | **−0.019** |
+| opener | 13.6898 | 0.60501 | 0 |
+| **offset model** | **13.6320** | **0.60150** | **+0.282** |
+| close | 13.4329 | 0.59257 | 1.0 |
+
+**The sign flips.** The same information, re-expressed as a residual on the
+opener rather than an independent forecast, moves capture from −0.019 to
+**+0.282**, and is **positive in 5 of 5 seasons** (sign test p = 0.031; the
+season-clustered t is +1.89, ns).
+
+The coefficient that explains it: **`model_edge` = +0.351.** Our market-blind
+disagreement with the opener is worth about **35% of its face value** — when the
+model says the line is three points wrong, roughly one point is real and the
+ridge shrinks the rest away. The model earns its keep as a *residual signal*
+while failing as a *standalone forecast*.
+
+**Not shipped.** This is a challenger; the production stack remains market-blind.
+The largest single-season gain is 2024-25, the season the openers were worst, so
+the magnitude is not evenly earned even though the sign is consistent.
+
 ### CLV is a monitor, not an objective
 
 Closing-line value resolves in weeks where ROI needs decades, which is why it is

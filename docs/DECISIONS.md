@@ -14349,3 +14349,109 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d193_open_benchmark.py` NEW (read-only); `scripts/canary.py`
   NEW (read-only, never writes); `data/d193_open_benchmark.json` NEW; NO GATE
   RUN; NO PRODUCTION MODEL DEFAULT CHANGED; DB READ-ONLY]
+
+- D194 **RECERTIFIED ON THE RELOADED INJURY TABLE — AND IT IS A NO-OP, FOR AN
+  INSTRUCTIVE REASON.** Owner: "recertify". The D178 parser fix had never been
+  followed by a table reload.
+
+  **RELOAD.** `scripts/bf_injury_load.py` reparsed all 1,259 archived PDFs, 0
+  failures -> 126,378 rows -> 125,704 after dedup (was 125,695, **+9**).
+  **Distinct team values 31 -> 30, unresolvable 1 -> 0**: `da Silva, Tristan` is
+  gone and now appears correctly as a PLAYER with 15 rows (7 Questionable + 1 Out
+  + 1 Available for Orlando, 6 Out for New Orleans — he was traded).
+
+  **RECERTIFICATION: IDENTICAL.** Pooled certified gap **12.87% before and
+  after**; ll_us 0.60541 and ll_mkt 0.59244 both unchanged; **zero of 6,148 games
+  changed p_us** (max |delta| 0.00000). The capstone md5 moved
+  (695d40a3 -> 2c4feac6) **only because row order changed** — every numeric column
+  is byte-identical. DB backed up to `nba.duckdb.pre_D194_backup` first.
+
+  **WHY IT IS A NO-OP, AND THIS IS THE PART WORTH KEEPING.** The T2-HONEST
+  availability tier is `5PM official injury report UNION official pregame
+  inactives`. All **5/5** of da Silva's Out dates are covered by the inactives
+  feed, so the UNION masked the parse error completely. **The certified backtest
+  is structurally robust to injury-report parse errors, because a second feed
+  carries the same information.**
+
+  **THE ASYMMETRY THAT MATTERS FOR TRADING.** That robustness does NOT extend to
+  the live path. Official inactives are released ~30 minutes before tip; **they do
+  not exist when the opener is posted.** At the OPEN the injury report is the only
+  availability feed, so a parse error there is NOT masked by anything. **The
+  backtest is protected where the live path is exposed** — which means injury-PDF
+  parse health is a LIVE-PATH concern that no backtest number will ever surface.
+  It is in `scripts/canary.py`.
+
+- D195 **THE MARKET-OFFSET MODEL — THE SIGN FLIPS. SAME INFORMATION, EXPRESSED AS
+  A RESIDUAL ON THE OPENER, GOES FROM -0.019 TO +0.282 CAPTURE.** D193 showed the
+  market-blind model does not beat the opening line as a general forecaster. This
+  builds the consequence: `m_final = open_margin + f(x)`.
+
+  Declared before scoring: baseline to beat is **f=0, i.e. THE OPENER ITSELF**
+  (D176 — the incumbent, not a null). Five features, all knowable at the open:
+  model_edge (= m_us - open_margin), rest_diff, TRAILING absence_diff (never
+  tonight's 5pm report, which does not exist at the open), gidx, |open_margin|.
+  Ridge with lambda by **generalised cross-validation inside the training fold**
+  — Type-A per D192, no grid, no held-out data. Walk-forward: fit 1..k, score k+1.
+
+  | source | RMSE | log loss |
+  |---|---|---|
+  | market-blind model | 13.7294 | 0.60524 |
+  | opener | 13.6898 | 0.60501 |
+  | **offset model** | **13.6320** | **0.60150** |
+  | close | 13.4329 | 0.59257 |
+
+  | | market-blind | **offset** |
+  |---|---|---|
+  | capture (log loss) | -0.019 | **+0.282** |
+  | capture (margin) | -0.254 | **+0.225** |
+
+  **Per-season LL gain over the opener: [+0.00228, +0.00034, +0.00263, +0.01070,
+  +0.00149] — POSITIVE IN 5/5.** Mean +0.00349, t=+1.89 (K=5) **ns by t**, but a
+  one-sided sign test on 5/5 is **p=0.031**. Mixed but leaning, and far stronger
+  than anything the market-blind stack has shown against the opener.
+
+  **THE COEFFICIENT THAT MATTERS: model_edge +0.351.** Our market-blind
+  disagreement with the opener is worth **~35% of its face value** — when the
+  model says the line is 3 points wrong, about 1 point of that is real and the
+  ridge shrinks the rest away. That is the model earning its keep as a *residual
+  signal* while failing as a *standalone forecast*, and it is exactly what a
+  strongly-regularised offset architecture is for.
+
+  **CAVEAT, STATED PLAINLY:** the largest single-season gain is 2024-25
+  (+0.01070), which D193 identified as the season the OPENERS were unusually bad
+  (open-close gap 3x normal). 5/5 positive means it is not solely that, but the
+  magnitude is not evenly earned.
+
+  **NOT SHIPPED.** This is a challenger. The production stack is untouched and
+  remains market-blind. `nbapred/market/anchored.py` already carries the MOVEMENT
+  head (D147); this is the missing OUTCOME head, and the two are the pieces of a
+  market-aware deployable model.
+
+- D196 **odds_quotes: THE LOGGER WAS DEAD, THE WRITE PATH WAS NEVER PROVEN, AND
+  BOTH ARE NOW FIXED.** Owner: "set up odds quotes".
+
+  **DIAGNOSIS.** `odds_quotes` at 0 rows had never been distinguished from
+  "broken". It is both. (a) The `@reboot ... nohup` cron daemon **stopped on
+  2026-07-27** and nothing restarted it — 10 days dead. (b) When it WAS running it
+  logged `0 events, 500 credits left`, which is CORRECT offseason behaviour: no
+  NBA events -> no rows. So the empty table was expected, but the process being
+  dead was not, and nothing would have caught it.
+
+  **WRITE PATH PROVEN END-TO-END** rather than assumed: a synthetic snapshot in
+  the exact API shape (sentinel date 1999-01-01, `event_id='CANARY_TEST_EVENT'`,
+  two bookmakers) was loaded by `scripts/load_odds.py` -> **4 quote rows, 2
+  distinct bookmakers, i.e. the >=2-book rule would be SATISFIED**. Test rows and
+  the sentinel file were then deleted; `odds_quotes` back to 0.
+
+  **DURABILITY.** Replaced the `@reboot nohup` entry with a **systemd user
+  service** (`~/.config/systemd/user/nba-odds-logger.service`, `Restart=always`,
+  `RestartSec=30`), `loginctl enable-linger` set so it runs without a login
+  session. **Verified by `kill -9`: the service came back with a new PID within
+  35 seconds.** The superseded cron line was removed so there is exactly one
+  owner of this process.
+
+  [SCOPE D194/D195/D196: injury_reports_pit RELOADED (DB write, backed up first);
+  capstone re-run, outputs numerically identical; `scripts/d195_market_offset.py`
+  NEW; `data/d195_offset.json` NEW; systemd user unit NEW; crontab @reboot line
+  REMOVED; `REPO_NOTE.md` NEW (remote removed from nba_model); NO GATE RUN; NO
+  PRODUCTION MODEL DEFAULT CHANGED; the offset model is a CHALLENGER, not shipped]
