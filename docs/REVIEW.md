@@ -23,10 +23,9 @@ Simulation: 460 bets, 3 seasons, 2023-24 → 2025-26. The configuration is selec
 | 2023-24 | 7.74 | 154 | +21.20u | +13.77% | 1.90 |
 | 2024-25 | 1.00 | 210 | +50.40u | +24.00% | 3.81 |
 | 2025-26 | 1.03 | 96 | +4.85u | +5.05% | 0.54 |
-| **2023-26 pooled — recent execution headline** | **—** | **460** | **+76.44u** | **+16.62%** | **2.25** |
-| **2019-26 — primary full-frame reference** | **—** | **888** | **+80.93u** | **+9.11%** | **1.10** |
+| **2023-26 pooled** | **—** | **460** | **+76.44u** | **+16.62%** | **2.25** |
 
-ROI is P&L per unit staked; Sharpe is annualized on realised sessions. The multi-book panel is measured only in 2023-24, so the pooled figures are modelled for 2024-25 and 2025-26. The final row reports the full seven-season frame and serves as the primary reference; the three-season headline is the recent portion of that same sample.
+ROI is P&L per unit staked; Sharpe is annualized on realised sessions. The multi-book panel is measured only in 2023-24, so the pooled figures are modelled for 2024-25 and 2025-26. The full seven-season frame, of which this block is the recent portion, is reported below.
 
 Best-of-nine is the most consequential execution assumption in the headline. At a single observed book the same bets return +10.63%, so approximately two-thirds of the reported ROI survives with no line shopping at all; the full ladder appears under Execution below.
 

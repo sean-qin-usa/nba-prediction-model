@@ -84,13 +84,27 @@ The recompute reproduces data/bo_openbacktest.json kelly_slope
 ["PRIMARY rt1 p_full 4-season|SP"]["OPEN"] to the last decimal.  FROZEN:
 never refit mid-season; an annual refit would be a new D-line.
 
+D178 CHANGES (October live-path close-out):
+  FIX 1  GAME-TYPE FILTER.  The live path books REGULAR SEASON ONLY.  See
+         nbapred/engine/slate.py — `todays_games()` and `slate_context()` both
+         filter `game_id` prefix 002, and emit()/scan_open() filter their own
+         copy of the list.  Before this, an early-October preseason game or a
+         February All-Star game on the nba_api scoreboard would have been
+         priced and BOOKED.
+  FIX 2  >= 2 DISTINCT BOOKS AT THE OPEN (MIN_BOOKS_OPEN).  See that constant.
+  FIX 3  CLV BANDS RE-DERIVED (CLV_BAND).  See that constant.
+
 REAL-STAKES TRIGGER (--monthly-report; print-only, the engine NEVER acts):
 real stakes are CONSIDERED only after 2 consecutive completed calendar
-months with OPEN-view mean CLV > +0.0200, no completed OPEN-view month
-< -0.0131 (the D120 2-sigma bands, ~44 bets/month), AND stake_open_shrunk
-> 0 on >= 10% of priced OPEN-view candidates in that window; earliest
-2027-01-01; if triggered, start FLAT 0.25u.  This codifies the codex
-product-pass gate on D121's "open might justify capital".
+months with OPEN-view mean CLV > CLV_MONTH_GOOD, no completed OPEN-view month
+< CLV_MONTH_RED (the D178 2-sigma bands: -0.000236 / +0.024797, union-centred
+on the REAL-MONEYLINE frame at 67 bets/month — see CLV_BAND), AND
+stake_open_shrunk > 0 on >= 10% of priced OPEN-view candidates in that window;
+earliest 2027-01-01; if triggered, start FLAT 0.25u.  This codifies the codex
+product-pass gate on D121's "open might justify capital".  NOTE: a symmetric
+2-sigma GOOD line makes 2 consecutive GOOD months a ~1,932-month wait BY
+CONSTRUCTION; --monthly-report prints that arithmetic every run.  Re-specifying
+the TRIGGER (as opposed to the BAND) is a separate product decision.
 
 RULES (frozen BEFORE opening night; operators verbatim from the sims):
   R4_LOWT / T20_D03_10_W / T20_D03_10 / STAR_FAV_SHARPER — see rules_fired.
@@ -126,6 +140,7 @@ Run:  python scripts/bet_engine.py --scan-open          (cron */30, 14-02 UTC)
 from __future__ import annotations
 
 import argparse
+import math
 import datetime as dt
 import json
 import statistics
@@ -181,6 +196,47 @@ STAKE = 1.0              # flat paper stake per (game, rule, view)
 
 SNAPSHOT_KINDS = ("OPEN", "POST_REPORT", "PRETIP")
 
+# ---- D178 FIX 2: >=2 DISTINCT BOOKS AT THE OPEN -----------------------------
+# D142 measured the whole shop asset at the open: best-of-2 lifts CLV ~49%, and
+# taking the WORSE of two books erases essentially all of it (+0.0092 ->
+# -0.0007).  D125 shipped bet_quotes_panel telemetry but NOTHING required two
+# books, so a thin-book night booked a single-book price at the open and that
+# observation entered the CLV mean indistinguishably from a shopped one.
+#
+# THE RULE.  An OPEN row is BOOKED (non-zero stake in every arm, counted in the
+# CLV scoring set) only when >= MIN_BOOKS_OPEN distinct two-sided books are
+# present at that moment.  With one book the observation is STILL WRITTEN —
+# stakes zeroed, single_book = TRUE, clv_eligible = FALSE — so a thin-book
+# night degrades VOLUME, visibly, rather than silently polluting the
+# measurement.  `--report` and `--monthly-report` score CLV on clv_eligible
+# rows only.
+#
+# WHERE THE LIVE OPEN PANEL COMES FROM — VERIFIED, NOT ASSUMED (D174 context):
+#   * Action Network  — CANNOT serve.  D174 (2)(c): AN carries NO per-book
+#     opening price; its book_id 30 "Open" is a single CONSENSUS opener and the
+#     per-book numbers are one scrape-time snapshot (D174 (3): that snapshot is
+#     the CLOSE).
+#   * ESPN            — CANNOT serve alone.  `nbapred/ingest/espn_lines.py` is
+#     ONE BOOK by construction (ESPN BET on the public scoreboard).  MEASURED
+#     on D174's own panel rows (data/bkp_panel_rows.csv.gz), share of games
+#     with >=2 distinct operators AT THE OPEN:
+#         2023-24  94.7%   (the syndicated era, 8 operators modal)
+#         2024-25   0.0%   (ESPN BET only)
+#         2025-26   3.4%
+#     i.e. an ESPN-only open panel would refuse ~96.6% of OPEN bookings.
+#   * THE ODDS API (`nbapred/ingest/odds_logger.py` -> data/raw/odds/*.jsonl,
+#     `load_odds.flatten` -> one row per (book, market, outcome)) is the ONLY
+#     live source whose response shape carries a real multi-book US panel
+#     (`ev["bookmakers"][]`, regions=us).  The engine already prefers it
+#     (_jsonl_quotes) and falls back to odds_quotes.
+#   * OPERATIONAL CONSEQUENCE, NAMED SO OCTOBER CANNOT BE SURPRISED: the odds
+#     logger has NEVER RUN IN-SEASON in this repo — data/raw/odds/ holds one
+#     offseason day whose `data` is `[]`, and `odds_quotes` is EMPTY (0 rows).
+#     If the logger is not up on opening night, every OPEN row will be
+#     single-book and the CLV scoring set will be EMPTY — loudly, by design,
+#     which is the point of this rule.  See docs/OCTOBER_RUNBOOK.md.
+MIN_BOOKS_OPEN = 2
+
 # ---- FROZEN open-arm calibration (diagnostic arm 4) -------------------------
 # Derivation: header "FROZEN open_shrunk CONSTANTS".  Reproduces
 # data/bo_openbacktest.json kelly_slope["PRIMARY rt1 p_full 4-season|SP"]
@@ -201,8 +257,81 @@ OPEN_SHRUNK = {
 ALL_ARMS = tuple(SIZING_ARMS) + ("open_shrunk",)
 
 # ---- real-stakes trigger (print-only; --monthly-report) ---------------------
-CLV_MONTH_RED = -0.0131      # D120/D121 2-sigma red flag, monthly mean CLV
-CLV_MONTH_GOOD = +0.0200     # D120/D121 2-sigma good month
+# D178 FIX 3 — BANDS RE-DERIVED FROM SCRATCH (scripts/d178_clvbands.py ->
+# data/d178_clvbands.json).  They REPLACE D120/D121's RED -0.0131 / GOOD
+# +0.0200, which D159 showed were built wrong in two independent ways:
+#   (1) LEVEL  — centred on the ALL-SAME-SIDE UNIVERSE (+0.0035) but widthed by
+#                the per-bet sd of the RULE UNION, while --monthly-report scores
+#                the UNION.  Centre and width came from different populations.
+#   (2) FRAME  — built in the SP (spread-derived-probability) convention while
+#                this engine prices and settles MONEYLINES: `settle()` computes
+#                clv = close_implied - implied_p, and implied_p is the de-vigged
+#                CONSENSUS MONEYLINE probability on our side.
+# So GOOD was a +1.23-sigma event on the wrong frame — MIS-SPECIFIED, not
+# mis-levelled.  D159 published -0.0006/+0.0246 but derived them PRE-BACKFILL;
+# these are re-derived on the D171/D173 certified data, NOT pasted.
+#
+# THE SPACE MATTERS: the engine scores CLV in PROBABILITY space on the REAL
+# MONEYLINE.  D173 also reports an ATS SPREAD-POINT CLV that doubled to +0.320
+# POINTS — a different unit; using it here would be a ~26x error.  ML is used.
+#
+# DERIVATION INPUTS (ML | HONEST = capstone_pergame.csv, the availability
+# construction October ships; union of the 4 F4 rules, unique games, @OPEN;
+# 2023-24..2025-26 — the three full-T2 seasons, the only ones with a real
+# moneyline open).  --monthly-report PRINTS these alongside the verdict so a
+# band can never again drift from what produced it.
+CLV_BAND = {
+    "d": "D178",
+    "frame": "ML (real moneyline), probability space, union @OPEN, unique games",
+    "arm": "HONEST (data/capstone_pergame.csv, md5 695d40a3545e889267cad403b7acdce8)",
+    "seasons": ("2023-24", "2024-25", "2025-26"),
+    "centre": +0.012280275370533451,   # MEAN CLV OF THE UNION (fixes defect 1)
+    "per_bet_sd": 0.05122628489879061,
+    "n_bets": 1386,
+    "n_months": 21,
+    "bets_per_month": 67.0,      # MEDIAN union bets per calendar month
+    "se_monthly": 0.006258286762523038,  # per_bet_sd / sqrt(bets_per_month)
+    "k_sigma": 2.0,
+    "source": "scripts/d178_clvbands.py -> data/d178_clvbands.json",
+    "anchor": "LEAKY_REG ML@open UNION n=1378 CLV=+0.01590 == D155/D159 EXACT",
+    "supersedes": "D120/D121 RED -0.0131 / GOOD +0.0200",
+    # D176's headline caveat, carried onto the instrument it constrains.
+    "status": "MONITOR, NOT OBJECTIVE",
+}
+# WHAT THIS BAND IS AND IS NOT — D176 MEASURED THE TWO APART, SO THIS IS NOT A
+# HEDGE.  D176 ran three pre-registered selectors and found that the
+# AVAILABILITY-DIVERGENCE selector bought MORE CLV (6/6 cells, +0.143 pts) and
+# LESS ROI (1/6, -1.16pp), while the explicitly CLV-TARGETED selector bought
+# essentially NO extra CLV (+0.004) and the MOST ROI.  **CLV IS NOT A SUFFICIENT
+# STATISTIC FOR BET SELECTION.**  A band tuned purely on CLV can therefore
+# green-light a selector that is losing money.  CLV is kept because it RESOLVES
+# FAST — it is the monthly MONITOR, the early-warning instrument on execution
+# and timing.  It is NOT the objective, and A GREEN CLV MONTH IS NOT EVIDENCE OF
+# PROFITABILITY.  ROI, against the INCUMBENT, remains the objective.
+# AND ON NULLS (D176's second lesson): nothing in this band is a net-of-null
+# statistic.  Centre, sd and se are plain sample moments of the union CLV.  That
+# is deliberate — D176 found all three new arms beat their own permutation nulls
+# at p <= 0.048 and survived BH, AND ALL THREE STILL LOST TO THE INCUMBENT.
+# "Beats a scrambled copy of itself" is necessary, not sufficient; it is true of
+# the incumbent too.  Any future re-derivation that leans on a null must report
+# against the INCUMBENT as well.
+CLV_MONTH_RED = CLV_BAND["centre"] - CLV_BAND["k_sigma"] * CLV_BAND["se_monthly"]
+CLV_MONTH_GOOD = CLV_BAND["centre"] + CLV_BAND["k_sigma"] * CLV_BAND["se_monthly"]
+# -> RED -0.000236 / GOOD +0.024797.
+# TWO CONSEQUENCES THAT MUST NOT BE DISCOVERED LATER (both printed by
+# --monthly-report):
+#   * RED IS NOW MUCH TIGHTER (-0.0002 vs -0.0131): with the band correctly
+#     centred on +0.0123, "2 sigma below" is essentially "any negative month".
+#     On the 21 in-frame months that flags 3 — 2024-10, 2025-04, 2025-10 — and
+#     TWO OF THE THREE ARE OCTOBERS.  Expect an October RED; it means the month
+#     was below the historical run rate, not that the engine is broken.
+#   * THE TRIGGER IS UNREACHABLE BY CONSTRUCTION, AND ALWAYS WAS.  Asking for
+#     TRIGGER_MONTHS consecutive months above a +k-sigma line has expected wait
+#     1/P(+k sigma)^TRIGGER_MONTHS = ~1,932 months at k=2.  D120/D121's own
+#     numbers gave ~85 months only because their GOOD line sat at +1.23 sigma of
+#     THIS frame by accident.  Re-specifying the TRIGGER is a product decision
+#     with its own D-line; this entry fixes the BAND and makes the arithmetic
+#     visible instead of installing a number that hides it.
 TRIGGER_MONTHS = 2           # consecutive good months required (OPEN view)
 TRIGGER_OPEN_SHRUNK_FRAC = 0.10
 TRIGGER_EARLIEST = dt.date(2027, 1, 1)
@@ -243,6 +372,9 @@ CREATE TABLE IF NOT EXISTS {name} (
     open_shrunk_edge   DOUBLE,            -- max(0, a_o + b_o*edge), OPEN-arm frozen
     stake_open_shrunk  DOUBLE,            -- arm 4 (diagnostic, paper-only)
     pnl_open_shrunk    DOUBLE,
+    n_books       INTEGER,                -- D178: distinct two-sided books used
+    single_book   BOOLEAN,                -- D178: n_books < MIN_BOOKS_OPEN
+    clv_eligible  BOOLEAN DEFAULT TRUE,   -- D178: in the CLV scoring set?
     PRIMARY KEY (game_date, game_id, side, rule, snapshot_kind)
 );
 """
@@ -282,6 +414,12 @@ MIGRATION_COLUMNS = [
     ("open_shrunk_edge",   "DOUBLE", None),
     ("stake_open_shrunk",  "DOUBLE", None),
     ("pnl_open_shrunk",    "DOUBLE", None),
+    # D178 FIX 2 wave.  clv_eligible defaults TRUE so every PRE-D178 row keeps
+    # exactly the CLV status it already had — the rule is not applied
+    # retroactively to a measurement it did not govern.
+    ("n_books",            "INTEGER", None),
+    ("single_book",        "BOOLEAN", "FALSE"),
+    ("clv_eligible",       "BOOLEAN", "TRUE"),
 ]
 
 INSERT_COLS = [
@@ -292,6 +430,7 @@ INSERT_COLS = [
     "conf_excess", "cap_in_force", "shrunk_edge", "shrink_a", "shrink_b",
     "stake_raw_kelly", "stake_shrunk_kelly",
     "open_shrunk_edge", "stake_open_shrunk",
+    "n_books", "single_book", "clv_eligible",
 ]
 
 PANEL_COLS = ["game_date", "game_id", "snapshot_kind", "ts", "emitted_ts",
@@ -409,6 +548,31 @@ def _table_quotes(con, game_date: dt.date) -> list[tuple]:
          game_date + dt.timedelta(days=2)]).fetchall()
 
 
+
+# ---------------------------------------------------------------- D226 OFFSET
+SPREAD_SCALE_MKT = 6.96      # the program's spread<->prob map (see header)
+MODEL_SCALE = 7.2            # the model's own margin->prob link
+
+
+def _offset_p(model, hid, aid, outs, today, yday, mkt, rest_diff=0.0):
+    """Market-offset probability for one game (D224 gate, D226 promotion).
+
+    The market-blind model forms its margin FIRST and without seeing a price;
+    the opening number is then applied as a correction to it. If no market
+    snapshot is available the blind probability is returned unchanged, so a dead
+    odds feed degrades to the incumbent rather than to nothing.
+    """
+    from nbapred.market import offset as _off
+    from nbapred.model.production import sigmoid
+    m_blind = model.margin(hid, aid, outs.get(hid), outs.get(aid), today,
+                           hid in yday, aid in yday)
+    p_mkt = None if mkt is None else mkt.get("p_home")
+    if p_mkt is None or not (0.0 < p_mkt < 1.0):
+        return sigmoid(m_blind / MODEL_SCALE), m_blind, None
+    open_margin = SPREAD_SCALE_MKT * math.log(p_mkt / (1.0 - p_mkt))
+    m_off = _off.apply(m_blind, open_margin, rest_diff)
+    return sigmoid(m_off / MODEL_SCALE), m_blind, m_off
+
 def market_snapshot(quotes: list[tuple], home_name: str, away_name: str,
                     before_ts=None) -> dict | None:
     """Consensus + best-price + full-panel view of one game's h2h market.
@@ -518,9 +682,27 @@ def _candidate_rows(kind: str, today: dt.date, gid: str, home_ab: str,
     st = _stakes(p_us_side, p_mkt_side, price, coeffs)
     sh = max(0.0, coeffs["a"] + coeffs["b"] * edge)
     sh_open = max(0.0, OPEN_SHRUNK["a"] + OPEN_SHRUNK["b"] * edge)
+    # ---- D178 FIX 2: the >=2-book gate ------------------------------------
+    # n_books is the count of DISTINCT books that were TWO-SIDED at this
+    # snapshot (market_snapshot only counts a book once it has both sides and
+    # both decimals > 1.0), i.e. exactly the set the best-price shop ran over.
+    n_books = int(mkt.get("n_books") or 0)
+    single_book = n_books < MIN_BOOKS_OPEN
+    # The gate BINDS AT THE OPEN ONLY.  That is where D142 measured the asset
+    # (best-of-2 +49% CLV; worse-of-2 kills it) and where D167 decided to bet.
+    # POST_REPORT/PRETIP still RECORD n_books/single_book for telemetry but
+    # keep their CLV eligibility — narrowing them too would silently redefine
+    # the two comparison views the whole three-view design exists to measure.
+    refused = (kind == "OPEN") and single_book
+    clv_eligible = not refused
+    if refused:
+        st = {a: 0.0 for a in ALL_ARMS}   # not booked: no arm deploys capital
     now = dt.datetime.now(dt.timezone.utc)
-    detail = (f"n_books={mkt['n_books']};fav_star_out={int(fso)};"
-              f"gp={gp_home}/{gp_away}" + extra_detail)
+    detail = (f"n_books={n_books};fav_star_out={int(fso)};"
+              f"gp={gp_home}/{gp_away}"
+              + (f";single_book=1;clv_excluded=1;min_books={MIN_BOOKS_OPEN}"
+                 if refused else "")
+              + extra_detail)
     rows = []
     for rule in fired:
         rows.append([now, kind, mkt.get("ts"), today, str(gid), home_ab,
@@ -530,14 +712,17 @@ def _candidate_rows(kind: str, today: dt.date, gid: str, home_ab: str,
                      conf_excess, CONF_EXCESS_CAP, sh,
                      coeffs["a"], coeffs["b"],
                      st["raw_kelly"], st["shrunk_kelly"],
-                     sh_open, st["open_shrunk"]])
+                     sh_open, st["open_shrunk"],
+                     n_books, single_book, clv_eligible])
         gap = (price - consensus) if price and consensus else float("nan")
+        tag = (f"  *** SINGLE BOOK (k={n_books} < {MIN_BOOKS_OPEN}) — LOGGED, "
+               f"NOT BOOKED, EXCLUDED FROM CLV (D178) ***" if refused else "")
         print(f"  [{kind}] {rule:<16} {away_ab}@{home_ab} {side} "
               f"p_us={p_us_side:.3f} p_mkt={p_mkt_side:.3f} edge={edge:+.3f} "
               f"best={price if price else 'n/a'}@{book} cons={consensus} "
-              f"gap={gap:+.3f} stakes f={st['flat']:.2f} "
+              f"gap={gap:+.3f} k={n_books} stakes f={st['flat']:.2f} "
               f"rK={st['raw_kelly']:.2f} sK={st['shrunk_kelly']:.2f} "
-              f"oS={st['open_shrunk']:.2f}")
+              f"oS={st['open_shrunk']:.2f}{tag}")
     return rows
 
 
@@ -577,12 +762,18 @@ def emit(kind: str = "POST_REPORT", today: dt.date | None = None) -> int:
     prices, plus full book-panel telemetry.  (OPEN uses scan_open.)"""
     assert kind in ("POST_REPORT", "PRETIP")
     from nbapred.config import current_season
-    from nbapred.engine.slate import slate_context, todays_games
+    from nbapred.engine.slate import (filter_regular_season, slate_context,
+                                      todays_games)
     today = today or dt.date.today()
     season = current_season(today)
-    games = todays_games()
+    # D178 FIX 1: REGULAR SEASON ONLY.  todays_games() already filters, but the
+    # engine keeps its own copy of the list and must not diverge from the list
+    # slate_context built `outs` for — an unfiltered `games` here would KeyError
+    # on ctx["outs"][gid] the first October night a preseason game is on the
+    # scoreboard.  Never book a preseason/All-Star/exhibition game.
+    games = filter_regular_season(todays_games(), where=kind)
     if not games:
-        print(f"No NBA games today ({today}) — offseason no-op.")
+        print(f"No NBA regular-season games today ({today}) — offseason no-op.")
         return 0
     from nba_api.stats.static import teams as _t
     id2name = {t["id"]: t["full_name"] for t in _t.get_teams()}
@@ -609,9 +800,8 @@ def emit(kind: str = "POST_REPORT", today: dt.date | None = None) -> int:
     rows, panel = [], []
     for gid, hid, aid in games:
         outs = ctx["outs"][gid]
-        p_us = model.p_home(hid, aid, outs.get(hid), outs.get(aid), today,
-                            b2b_home=hid in yday, b2b_away=aid in yday)
         mkt = market_snapshot(quotes, id2name.get(hid, ""), id2name.get(aid, ""))
+        p_us, _mb, _mo = _offset_p(model, hid, aid, outs, today, yday, mkt)
         if mkt is None:
             print(f"  {gid} {id2ab.get(aid)}@{id2ab.get(hid)}: no h2h lines — skipped")
             continue
@@ -636,12 +826,16 @@ def scan_open(today: dt.date | None = None) -> int:
     quote timestamp, not the scan time.  Exits before any model fit when no
     new two-sided game exists (the cheap path, most scans)."""
     from nbapred.config import current_season
-    from nbapred.engine.slate import slate_context, todays_games
+    from nbapred.engine.slate import (filter_regular_season, slate_context,
+                                      todays_games)
     today = today or dt.date.today()
     season = current_season(today)
-    games = todays_games()
+    # D178 FIX 1 — see emit().  OPEN is the view that books first and is the
+    # one that runs every 30 min from 14:00 UTC in early October, i.e. the view
+    # most exposed to a preseason slate.
+    games = filter_regular_season(todays_games(), where="OPEN")
     if not games:
-        print(f"No NBA games today ({today}) — offseason no-op.")
+        print(f"No NBA regular-season games today ({today}) — offseason no-op.")
         return 0
     from nba_api.stats.static import teams as _t
     id2name = {t["id"]: t["full_name"] for t in _t.get_teams()}
@@ -668,7 +862,14 @@ def scan_open(today: dt.date | None = None) -> int:
         con.close()
         print(f"[OPEN] no newly two-sided games ({len(seen)} already booked)")
         return 0
-    print(f"[OPEN] {len(fresh)} newly two-sided game(s) — booking at first quote")
+    thin = [(g, m["n_books"]) for g, _, _, m in fresh
+            if int(m.get("n_books") or 0) < MIN_BOOKS_OPEN]
+    print(f"[OPEN] {len(fresh)} newly two-sided game(s) — booking at first "
+          f"quote; >={MIN_BOOKS_OPEN}-book rule (D178): "
+          f"{len(fresh) - len(thin)} shoppable, {len(thin)} single-book "
+          f"(logged, NOT booked, excluded from CLV)")
+    for g, k in thin:
+        print(f"  [OPEN] thin book panel game {g}: k={k}")
     ctx = slate_context(con, season, [(g, h, a) for g, h, a, _ in fresh], today)
     model, gp, yday = ctx["model"], ctx["gp"], ctx["b2b"]
     coeffs = load_coeffs()
@@ -676,8 +877,7 @@ def scan_open(today: dt.date | None = None) -> int:
     rows, panel = [], []
     for gid, hid, aid, mkt in fresh:
         outs = ctx["outs"][gid]
-        p_us = model.p_home(hid, aid, outs.get(hid), outs.get(aid), today,
-                            b2b_home=hid in yday, b2b_away=aid in yday)
+        p_us, _mb, _mo = _offset_p(model, hid, aid, outs, today, yday, mkt)
         panel += _panel_rows("OPEN", today, gid, mkt)
         fav_tid = hid if mkt["p_home"] >= 0.5 else aid
         fso = star_out_live(con, outs.get(fav_tid, set()), today)
@@ -686,7 +886,10 @@ def scan_open(today: dt.date | None = None) -> int:
                                 gp.get(aid, 0), fso, coeffs)
     con.close()
     _flush(rows, panel)
-    print(f"[OPEN] emitted {len(rows)} candidate rows, "
+    idx_ce = INSERT_COLS.index("clv_eligible")
+    n_excl = sum(1 for r in rows if not r[idx_ce])
+    print(f"[OPEN] emitted {len(rows)} candidate rows "
+          f"({len(rows) - n_excl} booked, {n_excl} single-book/excluded), "
           f"{len(panel)} panel rows for {today}")
     return len(rows)
 
@@ -800,10 +1003,17 @@ def report() -> None:
         "SELECT DISTINCT coalesce(snapshot_kind, 'POST_REPORT') "
         "FROM bet_paper ORDER BY 1").fetchall()] if "snapshot_kind" in have \
         else ["POST_REPORT"]
+    # D178 FIX 2: CLV is scored on the ELIGIBLE set only (single-book OPEN rows
+    # are logged but excluded).  `ELIG` degrades to "everything" on a table that
+    # predates the column, so an old bet_paper reports exactly as it used to.
+    ELIG = "coalesce(clv_eligible, TRUE)" if "clv_eligible" in have else "TRUE"
+    NB = "n_books" if "n_books" in have else "NULL"
+    SB = ("coalesce(single_book, FALSE)" if "single_book" in have else "FALSE")
     for kind in kinds:
         print(f"\n==== VIEW {kind} ====")
         print(f"{'rule':<18}{'n':>5}{'settled':>9}{'hit%':>7}{'PnL(u)':>9}"
-              f"{'ROI%':>8}{'staked':>9}{'CLV':>9}{'n_clv':>6}")
+              f"{'ROI%':>8}{'staked':>9}{'CLV':>9}{'n_clv':>6}{'1book':>7}"
+              f"{'meanK':>7}")
         for arm, (scol, pcol) in ARM_COLS.items():
             if scol not in have or pcol not in have:
                 print(f"\n-- {arm}: columns absent (older table) --")
@@ -814,28 +1024,35 @@ def report() -> None:
                        avg(CASE WHEN {scol} > 0 THEN outcome END) hit,
                        sum({pcol}) pnl,
                        sum(CASE WHEN settled_ts IS NOT NULL THEN {scol} END) staked,
-                       avg(clv) mean_clv, count(clv) n_clv
+                       avg(CASE WHEN {ELIG} THEN clv END) mean_clv,
+                       count(CASE WHEN {ELIG} THEN clv END) n_clv,
+                       sum(CASE WHEN {SB} THEN 1 ELSE 0 END) n_single,
+                       avg({NB}) mean_books
                 FROM bet_paper
                 WHERE coalesce(snapshot_kind, 'POST_REPORT') = ?
                 GROUP BY 1 ORDER BY 1""", [kind]).fetchall()
             print(f"\n-- ARM {arm} --")
-            for r, n, s, hit, pnl, staked, clv, n_clv in rows:
+            for r, n, s, hit, pnl, staked, clv, n_clv, n1, mk in rows:
                 roi = 100 * pnl / staked if staked else float("nan")
                 print(f"{r:<18}{n:>5}{s or 0:>9}{100*(hit or 0):>7.1f}"
                       f"{(pnl or 0):>9.2f}{roi:>8.2f}{(staked or 0):>9.1f}"
                       f"{(clv if clv is not None else float('nan')):>9.4f}"
-                      f"{n_clv:>6}")
+                      f"{n_clv:>6}{(n1 or 0):>7}"
+                      f"{(mk if mk is not None else float('nan')):>7.2f}")
     con.close()
 
 
 # ---- monthly report + real-stakes trigger (print-only) ----------------------
 
 def monthly_report(today: dt.date | None = None) -> None:
-    """Per-view monthly mean CLV vs the D120/D121 bands, plus the codified
+    """Per-view monthly mean CLV vs the D178 bands, plus the codified
     REAL-STAKES TRIGGER status.  PRINTS ONLY — the engine never deploys
     capital, never sizes real stakes, never flips any switch.  CLV months are
     computed on UNIQUE games (a game firing k rules is one CLV observation,
-    the D120 union-of-rules convention, ~44 bets/month)."""
+    the D120 union-of-rules convention, 67 bets/month in the D178 frame), on
+    clv_eligible rows only (D178 >=2-book rule).  The BAND'S DERIVATION INPUTS
+    ARE PRINTED WITH IT — centre, per-bet sd, n/month, se, k — so the numbers
+    can never again drift from the construction that produced them."""
     today = today or dt.date.today()
     con = _connect(read_only=True)
     try:
@@ -844,38 +1061,99 @@ def monthly_report(today: dt.date | None = None) -> None:
         print("no bet_paper table yet")
         con.close()
         return
-    rows = con.execute("""
+    have = {r[0] for r in con.execute(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name = 'bet_paper'").fetchall()}
+    # D178 FIX 2: single-book OPEN rows are logged but NOT in the CLV set.
+    ELIG = "coalesce(clv_eligible, TRUE)" if "clv_eligible" in have else "TRUE"
+    SB = "coalesce(single_book, FALSE)" if "single_book" in have else "FALSE"
+    rows = con.execute(f"""
         WITH g AS (SELECT DISTINCT coalesce(snapshot_kind,'POST_REPORT') kind,
                           strftime(game_date, '%Y-%m') ym, game_date, game_id,
-                          side, clv, price_decimal, stake_open_shrunk
+                          side, clv, price_decimal, stake_open_shrunk,
+                          {ELIG} elig, {SB} sb
                    FROM bet_paper)
-        SELECT kind, ym, avg(clv) mean_clv, count(clv) n_clv,
+        SELECT kind, ym, avg(CASE WHEN elig THEN clv END) mean_clv,
+               count(CASE WHEN elig THEN clv END) n_clv,
                count(*) n_bets,
-               sum(CASE WHEN price_decimal IS NOT NULL THEN 1 ELSE 0 END) n_priced,
-               sum(CASE WHEN stake_open_shrunk > 0 THEN 1 ELSE 0 END) n_os
+               sum(CASE WHEN price_decimal IS NOT NULL AND elig
+                        THEN 1 ELSE 0 END) n_priced,
+               sum(CASE WHEN stake_open_shrunk > 0 THEN 1 ELSE 0 END) n_os,
+               sum(CASE WHEN sb THEN 1 ELSE 0 END) n_single
         FROM g GROUP BY 1, 2 ORDER BY 1, 2""").fetchall()
     con.close()
-    print(f"MONTHLY CLV REPORT (as of {today})  bands: RED < {CLV_MONTH_RED} "
-          f"| GOOD > {CLV_MONTH_GOOD}  (D120/D121, 2-sigma at ~44 bets/mo)")
+    # ---- D178: the DERIVATION INPUTS, printed with the verdict -------------
+    b = CLV_BAND
+    print(f"MONTHLY CLV REPORT (as of {today})")
+    print(f"  BANDS ({b['d']}): RED < {CLV_MONTH_RED:+.6f} | "
+          f"GOOD > {CLV_MONTH_GOOD:+.6f}")
+    print(f"  DERIVATION INPUTS (a band and its inputs are printed together so "
+          f"they can never drift apart):")
+    print(f"    frame        {b['frame']}")
+    print(f"    arm          {b['arm']}")
+    print(f"    seasons      {', '.join(b['seasons'])}   "
+          f"n={b['n_bets']} union bets over {b['n_months']} months")
+    print(f"    centre       {b['centre']:+.6f}   (MEAN CLV OF THE UNION — "
+          f"NOT of the all-same-side universe; that swap was defect 1)")
+    print(f"    per-bet sd   {b['per_bet_sd']:.6f}")
+    print(f"    n/month      {b['bets_per_month']:.0f}  (median union bets per "
+          f"calendar month)")
+    print(f"    monthly se   {b['se_monthly']:.6f}  = "
+          f"{b['per_bet_sd']:.6f}/sqrt({b['bets_per_month']:.0f})")
+    print(f"    bands        centre +- {b['k_sigma']:.0f} * se")
+    print(f"    source       {b['source']}")
+    print(f"    anchor       {b['anchor']}")
+    print(f"    supersedes   {b['supersedes']}")
+    print(f"  CLV IS SCORED ON clv_eligible ROWS ONLY (D178 >= "
+          f"{MIN_BOOKS_OPEN}-book rule at the OPEN); `1book` counts logged-but-"
+          f"excluded rows.")
+    print(f"  *** CLV IS THE MONITOR, NOT THE OBJECTIVE (D176). *** D176 "
+          f"measured the two apart: the availability-divergence selector bought")
+    print(f"      MORE CLV (6/6 cells, +0.143 pts) and LESS ROI (1/6, -1.16pp), "
+          f"while the CLV-TARGETED selector bought essentially no extra CLV")
+    print(f"      (+0.004) and the MOST ROI. So CLV IS NOT A SUFFICIENT "
+          f"STATISTIC FOR BET SELECTION, and A GREEN CLV MONTH BELOW IS NOT")
+    print(f"      EVIDENCE OF PROFITABILITY — it is a fast-resolving read on "
+          f"execution and timing. ROI, AGAINST THE INCUMBENT, is the objective.")
     by_kind: dict[str, list] = {}
-    for kind, ym, mean_clv, n_clv, n_bets, n_priced, n_os in rows:
+    for kind, ym, mean_clv, n_clv, n_bets, n_priced, n_os, n_sb in rows:
         by_kind.setdefault(kind, []).append(
-            (ym, mean_clv, n_clv, n_bets, n_priced, n_os))
+            (ym, mean_clv, n_clv, n_bets, n_priced, n_os, n_sb))
     for kind in sorted(by_kind):
         print(f"\n-- VIEW {kind} --")
         print(f"{'month':<9}{'meanCLV':>9}{'n_clv':>7}{'bets':>6}"
-              f"{'priced':>8}{'openShr>0':>10}  flag")
-        for ym, mean_clv, n_clv, n_bets, n_priced, n_os in by_kind[kind]:
+              f"{'priced':>8}{'openShr>0':>10}{'1book':>7}  flag")
+        for ym, mean_clv, n_clv, n_bets, n_priced, n_os, n_sb in by_kind[kind]:
             flag = ""
             if mean_clv is not None:
                 flag = ("RED" if mean_clv < CLV_MONTH_RED
                         else "GOOD" if mean_clv > CLV_MONTH_GOOD else "ok")
             print(f"{ym:<9}"
                   f"{(mean_clv if mean_clv is not None else float('nan')):>9.4f}"
-                  f"{n_clv:>7}{n_bets:>6}{n_priced:>8}{n_os:>10}  {flag}")
+                  f"{n_clv:>7}{n_bets:>6}{n_priced:>8}{n_os:>10}{n_sb:>7}"
+                  f"  {flag}")
+    # ---- D178: the band's own reachability, so it is never re-mis-specified -
+    from statistics import NormalDist
+    nd = NormalDist(b["centre"], b["se_monthly"])
+    p_good = 1 - nd.cdf(CLV_MONTH_GOOD)
+    p_red = nd.cdf(CLV_MONTH_RED)
+    wait = (1 / p_good ** TRIGGER_MONTHS) if p_good > 0 else float("inf")
+    print(f"\n  BAND ARITHMETIC (monthly mean ~ N(centre, se) at "
+          f"{b['bets_per_month']:.0f} bets/month):")
+    print(f"    P(month > GOOD) = {p_good:.4f}   P(month < RED) = "
+          f"{p_red:.4f}   E[months to {TRIGGER_MONTHS} consecutive GOOD] = "
+          f"{wait:,.0f}")
+    print(f"    A symmetric +-{b['k_sigma']:.0f}-sigma band makes the "
+          f"{TRIGGER_MONTHS}-consecutive-GOOD trigger effectively "
+          f"UNREACHABLE. That is arithmetic, not a defect of this month's\n"
+          f"    data, and it was ALSO true of D120/D121 — whose GOOD line only "
+          f"looked reachable because it sat at +1.23 sigma of THIS frame by "
+          f"accident.\n    RE-SPECIFYING THE TRIGGER IS A SEPARATE PRODUCT "
+          f"DECISION AND NEEDS ITS OWN D-LINE. The band below is correct; the "
+          f"gate above it is not this entry's to move.")
     # ---- trigger: OPEN view, completed calendar months only ----------------
     cur_ym = today.strftime("%Y-%m")
-    om = [(ym, mc, np_, no) for ym, mc, nc, nb, np_, no in
+    om = [(ym, mc, np_, no) for ym, mc, nc, nb, np_, no, _sb in
           by_kind.get("OPEN", []) if ym < cur_ym and mc is not None]
     print("\nREAL-STAKES TRIGGER (codified; PRINT-ONLY — never acts):")
     print(f"  need: {TRIGGER_MONTHS} consecutive completed months OPEN mean "
@@ -925,7 +1203,8 @@ def monthly_report(today: dt.date | None = None) -> None:
 
 # ---- dry run (historical rehearsal; TEMP DB, never bet_paper) ---------------
 
-def dry_run(date_str: str, db_path: str | None = None) -> None:
+def dry_run(date_str: str, db_path: str | None = None,
+            books: int = 2) -> None:
     """Rehearse all three views + panel telemetry + all four arms + settle
     + reports on ONE historical date, writing ONLY to a temp DuckDB.  Prices
     come from data/derived/odds_open.csv (open ML -> OPEN view; close ML ->
@@ -933,7 +1212,22 @@ def dry_run(date_str: str, db_path: str | None = None) -> None:
     data/ds_rt1_pergame.csv p_full (the registered sim frame; no model fit),
     outcomes from the real nba_games (read-only).  fav_star_out is False (no
     historical live injury feed), so STAR_FAV_SHARPER cannot fire here.
-    This is a PLUMBING rehearsal, not a backtest."""
+    This is a PLUMBING rehearsal, not a backtest.
+
+    `books` (D178): how many books the synthetic panel carries.
+      1 — the HONEST historical shape.  data/derived/odds_open.csv is a single
+          CONSENSUS open/close moneyline per game, and D174 (5) established
+          that NO historical per-book ML OPEN panel exists for 2024-25/2025-26
+          (ESPN collapsed to one operator; Action Network has no per-book
+          opener at all).  Every OPEN row is therefore refused by the D178
+          >=2-book rule — which is exactly what should be rehearsed.
+      2 — adds a SECOND, CLEARLY-LABELLED book `spreadimplied_<tag>` priced off
+          the SAME row's spread via the program's own map
+          p = sigmoid(margin/6.96), dec = max(1/(p*OVERROUND), MIN_DEC).  It is
+          real data from the same source, not noise, but it is NOT a second
+          operator — it exists so the BOOKED branch of the >=2-book rule and
+          all four sizing arms are exercised at the OPEN.  SYNTHETIC; never a
+          measurement."""
     global DB_OVERRIDE
     import csv as _csv
     import tempfile
@@ -966,6 +1260,21 @@ def dry_run(date_str: str, db_path: str | None = None) -> None:
                           tzinfo=dt.timezone.utc)
     commence = dt.datetime(date.year, date.month, date.day, 23, 59,
                            tzinfo=dt.timezone.utc)
+    # D178: the synthetic second book, priced off the SAME row's spread.
+    from bet_sim3 import MIN_DEC, OVERROUND
+    SPREAD_SCALE = 6.96                 # nbapred/ingest/kaggle_odds.py
+
+    def sp_dec(margin):
+        """(dec_home, dec_away) from the spread, the program's own map."""
+        try:
+            mg = float(margin)
+        except (TypeError, ValueError):
+            return None, None
+        import math
+        ph = 1.0 / (1.0 + math.exp(-mg / SPREAD_SCALE))
+        return (max(1.0 / (ph * OVERROUND), MIN_DEC),
+                max(1.0 / ((1 - ph) * OVERROUND), MIN_DEC))
+
     open_q, close_q = [], []
     games = []
     for key, r in rt1.items():
@@ -976,24 +1285,32 @@ def dry_run(date_str: str, db_path: str | None = None) -> None:
         src = (o.get("source") or "odds_open").replace("/", "+")
         gid = r["game_id"].zfill(10)
         games.append((gid, h, a, r))
-        for (bucket, ts, mlh, mla, tag) in (
+        for (bucket, ts, mlh, mla, tag, mg) in (
                 (open_q, t_open, o.get("open_ml_home"), o.get("open_ml_away"),
-                 "open"),
+                 "open", o.get("open_margin")),
                 (close_q, t_close, o.get("close_ml_home"),
-                 o.get("close_ml_away"), "close")):
-            dh, da = am2dec(mlh), am2dec(mla)
-            if dh is None or da is None:
-                continue
-            book = f"{src}_{tag}"
-            bucket.append((ts, None, "odds_open", gid, commence, h, a, book,
-                           None, "h2h", h, None, dh, None, "dry"))
-            bucket.append((ts, None, "odds_open", gid, commence, h, a, book,
-                           None, "h2h", a, None, da, None, "dry"))
+                 o.get("close_ml_away"), "close", o.get("close_margin"))):
+            panel = [(f"{src}_{tag}", am2dec(mlh), am2dec(mla))]
+            if books >= 2:
+                sh, sa = sp_dec(mg)
+                panel.append((f"spreadimplied_{tag}", sh, sa))
+            for book, dh, da in panel[:books]:
+                if dh is None or da is None:
+                    continue
+                bucket.append((ts, None, "odds_open", gid, commence, h, a,
+                               book, None, "h2h", h, None, dh, None, "dry"))
+                bucket.append((ts, None, "odds_open", gid, commence, h, a,
+                               book, None, "h2h", a, None, da, None, "dry"))
     if db_path is None:
         db_path = str(Path(tempfile.mkdtemp(prefix="bet_engine_dry_"))
                       / "dry.duckdb")
     print(f"DRY RUN {day}: {len(games)} games with model+odds rows; "
           f"TEMP DB {db_path} — real bet_paper is NOT touched.")
+    print(f"  panel: books={books} "
+          + ("(consensus ML only — the honest historical shape; every OPEN row "
+             "should be REFUSED by the D178 >=2-book rule)" if books < 2 else
+             "(consensus ML + SYNTHETIC spread-implied second book, D178 — "
+             "plumbing only, NOT a second operator)"))
     # outcomes for settle, copied read-only from the real DB
     from nbapred.db import connect as _real_connect
     rcon = _real_connect(read_only=True)
@@ -1044,16 +1361,19 @@ def dry_run(date_str: str, db_path: str | None = None) -> None:
             _flush(rows, panel)
             arms = {arm: 0.0 for arm in ALL_ARMS}
             idx = {c: i for i, c in enumerate(INSERT_COLS)}
+            n_excl = 0
             for row in rows:
                 arms["flat"] += row[idx["stake_units"]]
                 arms["raw_kelly"] += row[idx["stake_raw_kelly"]]
                 arms["shrunk_kelly"] += row[idx["stake_shrunk_kelly"]]
                 arms["open_shrunk"] += row[idx["stake_open_shrunk"]]
-            summary[kind] = (len(rows), len(panel), arms)
+                n_excl += 0 if row[idx["clv_eligible"]] else 1
+            summary[kind] = (len(rows), len(panel), arms, n_excl)
         n_settled = settle(today=date + dt.timedelta(days=2))
         print("\nDRY-RUN SUMMARY")
-        for kind, (nb, np_, arms) in summary.items():
-            print(f"  {kind:<12} bet rows {nb:>3}  panel rows {np_:>3}  "
+        for kind, (nb, np_, arms, nx) in summary.items():
+            print(f"  {kind:<12} bet rows {nb:>3} ({nb - nx} booked, {nx} "
+                  f"single-book/CLV-excluded)  panel rows {np_:>3}  "
                   f"staked: " + "  ".join(f"{a}={v:.2f}"
                                           for a, v in arms.items()))
         print(f"  settled rows: {n_settled}")
@@ -1085,10 +1405,16 @@ def main() -> None:
                     help="historical rehearsal (YYYY-MM-DD) in a TEMP DB")
     ap.add_argument("--dry-db", metavar="PATH", default=None,
                     help="temp DB path for --dry-run (default: mkdtemp)")
+    ap.add_argument("--dry-books", type=int, default=2, choices=(1, 2),
+                    help="books in the --dry-run panel: 1 = honest historical "
+                         "single consensus ML (every OPEN row refused by the "
+                         "D178 >=2-book rule); 2 = + a SYNTHETIC "
+                         "spread-implied book so the booked branch and all "
+                         "four sizing arms are exercised (default 2)")
     args = ap.parse_args()
     ran = False
     if args.dry_run:
-        dry_run(args.dry_run, args.dry_db)
+        dry_run(args.dry_run, args.dry_db, books=args.dry_books)
         ran = True
     if args.settle:
         settle()

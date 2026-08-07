@@ -15463,3 +15463,72 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `scripts/d209_make_review_pdf.py` keepWithNext on headings and heading rules;
   PDF 3 pages, 0 unembedded fonts, 1 verified link annotation on page 1; no
   computed number changed]
+
+- D224 **GATE: THE OFFSET CONSTRUCTION, ON PREDICTION POWER. SHIP.** Spec
+  SHA-256 `2ecc47402ee3f021b59ab6c0b0f94b88`, MDE80 stated before the endpoint.
+  Incumbent = the shipped market-blind margin carrying D202 soft availability;
+  challenger = `m_open + f(m_blind − m_open, rest_diff, |m_open|)`, `f` refitted
+  walk-forward. Each source keeps its own walk-forward logistic scale.
+
+  | | |
+  |---|---|
+  | pooled log loss | blind 0.61222 -> **offset 0.60595** |
+  | season-clustered mean delta | **-0.006378 nats** |
+  | 95% CI (6 dof) | **[-0.010621, -0.002134] — EXCLUDES ZERO** |
+  | t | **-3.68** |
+  | MDE80 (stated first) | 0.005703 |
+  | better in | **6/7 seasons** (only 2024-25 worse) |
+  | calibration veto | PASS (mean p 0.5577 vs base 0.5521) |
+
+- D225/D226 **BOTH PROMOTED TO PRODUCTION.** Owner: "promote both to production
+  if they have higher prediction power." Both cleared a pre-registered
+  season-clustered gate against the incumbent — soft availability at D202
+  (t=-3.39, 5/5 seasons), the offset construction at D224 (t=-3.68, 6/7) — so
+  both are promoted rather than left opt-in.
+
+  **1. SOFT AVAILABILITY IS NOW THE DEFAULT.** `SOFT_AVAIL` flips to on in
+  `prod_by_season.py`; `SOFT_AVAIL=0` restores the hard out-set. Verified: the
+  new default reproduces the gated soft run to **8.99e-15**. The certified figure
+  moves from the leak-contaminated 12.87% to **14.92%** normalized gap — a
+  *worse-looking* number that is the honest one, since the incumbent 12.87% was
+  built on information published after the price it transacts at (D199).
+
+  **2. THE OFFSET LAYER IS NOW IN THE LIVE PATH.**
+  `nbapred/market/offset.py` NEW, with coefficients frozen by
+  `scripts/d225_fit_offset_prod.py` into `data/offset_coefs.json`
+  (edge +0.3564, rest_diff +0.0417, abs_open -0.0114; n=22,742, fitted through
+  2026-04-12). Wired into BOTH `bet_engine.py` model call sites.
+
+  **THREE PROPERTIES ENFORCED BY CONSTRUCTION, not by convention:**
+  - **Market-blindness survives.** `apply()` takes the blind margin as an
+    ARGUMENT and cannot reach back into the model that produced it, so the blind
+    model still never sees a price. That boundary is what makes D193/D224 mean
+    anything.
+  - **Degraded mode is the incumbent.** With no opening price, or with
+    `OFFSET_LAYER=0`, `apply()` returns the blind margin unchanged. A dead odds
+    feed costs the correction, never the prediction — which matters because D196
+    established the odds logger has already died once.
+  - **The blind model is not retired.** It is the offset layer's dominant input
+    and its fallback.
+
+  **A REAL BEHAVIOURAL CONSEQUENCE, caught by a test rather than reasoned about.**
+  `test_emit_never_books_a_non_regular_season_game` failed after wiring — not on
+  its game-type assertion but on `assert n > 0, "the regular-season game must
+  still book"`. **The offset shrinks disagreement with the market by ~65%, so a
+  margin that used to clear the betting threshold no longer does.** That is the
+  layer working as designed, and it means live bet VOLUME will fall. The stub was
+  recalibrated (blind margin 6.85 -> 10.67, the value leaving post-offset p at
+  0.72 against that test's quotes) so the rule assertions still test what they
+  were written to test. Two smaller stub gaps surfaced the same way: the fake
+  model had no `margin()` method, and `bet_engine.py` imported neither `math` nor
+  `sigmoid`.
+
+  **VERIFICATION:** 153/153 tests pass; live dry run emits with the offset
+  applied (edges now +0.047/+0.048 where the raw model would have shown more);
+  `predict_today.py` exits clean; canary 5 pass / 2 warn / 0 fail.
+
+  [SCOPE: `nbapred/market/offset.py` NEW; `scripts/d225_fit_offset_prod.py` NEW;
+  `data/offset_coefs.json` NEW; `scripts/prod_by_season.py` SOFT_AVAIL default
+  ON; `scripts/bet_engine.py` offset wired at both model call sites plus math /
+  sigmoid imports; `tests/test_bet_engine.py` stub given `margin()` and
+  recalibrated; PRODUCTION DEFAULTS CHANGED — both gated]

@@ -40,6 +40,23 @@ ORACLE_MINUTES = os.environ.get("ORACLE_MINUTES") == "1"  # PAID_ORACLES #2: per
 ORACLE_PLAYED_OUTS = os.environ.get("ORACLE_PLAYED_OUTS") == "1"  # LEAKAGE — ceiling only
 INACTIVE_OUTS = os.environ.get("INACTIVE_OUTS") == "1"  # alias of the default T2
 REPORT_OUTS = os.environ.get("REPORT_OUTS") == "1"      # T1: 5PM report only
+# D199: AS-OF-OPEN availability. The default T2 tier uses the SAME-DAY 5PM report
+# UNION official pregame inactives. Both post-date the OPENING line, so any study
+# that PRICES AT THE OPEN while using them is giving the model information the
+# bettor did not have. Measured exposure: 19.3% of the minutes-weighted out-set
+# is new on the day. This switch rebuilds the out-set from the most recent report
+# STRICTLY BEFORE game day and drops the inactives union entirely.
+OPEN_TIME_OUTS = os.environ.get("OPEN_TIME_OUTS") == "1"
+# D201: SOFT availability. Instead of a hard OUT set, pass the composition leg
+# {player_id: P(out tonight)} from data/p_out.csv.gz (walk-forward, PIT). A
+# player last listed Questionable is out ~28.9% of the time; the hard rule scores
+# him 0.0 and is wrong in BOTH directions (D200). Implies OPEN_TIME_OUTS.
+# D226: PROMOTED TO PRODUCTION DEFAULT after gate D202 (season-clustered delta
+# -0.002265, 95% CI [-0.0041,-0.0004] excluding zero, better 5/5 seasons,
+# calibration veto passed). Set SOFT_AVAIL=0 to fall back to the hard out-set.
+SOFT_AVAIL = os.environ.get("SOFT_AVAIL", "1") == "1"
+if SOFT_AVAIL:
+    OPEN_TIME_OUTS = True
 
 if ORACLE_PLAYED_OUTS:
     AVAIL_TIER = "C1-ORACLE-PLAYED"
@@ -59,24 +76,96 @@ else:
 def report_out_map(con):
     """{(game_date, team_abbrev): {player_id}} from the official 5PM report,
     plus the set of game_dates the report actually covers (so a team with
-    nobody Out is distinguishable from a season with no feed)."""
-    from nba_api.stats.static import teams as _t
-    name2ab = {t["full_name"]: t["abbreviation"] for t in _t.get_teams()}
-    rows = con.execute("""
-        SELECT i.game_date, i.team, p.player_id FROM injury_reports_pit i
-        JOIN (SELECT player_id, lower(first_name||' '||last_name) fn FROM nba_players) p
-          ON p.fn = lower(trim(split_part(i.player,',',2))||' '||trim(split_part(i.player,',',1)))
-        WHERE i.status = 'Out' AND i.report_date = i.game_date
-    """).fetchall()
+    nobody Out is distinguishable from a season with no feed).
+
+    D171 FIX — team names resolve through `nbapred.teams.abbrev_for`, which
+    knows the PDFs spell the Clippers "LA Clippers" while nba_api's full_name
+    is "Los Angeles Clippers".  Until this fix the inline
+    `{full_name: abbreviation}` lookup returned None for that one string and
+    the row was DISCARDED IN SILENCE: all 2,514 Clippers report rows (1,919
+    same-day 'Out') had never entered a T1 or T2 out-set, in the certified
+    seasons too (D170 §6).  Anything still unresolvable is now REPORTED with
+    its row count rather than dropped quietly — this is the third instance of
+    this bug class in the repo (D119, D161)."""
+    from nbapred.teams import abbrev_for
+    if OPEN_TIME_OUTS:
+        # AS-OF-OPEN, BY CARRY-FORWARD. The archive holds same-day reports
+        # (report_date = game_date, 93,110 rows) AND previous-evening reports
+        # (report_date = game_date - 1, 32,594 rows). Using only the advance
+        # rows is WRONG — most game-days have none, and outs/team collapses to
+        # 0.3 against a true ~1.2. What a bettor actually knows at the open is
+        # the LAST PUBLISHED STATUS carried forward, so: for each game date D,
+        # take the out-set from the most recent report_date strictly < D.
+        raw = con.execute("""
+            SELECT i.report_date, i.team, p.player_id
+            FROM injury_reports_pit i
+            JOIN (SELECT player_id, lower(first_name||' '||last_name) fn
+                  FROM nba_players) p
+              ON p.fn = lower(trim(split_part(i.player,',',2))||' '
+                              ||trim(split_part(i.player,',',1)))
+            WHERE i.status = 'Out'
+        """).fetchall()
+        by_rd = {}
+        for rd, team, pid in raw:
+            by_rd.setdefault(str(rd)[:10], []).append((team, int(pid)))
+        rep_dates = sorted(by_rd)
+        game_dates = sorted({str(d)[:10] for (d,) in con.execute(
+            "SELECT DISTINCT game_date FROM nba_games "
+            "WHERE game_id LIKE '002%'").fetchall()})
+        import bisect
+        rows = []
+        for gd in game_dates:
+            j = bisect.bisect_left(rep_dates, gd) - 1   # latest report < gd
+            if j < 0:
+                continue
+            for team, pid in by_rd[rep_dates[j]]:
+                rows.append((gd, team, pid))
+    else:
+        rows = con.execute("""
+            SELECT i.game_date, i.team, p.player_id FROM injury_reports_pit i
+            JOIN (SELECT player_id, lower(first_name||' '||last_name) fn
+                  FROM nba_players) p
+              ON p.fn = lower(trim(split_part(i.player,',',2))||' '
+                              ||trim(split_part(i.player,',',1)))
+            WHERE i.status = 'Out' AND i.report_date = i.game_date
+        """).fetchall()
     out = {}
+    unresolved = {}
     for gd, team, pid in rows:
-        ab = name2ab.get(team)
+        ab = abbrev_for(team)
         if ab:
             out.setdefault((str(gd)[:10], ab), set()).add(int(pid))
-    covered = {str(d)[:10] for (d,) in con.execute(
-        "SELECT DISTINCT game_date FROM injury_reports_pit "
-        "WHERE report_date = game_date").fetchall()}
+        else:
+            unresolved[team] = unresolved.get(team, 0) + 1
+    if unresolved:
+        top = sorted(unresolved.items(), key=lambda kv: -kv[1])[:5]
+        print("  report_out_map: %d row(s) on %d unresolved team string(s) "
+              "DROPPED: %s" % (sum(unresolved.values()), len(unresolved),
+                               ", ".join("%r x%d" % t for t in top)), flush=True)
+    covered = ({g for (g, _t, _p) in rows} if OPEN_TIME_OUTS else
+               {str(d)[:10] for (d,) in con.execute(
+                   "SELECT DISTINCT game_date FROM injury_reports_pit "
+                   "WHERE report_date = game_date").fetchall()})
     return out, covered
+
+
+def _load_pout():
+    """{game_date: {player_id: p_out}} from the D201 walk-forward artifact."""
+    import csv, gzip
+    f = REPO / "data" / "p_out.csv.gz" if "REPO" in globals() else \
+        Path(__file__).resolve().parent.parent / "data" / "p_out.csv.gz"
+    m = {}
+    if not f.exists():
+        raise SystemExit(f"SOFT_AVAIL=1 but {f} is missing; run "
+                         f"scripts/d201_pout_artifact.py first")
+    with gzip.open(f, "rt") as fh:
+        for row in csv.DictReader(fh):
+            m.setdefault(row["game_date"], {})[int(row["player_id"])] = \
+                float(row["p_out"])
+    return m
+
+
+_pout = _load_pout() if SOFT_AVAIL else {}
 
 
 def season_run(season):
@@ -143,14 +232,25 @@ def season_run(season):
         cov["report"]+=int(has_r); cov["inactives"]+=int(has_i)
         cov["either"]+=int(has_r or has_i); cov["neither"]+=int(not (has_r or has_i))
         outs={}
-        for t,ab_ in ((h.team_id,h.team_abbrev),(a.team_id,a.team_abbrev)):
+        if SOFT_AVAIL:
+            pm = _pout.get(ds, {})
+            for t in (h.team_id, a.team_id):
+                # every rostered player carries a probability; absent from the
+                # artifact means "never on a report" => available
+                outs[t] = {pid: pm[pid] for pid in rot[t] if pid in pm}
+        else:
+         for t,ab_ in ((h.team_id,h.team_abbrev),(a.team_id,a.team_abbrev)):
             if ORACLE_PLAYED_OUTS:                      # C1 — LEAKAGE, ceiling only
                 outs[t]=rot[t]-played.get((gid,t),set())
             else:
                 o=rout.get((ds,ab_),set()) & rot[t]     # T1: 5PM report
-                if not REPORT_OUTS:                     # T2: UNION official inactives
+                if not REPORT_OUTS and not OPEN_TIME_OUTS:  # T2: UNION official inactives
+                    # OPEN_TIME_OUTS never unions inactives: those are released
+                    # ~30 min pre-tip and cannot inform a bet at the open.
                     o=o | (inact.get(gid,set()) & rot[t])
                 outs[t]=o                               # empty where no feed covers
+        # n_out is a headcount for the tier sanity line; under SOFT_AVAIL it is
+        # the EXPECTED number out, which is the honest analogue.
         y.append(int(h.wl=="W"))
         # dead-team flags NOT passed: term failed the paired gate (ns, D47) —
         # infra kept for the post-injury-feed reconstruction
@@ -176,7 +276,9 @@ def season_run(season):
                      y[-1],float(pp[-1]),float(pmv),
                      len(outs[h.team_id]),len(outs[a.team_id]),
                      round(float(tsd),6),round(float(model.tank_k),4)))
-        n_out.append(len(outs[h.team_id])); n_out.append(len(outs[a.team_id]))
+        for _t in (h.team_id, a.team_id):
+            _o = outs[_t]
+            n_out.append(sum(_o.values()) if isinstance(_o, dict) else len(_o))
     con.close()
     y=np.array(y)
     n=len(y)
