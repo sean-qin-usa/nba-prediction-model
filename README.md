@@ -538,6 +538,55 @@ manufactures from nothing.**
   clipped 2008-09's −2.01% off the bottom of the frame. Three more instances were
   found afterwards. (`D171`)
 
+## Limits of the result — the material kept out of the summary
+
+`docs/REVIEW.md` and the PDF are a results document. The material below is the
+part a reader needs in order to know how much weight the result carries, and it
+lives here rather than there.
+
+**Manufacturing capacity.** Tuning to a single season yields positive in-sample
+ROI on 19 of 19 seasons — mean **+15.79%** in sample against **−1.13%** out, a
+decay of 16.92 ROI points. The identical procedure run on **pure noise**
+manufactures **+17.46**. Net of noise this project's capacity is **−0.55
+(p = 0.685)**. Every development-versus-out-of-sample gap in the register is
+smaller than what a modest grid search produces from nothing.
+
+**The frame is too short to tune on.** A null taking the best of five *randomly
+chosen* game subsets buys **+2.54 ROI points** on average, and every strategy
+filter tested lands inside that band (`D187`).
+
+**Short windows are selection, not regime.** Across all contiguous windows the
+best 3-season window returns +16.95% against a **+9.03% average across all
+3-season windows**; the best 4-season window +14.92% against +9.33%. Roughly
+**+5.6 to +7.9 points** of any short-window headline is the act of choosing it.
+The seven-season frame is the only window whose selection cost is zero by
+construction (`D208`).
+
+**Beating a permutation null is necessary, not sufficient.** Three selectors each
+beat their own null (p ≤ 0.048 after correction) and **all three lost to the
+incumbent**, one showing +6.29 net-of-null on a paired estimate of −0.43
+(`D176`).
+
+**The model is era-specific by construction.** Ablating the era-specific context
+terms flips the sign of the betting result. Zero shipped components can be dated
+to a gate using only pre-2021 data.
+
+**CLV is a monitor, not an objective.** A divergence selector bought more CLV and
+less ROI; a CLV-targeted selector bought no extra CLV and the most ROI (`D176`).
+
+**No market impact is modelled.** The CLV here is a price-taker's number at zero
+size; real stake into a soft opening line is part of the flow that closes the gap.
+
+**Errors found and corrected, all in the register:** an availability leak that
+made the published expectation too good by 3.8 points of normalized gap; a
+bet-time information leak worth 33% of the model's deficit to the market; a
+switch named after a hypothesis its code did not implement; a coefficient
+significant only because of the 2020 bubble; intervals too narrow before
+clustering; a team-name join that silently dropped 2,514 rows across four
+instances; two reporting frames corrected in public; and a confidence interval
+that briefly claimed false significance. 153 tests cover leakage and
+reproducibility.
+
 ## Charts
 
 `charts/` holds current renders only. The two that carry the headline:

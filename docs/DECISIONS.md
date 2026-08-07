@@ -15113,3 +15113,55 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   window 2023-24+ and drawdown annotation; `scripts/d209_make_review_pdf.py`
   header; `docs/REVIEW.md` haircut row removed and caveat expanded; PDF rebuilt,
   3 pages; no numbers changed, no model default changed]
+
+- D216 **THE REPORT REBUILT TO COPY THE OWNER'S ORIGINAL, AND CUT BACK TO A
+  RESULTS DOCUMENT.** Owner supplied the original PDF as reference and asked for
+  the format copied, the log-loss figure returned to plain levels, and the
+  self-critical material removed.
+
+  **STRUCTURE NOW MIRRORS THE ORIGINAL:** title, then the github subtitle line
+  ("Code, data pipeline and the full research register: ...") which is what the
+  owner meant by the github header — the D209 build had put it in a running page
+  header instead, which the original does not have. Section headings with a rule
+  beneath. Strategy / Headline results / The model / Considerations, with
+  Reporting frames, Execution, Methodology, Caveats and Next steps as
+  subsections. Page number only in the footer. Typography tightened (body 7.5pt,
+  tables 6.8pt) to reach the original's 3-page density.
+
+  **LOG LOSS BACK TO LEVELS (`scripts/d216_logloss_season.py`).** My rolling-path
+  versions had forced a difference-from-opener workaround because 8,000 points of
+  a ~0.30 swing hide a ~0.01 gap. **The original's own answer was better: plot
+  per-season means.** At 7 points per series the levels are legible directly and
+  no baseline trick is needed. Four series separated by line STYLE as well as
+  colour (solid / dashed / dash-dot / dotted) plus distinct markers, so the figure
+  survives greyscale and colour-vision deficiency. Thin lines (1.15pt) per the
+  owner's request.
+
+  | season | open | close | offset | blind |
+  |---|---|---|---|---|
+  | pooled (n=8,286) | 0.6084 | **0.5980** | 0.6059 | 0.6122 |
+
+  **CUT FROM THE REPORT, MOVED TO THE README** (owner: "i dont like how we have so
+  much area on this report talking about how our model isnt sustainable... can be
+  in readme or elsewhere, but not here"): the whole Research record section,
+  manufacturing capacity, the permutation-null result, the window-selection
+  analysis, the era-specificity ablation, CLV-is-not-an-objective, no-market-
+  impact, and the list of corrected errors. All of it now lives under a new
+  README section, **Limits of the result — the material kept out of the summary**,
+  rather than being deleted.
+
+  **FOUR THINGS KEPT, AND THE REASON.** A results document that drops every limit
+  becomes a claim rather than a result, so these stayed: **the interval contains
+  zero** (without it +16.62% reads as an established edge); **simulated, no
+  capital deployed**; **best-of-9 observed in one season and inferred in two**
+  (the headline number depends on it); and **2026-27 is the first genuinely
+  out-of-sample season**. Everything removed is presentational emphasis;
+  everything kept is load-bearing for reading the numbers correctly.
+
+  **ALSO REMOVED:** the leak-and-fix section (owner: results doc, belongs in the
+  repo) — retained in `docs/DECISIONS.md` D199-D202 and summarised in the README.
+
+  [SCOPE: `scripts/d216_logloss_season.py` NEW; `charts/logloss_season_4way.png`
+  NEW; `scripts/d209_make_review_pdf.py` header/rules/typography;
+  `docs/REVIEW.md` restructured; README gains the Limits section; PDF rebuilt to
+  3 pages; no numbers changed]

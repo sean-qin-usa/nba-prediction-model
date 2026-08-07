@@ -1,26 +1,14 @@
 # NBA opening-spread walk-forward — model and strategy review
 
-**Strategy:** Directional value-taking against the opening point spread in NBA
-regular-season games. A market-blind margin model prices every listed game; its
-disagreement with the opening spread is then spent, at about a third of face
-value, as a correction *to* the opening spread — `m_final = open_margin + f(x)`,
-with `f` a ridge shrunk hard toward zero and fitted walk-forward. A single side is
-taken where the corrected margin still disagrees with the line by more than a
-walk-forward selected threshold, at the best number available across books. Every
-position is one side of one game at −110, entered at the open and held to
-settlement: no hedge, no offsetting leg, no in-game management, no exit. Flat 1
-unit per bet, so nothing compounds. No calendar filter.
+Code, data pipeline and the full research register: **github.com/sean-qin-usa/nba-prediction-model**
 
-Selection is the strategy. The book is roughly 10% of the slate, so the cover rate
-on the selected book is not the cover rate on the slate.
+## Strategy
 
-**Simulation:** 888 bets across 7 seasons, 2019-20 → 2025-26, on recorded opening
-spreads. The configuration is selected on seasons 1..k from a pre-declared space,
-frozen, scored on season k+1, and rolled forward; nothing is refitted on the
-season being scored, and the selection history reaches back to 2012-13. Earlier
-seasons are excluded from scoring on principle: the daily injury report begins
-2018-12-17 and the availability leg is half the production margin, so before
-2019-20 the model cannot run as designed.
+Directional value-taking against the opening point spread in NBA regular-season games. A market-blind margin model prices every listed game; its disagreement with the opening spread is then spent, at about a third of face value, as a correction *to* the opening spread — `m_final = open_margin + f(x)`, with `f` a ridge shrunk hard toward zero and fitted walk-forward. A single side is taken when the corrected margin still disagrees with the line by more than a walk-forward selected threshold, at the best number available across books. Every position is one side of one game at −110, entered at the open and held to settlement: no hedge, no offsetting leg, no in-game management, no exit. Flat 1 unit per bet, so nothing compounds. No calendar filter.
+
+Selection is the strategy. The book below is 460 bets out of roughly 3,690 regular-season games in the window, about 12% of the slate. A side is taken only where the corrected margin disagrees with the opening spread by more than the walk-forward threshold, so the cover rate on the selected book is not the cover rate on the slate.
+
+Simulation: 460 bets, 3 seasons, 2023-24 → 2025-26. The configuration is selected on seasons 1..k from a pre-declared space, frozen, scored on season k+1, and rolled forward; nothing is refitted on the season being scored. The selection history reaches back to 2012-13, so the three seasons here are scored against a decade of prior data rather than against each other. Each bet is priced at the best of the 9 books held, the maximum observed at the open.
 
 ## Headline results
 
@@ -29,144 +17,105 @@ seasons are excluded from scoring on principle: the daily injury report begins
 | 2023-24 | 7.74 | 154 | +21.20u | +13.77% | 1.90 |
 | 2024-25 | 1.00 | 210 | +50.40u | +24.00% | 3.81 |
 | 2025-26 | 1.03 | 96 | +4.85u | +5.05% | 0.54 |
-| **2023-26 pooled, best of 9 books** | — | **460** | **+76.44u** | **+16.62%** | **2.25** |
+| **2023-26 pooled, modelled best of 9 books** | **—** | **460** | **+76.44u** | **+16.62%** | **2.25** |
 | 2019-26, all seven scored seasons | — | 888 | +80.93u | +9.11% | 1.10 |
 
-ROI is P&L per unit staked. Sharpe is annualized by √(sessions per season), not
-√252, which would inflate it 1.8×. Prices are the best of 9 books, but that panel
-is measured only in 2023-24, so the multi-book figures are modelled for every other
-season, and best-of-N is the strongest assumption in this document — see the
-caveats. The last row is the full scored frame and is the honest denominator: the
-three-season block is the recent end of it, not a separate result.
+ROI is P&L per unit staked; Sharpe is annualized on realised sessions. The multi-book panel is measured only in 2023-24, so the pooled figures are modelled for 2024-25 and 2025-26. The last row is the full scored frame, the honest denominator against which the three-season block is its recent end.
 
 ![equity](../charts/review_equity.png)
 
-*All 460 bets of the three recent seasons, in date order at the opening spread and
-−110; flat 1u, so the path is a running sum and nothing is re-selected within it.
-Max drawdown is −7.75u at bet 372. Across the full seven-season frame the path is
-+80.93u on 888 bets, with a −23.1u drawdown; the first three of those seasons lose
-money and the last four make +83.5u.*
+*All 460 bets in date order at the opening spread and −110; flat 1u, so the path is a running sum and nothing is re-selected within it. Max drawdown is −7.75u at bet 372. Over the full seven-season frame the path is +80.93u on 888 bets with a −23.1u drawdown, the first three of those seasons losing money and the last four making +83.5u.*
 
-Pooled over the three recent seasons ROI is +16.62% with a season-clustered 95%
-interval of [−9.29%, +37.83%]; over all seven it is +9.11% with an interval of
-[−2.75%, +16.08%] and an MDE80 of 12.7pp. **Both intervals contain zero.** In the
-three-season block 2024-25 alone supplies 66% of the P&L.
-
-The frame is also too short to tune on. Measured, a null taking the best of five
-randomly chosen game subsets buys +2.54 ROI points on average, and every strategy
-filter tested lands inside that band. Shortening the window does not escape this:
-across all contiguous windows the best 3-season window returns +16.95% against a
-+9.03% average, and the best 4-season window +14.92% against +9.33% — so roughly
-+5.6 to +7.9 of any short-window headline is the selection rather than a regime.
-The full seven-season frame is the only window whose selection cost is zero by
-construction.
+Pooled ROI is +16.62% over 460 bets, with a season-clustered 95% interval of [−9.29%, +37.83%]; on the full seven-season frame it is +9.11% with an interval of [−2.75%, +16.08%]. Three seasons is a small sample and both intervals contain zero. 2024-25 supplies 66% of the three-season P&L.
 
 ## The model
 
-The model outputs a margin, not a probability. A spread is itself a margin
-forecast, so the sides test involves no devig or probability conversion.
+The model outputs a margin, not a probability. A spread is itself a margin forecast, so the sides test involves no devig or probability conversion.
 
 ```
 margin = 0.5·four_factors + 0.5·availability_composition + schedule_layer + tank_term
 P(home win) = sigmoid(margin / 7.2)
 ```
 
-Two independent estimates of team strength, averaged, plus additive context. The
-market-blind model never sees market odds, enforced structurally rather than by
-convention; only the offset layer above it sees the price.
+Two independent estimates of team strength, averaged, plus additive context. The market-blind model never sees market odds, enforced structurally rather than by convention. Only the offset layer above it sees the price.
 
 | component | what it is | how it is fit |
 |---|---|---|
-| Four factors | opponent-adjusted ratings on shooting, turnovers, rebounding and free-throw rate; a decomposition of points per possession rather than a feature shortlist | one L2 ridge solve per factor (`ridge=25`), then the four adjusted values mapped to points by a fitted linear map. An 8-factor extension tied, so 4 is kept for parsimony |
-| Availability composition | Σ over available players of DARKO talent × trailing minutes / 48; the leg that reacts to injuries | each player weighted by 1 − P(out), forecast from as-of-open information only. Requires the daily injury report; this is why the frame starts 2019-20 |
-| Schedule layer | home edge, back-to-backs, dead-team flags | estimated walk-forward, EB shrinkage `n/(n+600)` toward a prior, `team_home_ridge=200` on per-team home deviations. The only component that has survived strict out-of-sample testing on every split tried |
+| Four factors | opponent-adjusted ratings on shooting, turnovers, rebounding and free-throw rate; a decomposition of points per possession rather than a feature shortlist | one L2 ridge solve per factor (`ridge=25`), then the four adjusted values mapped to points by a fitted linear map. An 8-factor extension tied, so 4 is kept for parsimony. |
+| Availability composition | Σ over available players of DARKO talent × trailing minutes / 48; the leg that reacts to injuries | each player weighted by 1 − P(out), forecast from information available at the open. Requires the daily injury report; this is why the model frame starts 2019-20 |
+| Schedule layer | home edge, back-to-backs, dead-team flags | estimated walk-forward, EB shrinkage `n/(n+600)` toward a prior, `team_home_ridge=200` on per-team home deviations. The only component that has survived strict out-of-sample testing on every split tried. |
 | Tank term | late-season effort | exactly zero outside its window |
-| Offset layer | the correction to the opening line | ridge on three features knowable at the open, shrunk hard toward zero. Fitted edge coefficient 0.33–0.37 in every fold |
+| Offset layer | the correction applied to the opening line | ridge on three features knowable at the open, shrunk hard toward zero. Fitted edge coefficient 0.33–0.37 in every fold |
 
-## How it compares to the two market prices
+Regularisation, in four forms: L2 ridge on the ratings solve; empirical-Bayes shrinkage toward a prior in the schedule and tank layers; data augmentation via prior-season pseudo-observations; and Bayesian/EB priors in the usage and props fits. The link scale 7.2 is a plug-in, not a hand-set constant: matching a logistic to the margin-residual normal gives 7.53 from training residuals alone.
 
-![log loss](../charts/logloss_line_2019_26.png)
+Inputs are four, and all public: `nba_api` box scores, the daily NBA injury report (PDF ingest), DARKO talent ratings, and historical odds, the last used by the offset layer and for scoring but never by the market-blind model. Measured: the entire purchasable stack (professional minutes projections, tracking feeds, premium talent ratings) is worth +0.0012 of log loss combined, not significant. Fitting is restricted to the `002` prefix, 35,546 regular-season games.
 
-Rolling log loss measured against the opening line, which is the zero line, across
-all seven scored seasons. Levels differ by about 0.01 nats while each series' own
-rolling path swings 0.30, so a levels chart leaves all four overlapping and
-illegible; the difference is the readable form. Pooled over 2019-26: opening line
-0.60839, closing line 0.59799, offset construction 0.60589, market-blind model
-0.61217. This figure keeps the full frame deliberately — forecast accuracy has no
-reason to be cut to the recent block, and more seasons make the comparison
-sharper.
+Player-level and matchup features were built and gated rather than skipped. The corpus holds a who-guarded-whom matchups cache, defended-FG% by shot category, zone defensive RAPM, hustle counts, ten Synergy play-types, a 10-dimension player skill posterior and 151,914 lineup stints. Tested against the shipped stack, the defensive-RAPM team aggregate returns +0.0011 with an interval crossing zero and the defender-aware variant +0.0037 not significant. Composition built from RAPM sums scores 0.608 against the shipped DARKO version. Physical head-to-head attributes are absent entirely: matchup geometry needs commercial tracking data the project does not hold. The one player-level term that survived is the scalar availability composition above.
 
-**The market-blind model is the only series above the opener.** It does not beat
-the price it would transact at, and it is beaten decisively by the close. The
-offset construction sits between the two prices, recovering 24.1% of the
-open-to-close gap; the blind model recovers −36.4% of it, moving the wrong way.
+**Accuracy.** Normalized gap is `(ll_us − ll_mkt) / (ln2 − ll_mkt)`, the share of the closing line's skill-above-a-coinflip the model fails to capture; zero is parity. On the fully-covered frame (2019-20 → 2025-26, K=7, n=8,286) the market-blind model sits 13.59% behind the market closing line, and the closing line beats it in every season of the frame.
 
-This is the most useful negative result in the project, and the offset
-construction does not make sense without it. The blind model is not a discarded
-attempt — it is the offset layer's dominant input, and the finding that its
-disagreement must be spent at a third of face value against a market anchor,
-rather than trusted on its own, is the strategy.
+![log loss](../charts/logloss_season_4way.png)
 
-## Bet-time information, and a leak that was found and closed
+*Log loss by season, all four forecasts on identical games, each converted to a probability with its own walk-forward scale. Lower is better. The closing line is below everything else in six of seven seasons; the market-blind model is above the opening line in six of seven. Series are distinguished by line style as well as colour.*
 
-The availability leg was built on the 5PM injury report and the official pregame
-inactive list. Both publish *after* the opening line the strategy transacts at, so
-every open-priced figure produced before this was found gave the model
-information the bettor did not have.
+| season | opening line | closing line | offset construction | market-blind model |
+|---|---|---|---|---|
+| 2019-20 (COVID) | 0.6102 | 0.6096 | 0.6082 | 0.6158 |
+| 2020-21 (COVID) | 0.6257 | 0.6174 | 0.6266 | 0.6376 |
+| 2021-22 | 0.6170 | 0.6039 | 0.6153 | 0.6220 |
+| 2022-23 | 0.6326 | 0.6239 | 0.6304 | 0.6359 |
+| 2023-24 | 0.5923 | 0.5825 | 0.5911 | 0.5993 |
+| 2024-25 | 0.6040 | 0.5809 | 0.5947 | 0.5915 |
+| 2025-26 | 0.5801 | 0.5727 | 0.5786 | 0.5875 |
+| **pooled (n=8,286)** | **0.6084** | **0.5980** | **0.6059** | **0.6122** |
 
-The exposure was measured rather than assumed. Comparing each team-day's out-set
-to the previous published report: 81.9% of tonight's absences are already known,
-18.1% are new on the day, 19.3% weighted by the absent player's minutes, and 44.3%
-of team-days carry at least one late scratch. Rebuilding the out-set by
-carry-forward from the last report strictly before game day widened the model's
-gap to the market from 12.87% to 17.17% — **the late information was worth 33% of
-the model's entire deficit.**
+**The market-blind model is the only one of the four above the opening line.** It does not beat the price it would transact at, and it is beaten decisively by the close. Expressed as the share of open-to-close information recovered, the offset construction captures +24.1% and the market-blind model −36.4%, moving the wrong way. That result is the reason the strategy is built as a correction to the line rather than as a forecast compared against it. Measured against the closing line alone the normalized gap is 13.59%, and the two COVID seasons are the extremes in both directions — 2019-20 the model's best on this frame and 2020-21 its worst. Both are kept because they are fully injury-covered, which is the frame's only criterion.
 
-The fix does not accept the degraded hard out-set but forecasts it. Each rostered
-player is now weighted by 1 − P(out), estimated from as-of-open information only.
-Players last listed *Questionable* turn out to be out 28.9% of the time; the old
-hard rule scored them 0.000 and was wrong in both directions. Gated against the
-hard-rule incumbent with the specification hashed and the detectable effect stated
-before the endpoint was read: season-clustered delta −0.002265, 95% interval
-[−0.0041, −0.0004] excluding zero, better in 5 of 5 seasons, calibration veto
-passed. It recovers 52% of the leakage penalty using only what is public at the
-open.
+Two further diagnostics, both on all games rather than the selected book. Against the opening spread the market-blind margin covers 50.65%, above a coin flip and significant, and below the 52.38% a −110 book charges, also significant. We disagree with the opening line by 2.455 points on average; if that disagreement were entirely real information we would cover 57.6%, so the genuine content is 0.206 points, 8.4% of what we claim — close to the third of face value the offset ridge independently arrives at. Closing-line value is positive and significant across 19 seasons, so the disagreement does carry information relative to the market's final price, by a margin smaller than the cost of transacting it.
 
-The correction is also what separates the two architectures. Under honest inputs
-the market-blind model's capture against the opener fell from +0.075 to −0.104 —
-it flipped negative — while the offset construction fell only from +0.313 to
-+0.267. Because the ridge already spent the model's edge at a third of face value,
-it was never leaning on the contaminated signal.
+## Considerations
 
-## What would change the assessment
+### Reporting frames
 
-- **2026-27, scored prospectively.** The architecture was developed on 2021-26
-  data, so no retrospective procedure can make it an untouched test. Both arms
-  will run on identical games, with the market-blind arm as the live control.
-- **Two books captured at the open, from opening night.** The multi-book logger
-  has never run in-season. If it is down on opening night, that season's
-  open-price record cannot be reconstructed afterwards.
-- **More seasons.** Seven is the honest frame and it is not enough. Resolving an
-  effect this size needs roughly 36 seasons at this dispersion.
+Two frames, each defined by what data exists. **Model accuracy:** 2019-20 → 2025-26 — the daily injury report the availability leg is built on begins 2018-12-17, so 2019-20 is the first fully covered season. **Betting:** headline on 2023-24 → 2025-26, the era of the measured multi-book panel, with the full seven-season frame reported beside it in the same table.
 
-## Notes and caveats
+### Execution
 
-- Results are **simulated** on recorded opening prices with a walk-forward
-  selection rule. No capital has ever been deployed.
-- Multi-book pricing is measured in 2023-24 only (7.74 books/game) and modelled
-  elsewhere; 2024-25 and 2025-26 observe 1.00 and 1.03 books per game at the open.
-- **Best-of-N pricing is the single most optimistic assumption here.** Always
-  transacting at the best of nine books means always transacting at whichever book
-  is furthest offside, and those are precisely the numbers that are unavailable in
-  size, moved before the bet lands, or withdrawn from an account that keeps taking
-  them. Applying an outlier charge — no credit for the 8.1% of best-of-N prices
-  sitting more than 1.5 points off the next book — costs about 2.3 ROI points, and
-  even that is a partial model. It does not capture staking limits at soft books,
-  reduced maximums on the best number, or account restriction, which in practice
-  arrive faster than any price effect. Exchange fees and account limits are not
-  modelled at all, and competing flow is absent from the replay.
-- Neither arm is the production default; promoting one is a re-certification.
-- The full register of 211 decisions, most of them rejections — including four
-  team-name join bugs, an availability leak, two wrong evaluation frames and a
-  confidence interval that briefly claimed false significance — is in
-  `docs/DECISIONS.md`.
+Model held fixed and only the transacted price varied, on the 2023-26 book.
+
+| execution | 2023-26 ROI | status |
+|---|---|---|
+| 1 retail book | +10.63% | degenerate reference |
+| 2 books | +12.91% | measured in 2023-24 only |
+| 5 books | +15.31% | firm baseline |
+| **9 books** | **+16.62%** | **max books observed, the reported tier** |
+| exchange, 2% commission | +14.72% | arithmetic, no exchange data held |
+
+The ladder flattens fast: 36% of the time two books post the same number, so extra books duplicate rather than add. The exchange row reprices executed-elsewhere bets under an assumed commission and is not a measurement.
+
+### Methodology
+
+- **Walk-forward, no lookahead.** Configuration chosen on seasons 1..k from a pre-declared space, scored on k+1 only.
+- **Settlement-only fills.** Priced at the recorded opening spread, held to settlement at −110. No queue model, no partial fill, no re-pricing.
+- **Bet-time information only.** Availability is built from the last injury report published *before* game day, never the 5PM report or the pregame inactive list, both of which post after the opening line.
+- **Regular season only.** Filtered on the `002` prefix. NBA Cup group-stage games are in because they count in the standings; a pre-registered difference-in-differences found no detectable effect (MDE 2.21 points).
+- **Season-clustered inference,** checked across rolling-origin, leave-one-season-out, block-bootstrap and legacy splits, corrected for multiple comparisons across the running family.
+
+### Caveats
+
+- **Simulated.** The model is not in production and no capital has been deployed.
+- **Best-of-9 pricing is observed in one season and inferred in two.** A measured multi-book panel exists for 2023-24 only, at 7.74 books per game; 2024-25 observes 1.00 and 2025-26 observes 1.03, so their price comes from a shopping law applied to one recorded book.
+- **Best-of-N transacts at whichever book is furthest offside.** 8.1% of best prices sit more than 1.5 points off the next book — the ones that get limited, lowered or voided. Charging for them costs about 2.3 ROI points, and that charge captures none of the staking limits or account restrictions that arrive faster in practice.
+- **2026-27 is the first genuinely out-of-sample season.** The betting configuration is re-selected walk-forward, but the model architecture was chosen on a 2021-26 corpus and handed to every step as fixed.
+- Exchange fees, state taxes and account limits are not modelled. Full method, gates and the register of rejected work are in the repository.
+
+### Next steps
+
+- **Capture at least two books at the open, from opening night.** Best-of-two lifts CLV by about 49%, and taking the worse book erases nearly all of it. The logger has never run in-season, so if it is not up on opening night the season's open-price CLV record is lost and cannot be reconstructed. Free, and the highest-value operational change available.
+- **Run both arms prospectively in 2026-27.** The offset construction is the primary and the market-blind model is its live control; they share 65% of their bets and take the same side on every shared game, so this is a controlled comparison rather than a portfolio.
+- **CLV as the live yardstick.** Significant across 19 seasons and positive in 17, in units that need no devig convention, and it resolves in weeks where ROI needs decades.
+- **Exchange access, if it becomes available.** The largest single lever measured here and an access problem rather than a modelling one.
+- **Props before sides.** Both shipped improvements of the last cycle came from the props engine, and soft books are softer on props.
+
+Not next: further feature search on the sides model. The question the project turns on is whether live closing-line value against opening prices, with two books captured, behaves as the backtest says.
