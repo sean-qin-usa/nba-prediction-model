@@ -14858,3 +14858,59 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `docs/SIM_REPORT_OFFSET.md` NEW; `docs/SIM_REPORT.md` corrected;
   `scripts/d181_report_tables.py` CI bug FIXED; `scripts/d206_offset_chart.py`
   and `charts/sim_report_equity_offset.png` NEW; no model default changed]
+
+- D207 **THE TRADING FRAME WAS WRONG BY SEVEN SEASONS — SAME ERROR AS D186, AND
+  IT WAS COSTING US. RE-CUT TO 2019-26. MARKET-OFFSET PROMOTED TO PRIMARY.**
+  Owner: "why are we doing 14 season? we only get proper injury report data from
+  2019 onwards, should only be those seasons, otherwise we are killing
+  ourselves." Correct on both counts.
+
+  D186 established the MODEL frame as 2019-20+ because the injury report begins
+  2018-12-17 and the availability leg — half the production margin — is empty
+  before it. **The TRADING frame was never re-cut to match**, so every published
+  trading figure pooled 7 fully-covered seasons with 7 that measure a crippled
+  variant. Re-cut, at k=9 raw:
+
+  | frame | market-blind | **market-offset** |
+  |---|---|---|
+  | ALL 14 (7 with no feed) | +4.33% / +77.0u | +7.57% / +121.8u |
+  | pre-2019 (no feed at all) | +3.77% / +28.0u | +5.67% / +40.8u |
+  | **2019-26 (fully covered)** | **+4.74% / +49.0u** | **+9.11% / +80.9u** |
+  | 2023-26 (measured panel) | +10.21% / +54.3u | +16.62% / +76.4u |
+
+  **The dilution was real: the offset arm reads +9.11% on the honest frame
+  against +7.57% on the 14-season blend.** Including seasons where the model
+  cannot run as designed was costing ~1.5 ROI points, in addition to being wrong.
+
+  **PRIMARY ARM CHANGED TO MARKET-OFFSET, per the owner.** On 2019-26 (K=7,
+  n=888): pooled **+9.11%**, cum **+80.9u**, season-clustered mean +6.67%, 95% CI
+  **[-2.75, +16.08]** — still CONTAINS ZERO — positive **5/7** seasons. Sim
+  report: 565 sessions, net **$809,335**, $1,432/day, **Sharpe 1.1**, win days
+  53%, max drawdown **-$240,301**, edge **911 bps**. The blind arm on the same
+  frame: +4.74%, $490,095, Sharpe 0.6, 4/7, edge 474 bps.
+
+  **HONEST DISTRIBUTION WITHIN THE FRAME:** the offset arm's first half
+  (2019-22) is **-$30,637 at Sharpe -0.1**; its second half (2022-26) is
+  **+$839,972 at Sharpe 2.0**. The result is concentrated in the recent block,
+  which is also the block the architecture was developed on. Not evenly earned.
+
+  **DOES THE BLIND MODEL STILL LOSE TO THE CLOSE? YES, DECISIVELY.** Honest
+  inputs, identical games: blind 0.59276, opener 0.59228, close 0.57870. We are
+  **+0.01406 worse than the close — 12.3% of its skill-above-coinflip** — and
+  **+0.00048 worse than the opener (0.5%)**. The offset construction closes
+  **26.7%** of the open-to-close gap; the blind model closes **-3.5%** of it, i.e.
+  moves the wrong way.
+
+  **DO WE STILL MENTION THE MARKET-BLIND MODEL? YES, PROMINENTLY — IT IS NOT A
+  DISCARDED ATTEMPT, IT IS THE OFFSET MODEL'S DOMINANT INPUT** (edge coefficient
+  ~0.35, stable 0.33-0.37 across every fold). Removing it from the story would
+  make the offset construction look like it appeared from nowhere, and would bury
+  what is arguably the register's most useful negative result: a carefully built,
+  market-blind forecasting model does not beat the opening line, and the value it
+  does carry is only extractable when spent at a third of face value against a
+  market anchor.
+
+  [SCOPE: `scripts/d181_report_tables.py` gains `RPT_FROM` (default 2019-20);
+  both SIM_REPORTs and the README re-cut to 2019-26 with the offset arm primary;
+  NO PRODUCTION MODEL DEFAULT CHANGED — promoting the offset construction to the
+  shipped default remains a re-certification]

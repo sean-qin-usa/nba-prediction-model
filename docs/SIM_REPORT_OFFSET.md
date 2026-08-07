@@ -1,5 +1,10 @@
 # Simulation performance — NBA opening-spread relative value (MARKET-OFFSET)
 
+> **FRAME: 2019-20 onward (`D207`).** Earlier seasons have no injury
+> feed at all, so the availability leg — half the production margin —
+> is empty and they measure a different, crippled model. Excluding them
+> RAISED the headline, which is why it was done on principle first.
+>
 > **DATA-COVERAGE CAVEAT.** The daily NBA injury report, which the availability
 > leg depends on, begins **2018-12-17**. Only **2019-20 → 2025-26** is fully
 > covered. A genuine multi-book panel at the open exists for **2023-24 only**

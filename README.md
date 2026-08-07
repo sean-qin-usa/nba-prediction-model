@@ -1,7 +1,7 @@
 # NBA Prediction Model
 
 A market-blind NBA win-probability model, and the full research record behind
-it: **a register that runs to D192, most entries rejections.** Results summary [here](nba_model_and_strategy_review.pdf).
+it: **a register that runs to D207, most entries rejections.** Results summary: **[docs/REVIEW.md](docs/REVIEW.md)**  (the earlier [PDF](nba_model_and_strategy_review.pdf) is retained for history and predates three corrections).
 
 ---
 
@@ -63,7 +63,7 @@ and each is defined by **what data exists**, never by which window looked best.
 | | frame | why this window | what it is not |
 |---|---|---|---|
 | **Model accuracy** | **2019-20 onward** | The daily injury report — the input the availability leg is built on — begins **2018-12-17, mid-way through 2018-19**. Coverage is 63.7% in 2018-19 and **95–100% from 2019-20**, so 2019-20 is the first fully-covered season. | Not the best-scoring window. It is the *worst* one. See below. |
-| **Betting** | **2023-24 → 2025-26** | The recent block, reported because it is the era the model was built for. **Correction:** only **2023-24** has a genuinely measured multi-book panel at the open (7.74 books/game); 2024-25 has 1.00 and 2025-26 has 1.03, so their multi-book price is a modelled uplift. | Not a profitable-window selection — it includes the flattest of the three. But not a fully measured one either. |
+| **Betting** | **2019-20 onward** — the same frame | `D207`: the trading frame had been pooling 14 seasons, 7 of which have no injury feed at all. It now matches the model frame, for the same reason. A tighter sub-window matters for *execution*: a genuine multi-book panel at the open exists for **2023-24 only** (7.74 books/game; 2024-25 and 2025-26 observe 1.00 and 1.03). | Not a profitable-window selection. Excluding the pre-2019 seasons *raised* the headline (+9.11% vs +7.57%), which is why it had to be done on principle before the numbers were looked at. |
 
 **The model frame is the less flattering choice, and that is the point.** Pooled
 over the seasons before the injury feed exists, the model sits **6.81%** behind
@@ -210,58 +210,34 @@ information we would cover 57.6% of the time. We cover 50.65%. So the genuine
 content of our disagreement is **0.206 points — 8.4% of what we claim.**
 Breaking even requires 0.751 points. **We deliver 27% of the edge needed.**
 
-### The walk-forward result on the measured-panel window
+### The result, on the honest frame
 
-Select the betting configuration on seasons 1..k from a pre-declared space,
-freeze it, score season k+1, roll forward — re-selecting each year the way you
-actually would. Scored at the opening spread under measured five-book execution
-with the outlier-realism haircut:
+Primary arm is now the **market-offset** construction (`D207`): the market-blind
+model's disagreement with the opener, spent at about a third of face value as a
+correction *to* the opener. Priced at the opening spread, k=9, walk-forward,
+**2019-20 → 2025-26**:
 
-Priced at **k=8 — the maximum number of books we hold**, which is the access
-level this repository reports under (see *Execution* below):
-
-| season | ROI (contaminated) | **ROI (honest)** |
+| | market-blind | **market-offset** |
 |---|---|---|
-| 2023-24 | +3.09% | **−0.65%** |
-| 2024-25 | +15.30% | **+22.14%** |
-| 2025-26 | +7.14% | **+6.56%** |
-| **2023-26 pooled** | +8.72% / +43.62u | **+10.15% / +54.01u** |
+| pooled ROI | +4.74% | **+9.11%** |
+| cumulative | +49.0u | **+80.9u** |
+| season-clustered mean | +3.14% | **+6.67%** |
+| **95% CI (K=7)** | [−5.79, +12.07] | **[−2.75, +16.08]** |
+| profitable seasons | 4/7 | **5/7** |
 
-**The honest 3-season number is higher — and worse evidence.** Its interval
-widens to **[−18.79%, +39.09%]** from [−6.72%, +24.17%], 2023-24 turns negative,
-and **2024-25's share of the window's P&L rises from 65.2% to 84.4%.** On the
-14-season frame the honest result is *lower*: **+4.33% / +77.0u** against
-+4.63% / +80.3u. Reporting only the 3-season improvement would be the flattering
-half of a two-sided correction.
+**Neither is significant — both intervals contain zero.** Seven seasons is the
+price of the honest frame, and it is not enough to resolve an effect this size.
 
-![equity raw vs haircut](charts/equity_2023_26_k8_haircut.png)
+**The result is not evenly earned.** The offset arm returns **−$30,637 (Sharpe
+−0.1)** over 2019-22 and **+$839,972 (Sharpe 2.0)** over 2022-26 — and that recent
+block is the block the architecture was developed on.
 
-**All three seasons are positive at k=8.** After the outlier-realism haircut —
-which charges for the 8.1% of best-of-N prices that sit >1.5 points off the next
-book and are the ones that get limited or voided — the same window returns
-**+5.96%**. Both numbers are reported; neither is significant.
+On the measured multi-book window (2023-26) the offset arm gains **+6.4 ROI
+points at every execution tier including a single book**, so the improvement is
+model rather than shopping, and it is positive in **3/3** seasons on **fewer**
+bets.
 
-**And here is the interval, which is the part that matters:**
-
-| window | pooled ROI | 95% CI (season-clustered) | MDE80 |
-|---|---|---|---|
-| **2023-26 (K=3), honest** | **+10.15%** | **[−18.79%, +39.09%]** | 41.9pp |
-| 2023-26 (K=3), contaminated | +8.72% | [−6.72%, +24.17%] | 18.5pp |
-
-See `docs/SIM_REPORT.md` for the full 14-season version of this table in
-institutional report format, and for the measured-vs-modelled breakdown.
-
-**This is why the window is 2023-26 and not 2024-26.** Dropping 2023-24 raises
-the point estimate to +8.33% and widens the interval to ±57 points — an interval
-that could not detect a 60-point edge, which is not a measurement. Three seasons
-is already too few; two is arithmetic wearing a percent sign.
-
-**Read the 2023-26 row honestly:** the point estimate is positive, the interval
-contains zero, and **2024-25 alone supplies 65% of the P&L.** One good season
-inside a three-season window is not an edge, and with K=3 the confidence interval
-is 30 points wide. This is a candidate, not a result.
-
-### Why the model looks era-specific
+### Why the model looks era-specific### Why the model looks era-specific
 
 The walk-forward loop re-selects the *betting configuration* honestly, but the
 *model architecture* was chosen on a 2021-26 corpus and handed to every step as

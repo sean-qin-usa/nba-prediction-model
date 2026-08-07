@@ -10,6 +10,11 @@
 > the opening price. Net PnL fell from $802,501 to **$769,855**, max drawdown
 > deepened to **−$343,893**, and profitable seasons fell from 10/14 to **9/14**.
 >
+> **FRAME: 2019-20 onward (`D207`).** Earlier seasons have no injury
+> feed at all, so the availability leg — half the production margin —
+> is empty and they measure a different, crippled model. Excluding them
+> RAISED the headline, which is why it was done on principle first.
+>
 > **DATA-COVERAGE CAVEAT — READ BEFORE QUOTING ANY NUMBER IN THIS FILE.**
 > The daily NBA injury report, which the model's availability leg depends on,
 > begins **2018-12-17 — mid-way through 2018-19**. Coverage of regular-season
