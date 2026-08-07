@@ -470,6 +470,36 @@ model says the line is three points wrong, roughly one point is real and the
 ridge shrinks the rest away. The model earns its keep as a *residual signal*
 while failing as a *standalone forecast*.
 
+### Traded through production machinery (`D204`)
+
+The offset construction has now been run through `as_adaptive` → `wf_equity` —
+the same pipeline that produced every other trading figure here — with `f` fitted
+walk-forward. **Scored on 2023-26 only**, the measured multi-book window:
+
+| tier | market-blind | **offset** | delta |
+|---|---|---|---|
+| k=1 raw | +4.44% / +23.6u | **+10.63% / +48.9u** | +6.19 |
+| k=9 raw | +10.21% / +54.3u | **+16.62% / +76.4u** | +6.40 |
+| k=9 +haircut | +7.87% / +41.9u | **+14.36% / +66.0u** | +6.48 |
+
+**+6.4 ROI points at every execution tier, including k=1** — the gain is model,
+not shopping.
+
+**And the quality improves more than the headline does:**
+
+| | market-blind | **offset** |
+|---|---|---|
+| per-season ROI | −0.60 / +22.20 / +6.64 | **+13.77 / +24.00 / +5.05** |
+| positive seasons | 2/3 | **3/3** |
+| best-season share of P&L | 84% | **66%** |
+| 95% CI (K=3) | [−18.73, +39.16] | **[−6.95, +40.18]** |
+| bets placed | 532 | **460** |
+
+The blind arm is negative in 2023-24 and leans 84% on 2024-25 — the season with
+the worst openers. The offset arm is positive in all three, less concentrated,
+and bets *less*. **It is still not significant:** K=3 and the interval contains
+zero.
+
 **Not shipped.** This is a challenger; the production stack remains market-blind.
 The largest single-season gain is 2024-25, the season the openers were worst, so
 the magnitude is not evenly earned even though the sign is consistent.

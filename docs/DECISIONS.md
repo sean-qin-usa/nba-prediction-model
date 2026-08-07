@@ -14695,3 +14695,67 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   regenerated, contaminated renders ARCHIVED; GATE RUN AND PASSED (D202);
   PRODUCTION DEFAULT STILL UNCHANGED — SOFT_AVAIL is opt-in pending the owner's
   re-certification call]
+
+- D204 **THE OFFSET CONSTRUCTION, TRADED THROUGH PRODUCTION MACHINERY FOR THE
+  FIRST TIME — AND IT IS BETTER ON EVERY DIMENSION, NOT JUST THE HEADLINE.**
+  Owner: "have we tried to trade on offset construction?" Honest answer at the
+  time: only in a scratch harness (REVIEW_v2 Appendix A), never through
+  `as_adaptive` -> `wf_equity`, the pipeline that produced every published
+  trading figure. Now it has been.
+
+  **CONSTRUCTION.** `scripts/d204_offset_frame.py` writes
+  `data/ats19_frame_offset.csv.gz`, whose `m_us` IS `open_margin + f(x)` with `f`
+  a ridge (lambda=3000, hard shrink toward "the opener is right") **fitted
+  walk-forward** — season k+1's margins come from a fit on seasons 1..k only.
+  Features knowable at the open: edge vs the opener, rest differential,
+  |open_margin|. Base margins are the D203 honest frame. Fitted edge coefficient
+  is stable at **0.33-0.37** across every fold, and the ridge shrinks mean
+  disagreement with the opener from **2.085 to 0.960 points (46%)**.
+
+  **SCORED ON 2023-26 ONLY**, per the owner: that is the measured multi-book
+  window (2023-24 has 7.74 books/game at the open; the two after it have 1.00 and
+  1.03). Trained on all prior history.
+
+  | tier | BLIND (honest, D203) | **OFFSET** | delta |
+  |---|---|---|---|
+  | k=1 raw | +4.44% / +23.6u | **+10.63% / +48.9u** | +6.19 |
+  | k=5 raw | +8.90% / +47.3u | **+15.31% / +70.4u** | +6.41 |
+  | k=9 raw | +10.21% / +54.3u | **+16.62% / +76.4u** | +6.40 |
+  | k=9 +haircut | +7.87% / +41.9u | **+14.36% / +66.0u** | +6.48 |
+  | exchange c=2% | +8.31% / +44.2u | **+14.72% / +67.7u** | +6.41 |
+
+  **+6.4 ROI points at EVERY execution tier**, including k=1 — the gain is model,
+  not shopping, and multi-book adds to it rather than explaining it.
+
+  **THE QUALITY IMPROVES MORE THAN THE HEADLINE DOES, WHICH IS THE PART THAT
+  MATTERS:**
+
+  | | BLIND | **OFFSET** |
+  |---|---|---|
+  | per-season ROI | −0.60 / +22.20 / +6.64 | **+13.77 / +24.00 / +5.05** |
+  | positive seasons | **2/3** | **3/3** |
+  | best-season share of P&L | **84%** | **66%** |
+  | 95% CI (K=3) | [−18.73, +39.16] | **[−6.95, +40.18]** |
+  | bets | 532 | 460 |
+
+  The blind arm is NEGATIVE in 2023-24 and leans 84% on 2024-25 — the season D193
+  identified as having the worst openers. **The offset arm is positive in all
+  three, is markedly less concentrated, and has a tighter interval.** It also bets
+  LESS (460 vs 532): more selective, not more active.
+
+  **STILL NOT SIGNIFICANT.** K=3, and the interval contains zero. This is the
+  strongest trading result in the register and it is still one season of bad luck
+  from nothing. On the full 14-season frame the same construction returns
+  **+7.57% / +121.8u at k=9** against the blind arm's +4.33% / +77.0u, with cover
+  **56.4%** against a 52.38% breakeven.
+
+  **WHY IT WORKS, in one number:** the fitted edge coefficient is ~0.35, so the
+  construction spends the market-blind model's disagreement at about a third of
+  face value. That is also why it survived D199's leakage correction when the
+  standalone model did not — it was never leaning on the contaminated signal.
+
+  [SCOPE: `scripts/d204_offset_frame.py` NEW; `data/ats19_frame_offset.csv.gz`,
+  `data/as_adaptive_OFFSET.json`, `data/wf_equity_OFFSET.json`,
+  `data/wf_perbet_OFFSET.json` NEW; NO PRODUCTION MODEL DEFAULT CHANGED — the
+  offset construction remains a CHALLENGER; the shipped stack is still
+  market-blind; DB READ-ONLY]
