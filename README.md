@@ -220,12 +220,19 @@ with the outlier-realism haircut:
 Priced at **k=8 — the maximum number of books we hold**, which is the access
 level this repository reports under (see *Execution* below):
 
-| season | bets | P&L | ROI |
-|---|---|---|---|
-| 2023-24 | 179 | +5.53u | **+3.09%** |
-| 2024-25 | 186 | +28.45u | **+15.30%** |
-| 2025-26 | 135 | +9.63u | **+7.14%** |
-| **2023-26 pooled** | **500** | **+43.62u** | **+8.72%** |
+| season | ROI (contaminated) | **ROI (honest)** |
+|---|---|---|
+| 2023-24 | +3.09% | **−0.65%** |
+| 2024-25 | +15.30% | **+22.14%** |
+| 2025-26 | +7.14% | **+6.56%** |
+| **2023-26 pooled** | +8.72% / +43.62u | **+10.15% / +54.01u** |
+
+**The honest 3-season number is higher — and worse evidence.** Its interval
+widens to **[−18.79%, +39.09%]** from [−6.72%, +24.17%], 2023-24 turns negative,
+and **2024-25's share of the window's P&L rises from 65.2% to 84.4%.** On the
+14-season frame the honest result is *lower*: **+4.33% / +77.0u** against
++4.63% / +80.3u. Reporting only the 3-season improvement would be the flattering
+half of a two-sided correction.
 
 ![equity raw vs haircut](charts/equity_2023_26_k8_haircut.png)
 
@@ -238,8 +245,8 @@ book and are the ones that get limited or voided — the same window returns
 
 | window | pooled ROI | 95% CI (season-clustered) | MDE80 |
 |---|---|---|---|
-| **2023-26 (K=3)** | **+8.72%** | **[−6.72%, +24.17%]** | 18.5pp |
-| 2024-26 (K=2) | +11.86% | [−39.97%, +63.70%] | 55.3pp |
+| **2023-26 (K=3), honest** | **+10.15%** | **[−18.79%, +39.09%]** | 41.9pp |
+| 2023-26 (K=3), contaminated | +8.72% | [−6.72%, +24.17%] | 18.5pp |
 
 See `docs/SIM_REPORT.md` for the full 14-season version of this table in
 institutional report format, and for the measured-vs-modelled breakdown.
@@ -395,19 +402,36 @@ strictly *before* game day, with no inactives:
 
 **What this does to the two architectures — the important part:**
 
-| | contaminated | **honest** |
+| model variant | capture vs opener | offset capture |
 |---|---|---|
-| market-blind capture vs opener | +0.075 | **−0.104** |
-| **offset-model capture vs opener** | +0.313 | **+0.222** |
+| contaminated | +0.075 | +0.313 |
+| honest-hard | **−0.104** | +0.222 |
+| **honest-soft (shipped)** | **−0.035** | **+0.267** |
 
 **The market-blind model's edge over the opener flips negative once it can only
 see what a bettor could see. The offset model degrades ~29% and stays clearly
 positive** — because its ridge already shrinks the model edge to ~35% of face
 value, it was never leaning on the contaminated signal.
 
-Every open-priced ROI/ATS/CLV figure below was produced under the contaminated
-availability set. **They are optimistic by an unquantified amount** and are being
-re-run on the honest one.
+**The fix, gated and shipped (`D201`/`D202`).** Rather than accept a degraded
+hard out-set, the composition leg now weights each player by **1 − P(out)**,
+where P(out) is forecast from as-of-open information only (walk-forward, so
+season k+1 uses only 1..k). Players last listed *Questionable* are out **28.9%**
+of the time; the hard rule scores them 0.000.
+
+| availability | log loss | normalized gap |
+|---|---|---|
+| contaminated | 0.60541 | 12.87% |
+| honest-hard (0/1) | 0.60973 | 17.17% |
+| **honest-soft (shipped)** | **0.60747** | **14.92%** |
+
+**Soft availability recovers 52% of the leakage penalty** using only what is
+public at the open. Gate: season-clustered delta −0.002265, **CI [−0.0041,
+−0.0004] excludes zero**, t = −3.39, better **5/5 seasons**, calibration veto
+passed.
+
+**Every figure below has been re-run on honest inputs (`D203`).** The correction
+runs in both directions and both are reported.
 
 ### The fix that follows: anchor on the opener
 
@@ -422,12 +446,18 @@ with `f` a ridge shrunk hard toward zero (λ by generalised cross-validation
 inside each training fold) on five features knowable at the open. Walk-forward,
 same games, same protocol (`D195`):
 
-| source | RMSE | log loss | capture |
-|---|---|---|---|
-| market-blind model | 13.7294 | 0.60524 | **−0.019** |
-| opener | 13.6898 | 0.60501 | 0 |
-| **offset model** | **13.6320** | **0.60150** | **+0.282** |
-| close | 13.4329 | 0.59257 | 1.0 |
+On honest (as-of-open, soft-availability) inputs, identical games:
+
+| source | log loss | capture |
+|---|---|---|
+| market-blind model | 0.59276 | **−0.035** |
+| opener | 0.59228 | 0 |
+| **offset model** | **0.58865** | **+0.267** |
+| close | 0.57870 | 1.0 |
+
+**Standalone we still do not beat the opening line.** The offset construction
+closes **26.7%** of the open-to-close gap and is the only form that is positive
+at all.
 
 **The sign flips.** The same information, re-expressed as a residual on the
 opener rather than an independent forecast, moves capture from −0.019 to

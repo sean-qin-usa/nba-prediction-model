@@ -1,5 +1,10 @@
 # Simulation performance — NBA opening-spread relative value
 
+> **RE-RUN ON HONEST INPUTS (`D203`).** Every figure in this file was recomputed
+> after `D199` found that the availability leg used information published after
+> the opening price. Net PnL fell from $802,501 to **$769,855**, max drawdown
+> deepened to **−$343,893**, and profitable seasons fell from 10/14 to **9/14**.
+>
 > **DATA-COVERAGE CAVEAT — READ BEFORE QUOTING ANY NUMBER IN THIS FILE.**
 > The daily NBA injury report, which the model's availability leg depends on,
 > begins **2018-12-17 — mid-way through 2018-19**. Coverage of regular-season
@@ -33,8 +38,8 @@ observed at the open** — with no outlier-realism haircut.
 | window | days | net PnL | PnL/day | Sharpe (ann.) | win days | max drawdown | trades/day | staked ntl/day | edge (bps) |
 |---|---|---|---|---|---|---|---|---|---|
 | First half (2012-13 – 2018-19) | 302 | $279,761 | $926 | 0.4 | 45% | −$195,953 | 2.5 | $25k | 377 |
-| Second half (2019-20 – 2025-26) | 456 | $522,740 | $1,146 | 0.7 | 48% | −$305,240 | 2.2 | $22k | 527 |
-| **Full window** | **758** | **$802,501** | **$1,059** | **0.5** | **47%** | **−$305,240** | **2.3** | **$23k** | **463** |
+| Second half (2019-20 – 2025-26) | 559 | $490,095 | $877 | 0.6 | 50% | −$316,647 | 1.9 | $19k | 474 |
+| **Full window** | **861** | **$769,855** | **$894** | **0.5** | **48%** | **−$343,893** | **2.1** | **$21k** | **433** |
 
 Edge is net PnL per dollar of staked notional. Unlike a two-legged basis trade,
 a spread bet has one leg, so notional is the stake and is not doubled. Dollar
@@ -124,12 +129,12 @@ Each line is one season's independently-scored book.
 | 2025-26 | $97,819 | $2,038 | +0.9 | 56% | 2.8 | $28k | +725 |
 | **ALL** | **$802,501** | **$1,059** | **0.5** | **47%** | **2.3** | **$23k** | **+463** |
 
-**Ten of fourteen seasons are profitable; four are not.** Unlike a multi-tenor
+**Nine of fourteen seasons are profitable; five are not.** Unlike a multi-tenor
 book, these are sequential rather than concurrent, so they cannot diversify each
 other — there is no portfolio effect and the aggregate Sharpe does not exceed the
 best season. Season ROI dispersion is **8.23pp** (min −7.45%, max +23.15%), and
 the season-clustered 95% confidence interval on pooled ROI is
-**[−0.12%, +9.38%]** — it includes zero.
+**[−1.10%, +9.77%]** — it includes zero.
 
 **Two seasons supply 61% of the net PnL** (2014-15 and 2024-25, $487k of $803k).
 

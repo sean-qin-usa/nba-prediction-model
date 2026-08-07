@@ -14599,3 +14599,99 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d200_participation.py` NEW (read-only);
   `data/d200_participation.json` NEW; NO GATE RUN; NO PRODUCTION MODEL DEFAULT
   CHANGED; composition leg UNCHANGED; DB READ-ONLY]
+
+- D201 **SOFT AVAILABILITY INTEGRATED.** `CompositionModel.strength()` now accepts
+  either a SET of out player-ids (hard; byte-identical to prior behaviour — set
+  form and `dict{p:1.0}` agree to 1e-12, `dict{p:0.0}` equals no-one-out,
+  `dict{p:0.5}` sits exactly halfway) or a DICT `{player_id: P(out)}` weighting
+  each player by `1-P(out)`. `prod_by_season.py` gains `SOFT_AVAIL=1` (implies
+  `OPEN_TIME_OUTS=1`), consuming `data/p_out.csv.gz` from
+  `scripts/d201_pout_artifact.py`. The artifact is walk-forward by construction:
+  season k+1's probabilities come from a model fitted on 1..k only; the first
+  season falls back to the hard rule so it is never worse than status quo there.
+  **42.8% of artifact rows sit in (0.1, 0.9)** — the region a hard 0/1 discards.
+  **CONTROL: the default path reproduces the certification to max |dp| = 9.8e-15.**
+
+- D202 **GATE: SHIP.** Spec SHA-256 `25d1f85f18069f48b484bc0f6c078f89`, MDE80
+  stated before the endpoint was read. Incumbent = HONEST-HARD carry-forward;
+  challenger = HONEST-SOFT.
+
+  | | |
+  |---|---|
+  | season-clustered mean delta | **-0.002265 nats** |
+  | 95% CI (4 dof) | **[-0.004118, -0.000412] — EXCLUDES ZERO** |
+  | t | **-3.39** |
+  | MDE80 (stated first) | 0.002415 |
+  | better in | **5/5 seasons** |
+  | calibration veto | PASS (mean p 0.5587 vs base 0.5534) |
+
+  | availability | log loss | normalized gap |
+  |---|---|---|
+  | contaminated | 0.60541 | 12.87% |
+  | honest-hard | 0.60973 | **17.17%** |
+  | **honest-soft (SHIPPED)** | **0.60747** | **14.92%** |
+
+  **Soft availability recovers 52% of D199's leakage penalty using only what is
+  public at the open.** Expected outs/team rises 0.40-0.59 -> 0.91-1.10 against
+  the contaminated 1.09-1.38.
+
+- D203 **HONEST RERUN OF EVERY PUBLISHED FIGURE, AND WHAT IT COSTS.** Trading
+  frame spliced (6,108 of 22,742 games carry the honest margin, mean |delta m_us|
+  0.42 pts), adaptive arms regenerated, `wf_equity.py` rerun. **The reproduction
+  guard correctly refused the first attempt** until the arms matched the new
+  frame — the guard working exactly as designed.
+
+  | tier | contaminated | **HONEST** | delta |
+  |---|---|---|---|
+  | k=1 raw | +1.83% / +31.6u | +1.83% / +32.5u | 0.00 |
+  | k=5 raw | +3.96% / +68.6u | +3.73% / +66.3u | -0.23 |
+  | **k=9 raw (14-season)** | **+4.63% / +80.3u** | **+4.33% / +77.0u** | **-0.30** |
+  | k=9 +haircut | +3.65% / +63.3u | +3.47% / +61.6u | -0.19 |
+  | exchange c=2% | +5.58% / +96.7u | +5.58% / +99.2u | 0.00 |
+
+  **THE DIRECTION DEPENDS ON THE WINDOW, AND BOTH ARE PUBLISHED.** On the
+  14-season frame the honest result is LOWER (+4.33% vs +4.63%). On the 2023-26
+  window it is HIGHER (**+10.15% vs +8.72%** at k=8 raw) — but with a far wider
+  interval (**[-18.79, +39.09]** vs [-6.72, +24.17]) and **worse concentration:
+  2024-25's share of the window's P&L rises from 65.2% to 84.4%.** The honest
+  2023-24 season goes NEGATIVE (-0.65% vs +3.09%). Reporting only the 3-season
+  improvement would be the flattering half of a two-sided correction.
+
+  **MODEL vs OPENER vs CLOSE, identical games, each source its own walk-forward
+  scale** — the comparison that decides whether any of this is information:
+
+  | model variant | model LL | opener | close | capture | offset-capture |
+  |---|---|---|---|---|---|
+  | contaminated | 0.59127 | 0.59228 | 0.57870 | +0.075 | +0.313 |
+  | honest-hard | 0.59370 | 0.59228 | 0.57870 | **-0.104** | +0.222 |
+  | **honest-soft (shipped)** | **0.59276** | 0.59228 | 0.57870 | **-0.035** | **+0.267** |
+
+  **Standalone we still do not beat the opening line** (-0.035), though the gated
+  soft model recovers two thirds of the way back from the hard rule's -0.104.
+  **Against the close we are well behind**: 0.59276 vs 0.57870, and capture of 1.0
+  would mean matching it. **The offset architecture closes 26.7% of the
+  open-to-close gap** and is the only construction that is positive at all.
+
+  **SIM REPORT rerun:** 861 sessions, 1,777 bets, net **$769,855** (was $802,501),
+  $894/day, Sharpe 0.5, win days 48%, max drawdown **-$343,893** (was -$305,240),
+  edge **433 bps**, **9/14 seasons profitable** (was 10/14), pooled ROI +4.33%
+  with a season-clustered 95% CI of **[-1.10, +9.77]**.
+
+  **PUBLICATION.** The owner's standing rule was to publish only if PnL improved.
+  On the primary 14-season frame it did not. **The owner overrode that rule and
+  published in both directions**, which is the right call: the README already
+  stated these figures were being re-run, the correction is 0.30 ROI points
+  against an interval +/-15 points wide, and a register that publishes only
+  favourable corrections is worth less than one that publishes all of them. The
+  five contaminated chart renders are archived under `charts_archive/` with a
+  `__contaminated_20260806` suffix rather than deleted.
+
+  [SCOPE: `nbapred/model/composition.py` soft-availability support (ADDITIVE,
+  default byte-identical); `scripts/prod_by_season.py` gains `SOFT_AVAIL`;
+  `scripts/d201_pout_artifact.py` NEW; `data/p_out.csv.gz`,
+  `data/capstone_pergame_soft.csv`, `data/ats19_frame_honest.csv.gz`,
+  `data/wf_equity_HONEST.json`, `data/as_adaptive_HONEST.json`,
+  `data/d202_gate.json`, `data/d203_report_honest.json` NEW; 5 charts
+  regenerated, contaminated renders ARCHIVED; GATE RUN AND PASSED (D202);
+  PRODUCTION DEFAULT STILL UNCHANGED — SOFT_AVAIL is opt-in pending the owner's
+  re-certification call]
