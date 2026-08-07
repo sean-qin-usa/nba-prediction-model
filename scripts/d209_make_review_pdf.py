@@ -65,25 +65,25 @@ S = {
                          fontSize=14, leading=17, textColor=NAVY,
                          alignment=TA_LEFT, spaceAfter=2),
     "h2": ParagraphStyle("h2", fontName="DejaVu-Bold", fontSize=10.5,
-                         leading=12.5, textColor=NAVY, spaceBefore=12,
-                         spaceAfter=2, borderWidth=0, borderPadding=0,
+                         leading=12.5, textColor=NAVY, spaceBefore=7,
+                         spaceAfter=1.5, borderWidth=0, borderPadding=0,
                          underlineWidth=0),
     "h3": ParagraphStyle("h3", fontName="DejaVu-Bold", fontSize=8.8,
-                         leading=11, textColor=INK, spaceBefore=8,
-                         spaceAfter=3),
-    "p": ParagraphStyle("p", fontName="DejaVu", fontSize=8.3, leading=11.0,
-                        textColor=INK, spaceAfter=3.6),
-    "li": ParagraphStyle("li", fontName="DejaVu", fontSize=8.3, leading=11.0,
+                         leading=11, textColor=INK, spaceBefore=5,
+                         spaceAfter=2),
+    "p": ParagraphStyle("p", fontName="DejaVu", fontSize=7.5, leading=9.9,
+                        textColor=INK, spaceAfter=3.4),
+    "li": ParagraphStyle("li", fontName="DejaVu", fontSize=7.5, leading=9.9,
                          textColor=INK, leftIndent=10, bulletIndent=3,
-                         spaceAfter=2.0, bulletFontName="DejaVu",
-                         bulletFontSize=8.3),
-    "code": ParagraphStyle("code", fontName="DejaVuMono", fontSize=7.8, leading=10.2,
+                         spaceAfter=1.4, bulletFontName="DejaVu",
+                         bulletFontSize=7.5),
+    "code": ParagraphStyle("code", fontName="DejaVuMono", fontSize=7.2, leading=9.4,
                            textColor=INK, backColor=BAND, leftIndent=6,
                            spaceBefore=3, spaceAfter=5, borderPadding=4),
     "sub": ParagraphStyle("sub", fontName="DejaVu", fontSize=7.8,
                           leading=10, textColor=INK2, spaceAfter=8),
-    "quote": ParagraphStyle("quote", fontName="DejaVu-Oblique", fontSize=7.6,
-                            leading=10.0, textColor=INK2, leftIndent=8,
+    "quote": ParagraphStyle("quote", fontName="DejaVu-Oblique", fontSize=7.0,
+                            leading=9.2, textColor=INK2, leftIndent=8,
                             spaceAfter=5),
 }
 
@@ -112,13 +112,13 @@ def inline(s: str) -> str:
 def make_table(rows):
     hdr, body = rows[0], rows[1:]
     data = [[Paragraph(f"<b>{inline(c)}</b>",
-                       ParagraphStyle("th", parent=S["p"], fontSize=7.2,
-                                      leading=9.2, textColor=colors.white))
+                       ParagraphStyle("th", parent=S["p"], fontSize=6.8,
+                                      leading=8.6, textColor=colors.white))
              for c in hdr]]
     for r in body:
         data.append([Paragraph(inline(c),
-                               ParagraphStyle("td", parent=S["p"], fontSize=7.2,
-                                              leading=9.2, spaceAfter=0))
+                               ParagraphStyle("td", parent=S["p"], fontSize=6.8,
+                                              leading=8.6, spaceAfter=0))
                      for c in r])
     t = Table(data, repeatRows=1, hAlign="LEFT")
     t.setStyle(TableStyle([
@@ -150,7 +150,7 @@ def build():
                     rows.append(cells)
                 i += 1
             flow.append(make_table(rows))
-            flow.append(Spacer(1, 4))
+            flow.append(Spacer(1, 3))
             n_tbl += 1
             continue
         if ln.startswith("```"):
@@ -174,7 +174,7 @@ def build():
             if lvl == 2:
                 flow.append(HRFlowable(width="100%", thickness=0.7,
                                        color=RULE, spaceBefore=1,
-                                       spaceAfter=5))
+                                       spaceAfter=3.5))
             i += 1
             continue
         if ln.startswith("!["):
@@ -184,9 +184,9 @@ def build():
                 if p.exists():
                     from reportlab.lib.utils import ImageReader
                     iw, ih = ImageReader(str(p)).getSize()
-                    w = 7.1 * inch
+                    w = 6.55 * inch
                     flow.append(Image(str(p), width=w, height=w * ih / iw))
-                    flow.append(Spacer(1, 6))
+                    flow.append(Spacer(1, 4))
             i += 1
             continue
         if ln.startswith(">"):
@@ -210,7 +210,7 @@ def build():
                     i += 1
                 flow.append(Paragraph(inline(" ".join(parts)), S["li"],
                                       bulletText="\u2022"))
-            flow.append(Spacer(1, 3))
+            flow.append(Spacer(1, 2))
             continue
         if ln.strip() == "<!--PAGEBREAK-->":
             flow.append(PageBreak())
@@ -239,7 +239,7 @@ def build():
 
     doc = BaseDocTemplate(str(OUT), pagesize=LETTER,
                           leftMargin=0.58 * inch, rightMargin=0.58 * inch,
-                          topMargin=0.52 * inch, bottomMargin=0.5 * inch,
+                          topMargin=0.48 * inch, bottomMargin=0.45 * inch,
                           title="NBA opening-spread relative value — review",
                           author="sean-qin-usa")
     fr = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="f")

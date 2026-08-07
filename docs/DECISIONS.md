@@ -15303,3 +15303,32 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   [SCOPE: `scripts/d209_make_review_pdf.py` inline-link handling and H1 rule;
   PDF rebuilt, 4 pages, 0 unembedded fonts, 2 URI annotations; no content or
   numbers changed]
+
+- D220 **BACK TO THE SMALLER TYPE AND 3 PAGES.** Owner: "font is quite big - i
+  actually like it before, can we go back? 3 pages is good."
+
+  Reverted body 8.3 -> 7.5pt on 9.9 leading, tables 7.2 -> 6.8pt, and the code and
+  quote styles with them. **The font EMBEDDING is untouched and unrelated** — that
+  was the actual defect the outside review found (`pdffonts` emb=no on every
+  face), and it is independent of point size. Post-build check still reports
+  **0 unembedded faces** and **2 URI annotations**.
+
+  Reverting the size alone left the document at 4 pages, because content had been
+  added since the smaller type was last in use (the execution ladder, the explicit
+  offset equation, the four D218 corrections). Spacing was tightened first
+  (heading space-before 12 -> 7, list spacing, figure and table spacers, margins),
+  then figures narrowed 7.1 -> 6.55 inches. That still left **three lines** on a
+  fourth page, so three low-value clauses were cut rather than shrink the artwork
+  further or squeeze the leading again: the exchange-row restatement, a redundant
+  "free, and the highest-value operational change" tag, and one spelled-out
+  "closing-line value" where CLV had already been defined.
+
+  **Note on the tension with the outside review**, which argued for 8-8.5pt body:
+  it was right that the type is small for something meant to be read, and the
+  owner's preference is for the denser page. The review's real finding — the
+  unembedded fonts — is fixed either way, and that is what was making the document
+  look broken rather than the point size.
+
+  [SCOPE: `scripts/d209_make_review_pdf.py` sizes and spacing; `docs/REVIEW.md`
+  three clauses trimmed; PDF 3 pages, 0 unembedded fonts, 2 URI annotations; no
+  numbers or findings changed]

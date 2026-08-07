@@ -108,7 +108,7 @@ Model held fixed and only the transacted price varied, on the 2023-26 book.
 | **9 books** | **+16.62%** | **max books observed, the reported tier** |
 | exchange, 2% commission | +14.72% | arithmetic, no exchange data held |
 
-The ladder flattens fast: 36% of the time two books post the same number, so extra books duplicate rather than add. The exchange row reprices executed-elsewhere bets under an assumed commission and is not a measurement.
+The ladder flattens fast: 36% of the time two books post the same number, so extra books duplicate rather than add.
 
 ### Methodology
 
@@ -128,10 +128,10 @@ The ladder flattens fast: 36% of the time two books post the same number, so ext
 
 ### Next steps
 
-- **Capture at least two books at the open, from opening night.** Best-of-two lifts CLV by about 49%, and taking the worse book erases nearly all of it. The logger has never run in-season, so if it is not up on opening night the season's open-price CLV record is lost and cannot be reconstructed. Free, and the highest-value operational change available.
+- **Capture at least two books at the open, from opening night.** Best-of-two lifts CLV by about 49%, and taking the worse book erases nearly all of it. The logger has never run in-season, so if it is not up on opening night the season's open-price CLV record is lost and cannot be reconstructed.
 - **Run both arms prospectively in 2026-27.** The offset construction is the primary and the market-blind model is its live control; they share 65% of their bets and take the same side on every shared game, so this is a controlled comparison rather than a portfolio.
 - **CLV as the live yardstick.** Significant across 19 seasons and positive in 17, in units that need no devig convention, and it resolves in weeks where ROI needs decades.
 - **Exchange access, if it becomes available.** The largest single lever measured here and an access problem rather than a modelling one.
 - **Props before sides.** Both shipped improvements of the last cycle came from the props engine, and soft books are softer on props.
 
-Not next: further feature search on the sides model. The question the project turns on is whether live closing-line value against opening prices, with two books captured, behaves as the backtest says.
+Not next: further feature search on the sides model. The question the project turns on is whether live CLV against opening prices, with two books captured, behaves as the backtest says.
