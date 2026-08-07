@@ -14994,3 +14994,72 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `scripts/d210_review_equity.py` NEW; `charts/review_equity.png` NEW;
   `nba_model_and_strategy_review.pdf` rebuilt; no numbers changed, no model
   default changed]
+
+- D211 **THE FOUR-WAY LOG-LOSS COMPARISON — OPEN, CLOSE, BLIND AND OFFSET — AND
+  WHY IT HAD TO BE PLOTTED AS A DIFFERENCE.** Owner asked to keep the log-loss
+  graph and put all four series on it. The first build plotted the four LEVELS
+  and was unreadable: the series differ by **~0.01 nats** while any one of their
+  rolling-100 paths swings **~0.30**, so the signal is 3% of the noise and all
+  four lines overlap into a single tangle. **Replotted as a difference from the
+  OPENING LINE**, which is now the zero axis — the shared game-to-game difficulty
+  cancels and only the quantity of interest remains.
+
+  Pooled, 2019-26, each source with its own walk-forward logistic scale:
+
+  | source | log loss | vs the opener |
+  |---|---|---|
+  | opening line | 0.60839 | 0 (the baseline) |
+  | closing line | 0.59799 | **-0.01040** |
+  | offset construction | 0.60589 | **-0.00250** |
+  | market-blind model | 0.61217 | **+0.00379** |
+
+  **The market-blind model is the ONLY series above the opener.** Offset recovers
+  **24.1%** of the open-to-close gap; the blind model recovers **-36.4%**, i.e.
+  moves the wrong way.
+
+  Palette validated rather than eyeballed (`dataviz/validate_palette.js`): the
+  first candidate FAILED the chroma floor (navy read as grey); the shipped set
+  passes all six checks with worst adjacent CVD dE 22.9, and every series is
+  additionally direct-labelled so identity never depends on colour.
+
+- D212 **A COMPACT FORM OF THE SAME CHART, BECAUSE THE FULL ONE WAS DECORATIVE AT
+  REPORT WIDTH.** The 7-panel D211 figure is 19 inches wide and correct at full
+  size, but reduced 2.75x into the report's 6.9-inch column its 7pt annotations
+  render near 2.5pt — present but unreadable, which is worse than absent.
+  `charts/logloss_compact_2019_26.png` carries the identical measurement as a
+  per-season grouped bar chart against the opener at zero. **The full-width
+  version stays for the repository; the compact one goes in the report.** A
+  figure that cannot be read at the size it is published at is not a figure.
+
+- D213 **THE REPORT RESTORED TO THREE PAGES; BOLD DENSITY MATCHED TO THE OWNER'S
+  SAMPLE; HEADLINE CUT TO THE RECENT THREE SEASONS WITH THE FULL FRAME KEPT
+  BESIDE IT.** Owner: "i liked all the info in the 3 page report - what was taken
+  away?" and asked whether the heavy bolding belonged.
+
+  **RESTORED** (D210 had cut these to reach 2 pages): the bet-time leakage
+  section in full — the 81.9/18.1/19.3/44.3% exposure, the 12.87% -> 17.17% cost,
+  the gated fix and its 52% recovery, and the fact that the correction flipped the
+  blind arm negative (+0.075 -> -0.104) while the offset arm held (+0.313 ->
+  +0.267); the window-selection table; "what would change the assessment"; and the
+  fuller caveats.
+
+  **BOLD DENSITY.** Checked against the owner's original: it bolds the
+  `Strategy:`/`Simulation:` labels, the pooled table row, and two or three figures
+  in the notes — perhaps six inline bolds in the whole document. The D209/D210
+  drafts bolded nearly every number, which flattens emphasis to nothing. Cut to
+  the sample's density: labels, the pooled row, and three claims that carry the
+  argument ("Both intervals contain zero", "the late information was worth 33%",
+  "the only series above the opener").
+
+  **HEADLINE = 2023-24..2025-26 per owner**, pooled +16.62% on 460 bets, CI
+  [-9.29, +37.83], with the post-haircut row (+14.36%) and **the full seven-season
+  frame (+9.11%, 888 bets, CI [-2.75, +16.08]) kept as the last row of the same
+  table.** The caption states that the seven-season row is the honest denominator
+  and the three-season block is its recent end, not a separate result — and the
+  body still carries D208's finding that short windows buy +5.6 to +7.9 points of
+  pure selection. That is how a recency headline can be shown without it becoming
+  a claim.
+
+  [SCOPE: `scripts/d211_logloss_4way.py`, `scripts/d212_logloss_compact.py` NEW;
+  2 charts NEW; `docs/REVIEW.md` restored and re-emphasised; PDF rebuilt to 3
+  pages; no numbers changed, no model default changed]
