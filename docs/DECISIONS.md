@@ -14759,3 +14759,61 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   `data/wf_perbet_OFFSET.json` NEW; NO PRODUCTION MODEL DEFAULT CHANGED — the
   offset construction remains a CHALLENGER; the shipped stack is still
   market-blind; DB READ-ONLY]
+
+- D205 **CAN WE SHIP BOTH AS COMPETITORS? NO — THEY ARE NESTED, NOT INDEPENDENT.
+  BUT BOTH MUST RUN ANYWAY, FOR REASONS THAT ARE NOT DIVERSIFICATION.** Owner
+  asked what best-season share is, which model is truly better, and whether both
+  can ship as competitors.
+
+  **BEST-SEASON SHARE** = the fraction of a window's total P&L contributed by its
+  single best season. At K=3 no interval can separate "an edge" from "one lucky
+  season", but concentration reads on it directly: 84% means the other two
+  seasons produced 16% between them, i.e. the result is largely one season
+  wearing a three-season costume. Lower is better. Blind 84%, offset 66%.
+
+  **WHICH IS BETTER: THE OFFSET MODEL, ON EVERY MEASURED DIMENSION.** ROI +6.4
+  points at every tier including k=1; positive 3/3 seasons vs 2/3; best-season
+  share 66% vs 84%; interval [-6.95,+40.18] vs [-18.73,+39.16]; fewer bets (460
+  vs 532, i.e. more selective); stable fitted coefficient (0.33-0.37 every fold);
+  interior threshold selection where the blind arm ran to the grid boundary; and
+  it survived D199's leakage correction (capture +0.267) where the blind arm
+  flipped negative (-0.104). On the 14-season frame it is also better and better
+  powered: +7.57% / +121.8u vs +4.33% / +77.0u, cover 56.4% vs a 52.38%
+  breakeven. **There is no dimension on which the blind arm wins.**
+
+  **BOTH AS COMPETITORS: NO. MEASURED.**
+  - On 2023-26 k=9 they share **297 games** — 65% of offset's bets, 56% of
+    blind's. On every one of those shared games they take the **same side**:
+    identical P&L sign 297/297, **per-bet correlation +1.000**.
+  - Daily return correlation across 325 sessions: **+0.573**.
+  - A 50/50 portfolio at the same total stake returns **+13.18%, sd 1.012**
+    against offset-alone's **+16.62%, sd 1.093**. It buys **-7.4% volatility for
+    -20.7% return.**
+
+  | arm | ROI | daily sd | return per unit risk |
+  |---|---|---|---|
+  | blind | +10.21% | 1.188 | 8.6 |
+  | 50/50 blend | +13.18% | 1.012 | 13.0 |
+  | **offset alone** | **+16.62%** | 1.093 | **15.2** |
+
+  **The blend is strictly worse than offset alone on risk-adjusted return.**
+  Running both as a portfolio is not diversification, it is diluting the better
+  signal with a worse, highly correlated one.
+
+  **BUT BOTH MUST RUN, FOR THREE NON-PORTFOLIO REASONS:**
+  1. **The blind model is an INPUT to the offset model.** Its disagreement with
+     the opener is the offset model's dominant term (coefficient ~0.35). There is
+     no version of this where offset runs and blind does not. They are nested.
+  2. **Different failure modes.** The blind model needs no price at bet time; the
+     offset model has no anchor if the odds feed dies. Blind is the degraded-mode
+     fallback, and D196 established the odds logger has already died once.
+  3. **It is the live control.** K=3 cannot settle this retrospectively. Running
+     both prospectively in 2026-27, scoring the same games, is the only way the
+     +6.4-point difference gets resolved — and D176's rule requires a challenger
+     be measured against the incumbent, not a null.
+
+  **DECISION: offset as PRIMARY challenger, blind as its required input,
+  degraded-mode fallback, and live control. Not a portfolio. Neither is shipped
+  as the production default yet — that is a re-certification.**
+
+  [SCOPE: analysis only; no code changed; no default changed; DB not touched]
