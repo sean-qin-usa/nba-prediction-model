@@ -14958,3 +14958,39 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
 
   [SCOPE: analysis only; no code changed; no default changed; summary frame
   UNCHANGED at 2019-26]
+
+- D210 **REVIEW PDF REDONE IN THE ORIGINAL LAYOUT.** Owner: "i strongly dislike
+  the new format, keep to the old one as much as possible... can have all the
+  extraneous details in readme but not here." The D209 rebuild had restructured
+  the document into seven numbered sections with the leakage narrative, the
+  window analysis and the frame justification inline. That is a different
+  document, not a refresh of the owner's.
+
+  **RESTORED FROM THE ORIGINAL:** unnumbered bold headings (Strategy / Headline
+  results / The model); a dense opening Strategy paragraph rather than a
+  bulleted breakdown; a **per-season headline table carrying books/game at open,
+  bets, P&L in units, ROI and Sharpe** with pooled and post-haircut rows; a
+  single-panel equity chart on the **sequential bet index** with dashed season
+  dividers and a break-even rule (`scripts/d210_review_equity.py`, replacing the
+  two-panel date-axis figure); an italic caption under it; one paragraph
+  carrying the interval, MDE80 and concentration; and the component table.
+
+  **MOVED OUT to the README and `docs/`:** the frame justification beyond one
+  sentence, the leakage narrative, the window-selection table, the gate detail,
+  the portfolio analysis. The PDF is 2 pages, down from 3, and 111 KB from 326.
+
+  Numbers are current throughout: 888 bets, 7 seasons, pooled **+9.11%**
+  (+80.93u), clustered 95% CI **[-2.75, +16.08]**, MDE80 12.7pp, 2024-25 supplying
+  62% of P&L, trough -23.1u at bet 161.
+
+  **PROCESS NOTE:** the PDF generator is a RENDERER over `docs/REVIEW.md`, so the
+  document cannot drift from the repository. Three rendering defects were caught
+  only by looking at the output rather than trusting the build: a 14-season equity
+  figure under 7-season text, multi-line bullets breaking out of their bullets,
+  and the two-panel chart itself. **A document generator's output must be read,
+  not just built.**
+
+  [SCOPE: `docs/REVIEW.md` restructured to the original shape;
+  `scripts/d210_review_equity.py` NEW; `charts/review_equity.png` NEW;
+  `nba_model_and_strategy_review.pdf` rebuilt; no numbers changed, no model
+  default changed]
