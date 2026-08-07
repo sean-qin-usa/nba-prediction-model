@@ -15532,3 +15532,37 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   ON; `scripts/bet_engine.py` offset wired at both model call sites plus math /
   sigmoid imports; `tests/test_bet_engine.py` stub given `margin()` and
   recalibrated; PRODUCTION DEFAULTS CHANGED — both gated]
+
+- D227 **README REWRITTEN AROUND THE SHIPPED SYSTEM.** Owner: "redo readme
+  content (especially charts) to reflect what we have been working on in the
+  summary — offset values, new timeframe/prediction power, etc."
+
+  **THE PROBLEM WAS ACCRETION.** The README had grown to **715 lines** across ~28
+  headings, most of them added as findings landed and none removed when they were
+  superseded. It described a market-blind win-probability model as the product —
+  which stopped being true at D226 — and carried whole sections ("We beat the
+  opening line...", "The fix that follows: anchor on the opener", "Traded through
+  production machinery") that were the *narrative of arriving* at the offset
+  construction rather than a description of it. **It referenced 3 of 46 charts,
+  and none of the ones the current argument rests on.**
+
+  **REWRITTEN TO 251 LINES.** Leads with what the system now is and why the
+  architecture takes that shape. Prediction power gets its own section with the
+  four-way comparison and both promotion gates side by side. The betting record
+  compares the two arms on one table rather than across four sections. The
+  historical narrative — how the leak was found, how the frames were corrected —
+  is compressed into "What we got wrong, and caught" rather than being re-argued.
+
+  **CHARTS RE-POINTED.** Now embeds `data_coverage`, `logloss_season_4way`,
+  `frame_model_2019_26` and `review_equity`, and the charts table names the six
+  that carry the argument. The stale references to `logloss_continuous_2019_26`
+  (superseded by the per-season levels chart) are gone.
+
+  **VERIFIED RATHER THAN ASSUMED:** every referenced chart file exists (6/6),
+  every referenced doc exists (6/6), and a sweep for figures superseded by the
+  offset promotion (+8.72%, +4.63%, a bare 12.87%) returns only two hits, both
+  correct in context — the leak narrative, where 12.87% -> 17.17% IS the finding,
+  and a register citation.
+
+  [SCOPE: README.md rewritten, 715 -> 251 lines; no numbers changed, no model
+  default changed; all links and chart paths checked to resolve]
