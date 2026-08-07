@@ -573,7 +573,8 @@ manufactures from nothing.**
 | `frame_model_2019_26.png` | per-season normalized gap on the corrected frame, pooled 13.59% |
 | `frame_betting_k8_2023_26.png` | every bet on the multi-book panel in order, with the per-season split and the 95% interval |
 | `equity_2023_26_k8_haircut.png` | the same 500-bet path drawn **raw and after the outlier-realism haircut** — the gap between the lines is the execution assumption |
-| `sim_report_equity.png` | the institutional-format equity path (see `docs/SIM_REPORT.md`) |
+| `sim_report_equity.png` | institutional-format equity path, **market-blind** (`docs/SIM_REPORT.md`) |
+| `sim_report_equity_offset.png` | the same for the **market-offset** arm (`docs/SIM_REPORT_OFFSET.md`) |
 
 Charts superseded by a re-certification are moved out of this repository rather
 than deleted — the old renders are retained under `charts_archive/` in the

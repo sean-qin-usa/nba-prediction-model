@@ -1,4 +1,9 @@
-# Simulation performance — NBA opening-spread relative value
+# Simulation performance — NBA opening-spread relative value (MARKET-BLIND)
+
+> **Companion:** [`SIM_REPORT_OFFSET.md`](SIM_REPORT_OFFSET.md) is the
+> **market-offset** arm on identical machinery and identical games. It is better
+> on every point estimate — net $1,217,630 against $769,855, Sharpe 0.9 against
+> 0.5, 10/14 profitable seasons against 9/14. Read them together.
 
 > **RE-RUN ON HONEST INPUTS (`D203`).** Every figure in this file was recomputed
 > after `D199` found that the availability leg used information published after
@@ -133,8 +138,16 @@ Each line is one season's independently-scored book.
 book, these are sequential rather than concurrent, so they cannot diversify each
 other — there is no portfolio effect and the aggregate Sharpe does not exceed the
 best season. Season ROI dispersion is **8.23pp** (min −7.45%, max +23.15%), and
-the season-clustered 95% confidence interval on pooled ROI is
-**[−1.10%, +9.77%]** — it includes zero.
+the season-clustered 95% confidence interval is **[−1.32%, +9.55%]** — it
+includes zero.
+
+> **Interval corrected.** An earlier version of this line reported
+> **[−1.10%, +9.77%]**. That interval had been centred on the n-weighted pooled
+> ROI while taking its standard deviation from the unweighted per-season ROIs —
+> two different quantities. Centred consistently (`oc.cluster_mean_t`, as
+> `GATE_POLICY_V2` and the production pipeline do), it is **[−1.32%, +9.55%]**,
+> around a season-clustered mean of **+4.12%**. The same bug briefly made the
+> offset arm appear significant; it is not.
 
 **Two seasons supply 61% of the net PnL** (2014-15 and 2024-25, $487k of $803k).
 

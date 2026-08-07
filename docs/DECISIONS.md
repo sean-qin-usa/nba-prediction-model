@@ -14817,3 +14817,44 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   as the production default yet — that is a re-certification.**
 
   [SCOPE: analysis only; no code changed; no default changed; DB not touched]
+
+- D206 **TWO SUMMARY REPORTS, ONE PER ARM — AND A CONFIDENCE-INTERVAL BUG I
+  CAUGHT WHILE WRITING THEM THAT WOULD HAVE CLAIMED FALSE SIGNIFICANCE.**
+  Owner asked for the summary in both a market-offset and an updated
+  market-blind version. `docs/SIM_REPORT_OFFSET.md` NEW,
+  `docs/SIM_REPORT.md` updated, cross-linked, identical machinery and games.
+
+  **THE BUG.** `scripts/d181_report_tables.py` built its season-clustered
+  interval by centring on the **n-WEIGHTED pooled ROI** while taking the standard
+  deviation from the **UNWEIGHTED per-season ROIs**. Those are different
+  quantities. For the offset arm it produced **[+1.43, +13.71] — excluding
+  zero** — and I was one paragraph from publishing "the first statistically
+  significant trading result in this project."
+
+  **CAUGHT BY DISAGREEMENT WITH THE PRODUCTION PIPELINE**, which reported
+  **[-0.62, +11.66]** for the same tier. `wf_equity` uses `oc.cluster_mean_t`,
+  which centres on the unweighted mean of per-cluster estimates — the definition
+  GATE_POLICY_V2 §8 specifies. The pipeline was right; the report generator was
+  wrong. Corrected:
+
+  | arm | pooled (n-wtd) | clustered mean | 95% CI (K=14) | |
+  |---|---|---|---|---|
+  | market-blind | +4.33% | +4.12% | [-1.32, +9.55] | contains zero |
+  | market-offset | +7.57% | +5.52% | [-0.62, +11.66] | **contains zero** |
+
+  **NEITHER ARM IS SIGNIFICANT.** The offset arm is better on every point
+  estimate — net $1,217,630 vs $769,855, Sharpe 0.9 vs 0.5, 10/14 vs 9/14
+  profitable seasons, edge 757 vs 433 bps, at comparable drawdown — and it is
+  closer to clearing zero, but it does not clear it.
+
+  **HALL OF SHAME:** a confidence interval must be centred on the SAME quantity
+  it takes its dispersion from. Mixing a weighted point estimate with an
+  unweighted sd is not a rounding difference — here it moved the interval far
+  enough to flip the verdict. **Two independent implementations disagreeing is
+  what caught it; had the report generator been the only path, it would have
+  shipped.** Both published reports now carry the correction inline rather than
+  silently showing the fixed number.
+
+  [SCOPE: `docs/SIM_REPORT_OFFSET.md` NEW; `docs/SIM_REPORT.md` corrected;
+  `scripts/d181_report_tables.py` CI bug FIXED; `scripts/d206_offset_chart.py`
+  and `charts/sim_report_equity_offset.png` NEW; no model default changed]
