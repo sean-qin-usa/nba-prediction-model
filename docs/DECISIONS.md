@@ -15224,3 +15224,63 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   and `scripts/d216_logloss_season.py` flatter aspect for page balance;
   `docs/REVIEW.md` explicit equation + execution row; README three corrections;
   17 scripts published; no numbers changed]
+
+- D218 **SECOND REVIEW PASS: FOUR CONTENT ERRORS FOUND, ALL FOUR REAL, ONE OF
+  THEM A CLAIM I NEVER CHECKED.** The reviewer was reading D216; D217 had already
+  fixed the fonts, the README staleness and the missing scripts. The new material
+  was four content corrections, and every one held up.
+
+  **(1) A FALSE EQUIVALENCE I ASSERTED WITHOUT CHECKING.** The report said the
+  genuine content of our disagreement, "0.206 points, 8.4% of what we claim", was
+  "close to the third of face value the offset ridge independently arrives at."
+  **8.4% is not close to 33%.** Worse, the two are measured on different
+  denominators AND different frames: 8.4% is the real share of a 2.455-point RAW
+  disagreement derived from cover rate on the 19-season contaminated ATS test;
+  0.33-0.37 is a ridge coefficient on margin residuals over 2019-26 on honest
+  inputs. A third denominator exists too — 0.206/0.751 = 27% of the break-even
+  requirement. **I wrote a corroboration between two numbers that do not measure
+  the same thing.** Now reported separately with that stated.
+
+  **(2) 7.2 vs 7.53 LOOKED LIKE A CONTRADICTION.** The document gave the link as
+  7.2 and then said the training residuals imply 7.53 without saying why the
+  formula does not use 7.53. Clarified: 7.2 is the frozen production constant,
+  7.53 is the plug-in estimate, re-deriving per fold is worth ~0.0002 nats and is
+  not significant, and **every log-loss comparison in the document recalibrates
+  each source walk-forward** so no forecast is advantaged by another's scale.
+
+  **(3) "THE BEST OF THE 9 BOOKS HELD" OVERSTATED WHAT WE HAVE.** We hold a
+  measured panel in 2023-24 only. Reworded to a modelled best-of-nine tier,
+  observed in 2023-24 at 7.74 books/game and inferred elsewhere.
+
+  **(4) "THE ONLY ONE OF THE FOUR ABOVE THE OPENING LINE" IS A POOLED CLAIM AND
+  THE FIGURE BESIDE IT CONTRADICTED IT.** Checked per season:
+
+  | season | above the opener |
+  |---|---|
+  | 2019-20, 2021-22, 2022-23, 2023-24, 2025-26 | blind |
+  | **2020-21** | **blind AND offset** (offset 0.6266 vs open 0.6257) |
+  | **2024-25** | **neither** (blind 0.5915 vs open 0.6040) |
+
+  So the blind model is above the opener in **six** of seven, not all seven, and
+  the offset construction is above it once. **A reader could have falsified the
+  sentence from the chart printed directly beneath it.** Now stated as pooled,
+  with the per-season exceptions named.
+
+  **ALSO ADOPTED:** the player-level feature inventory condensed to one sentence
+  with the detail left in the repository (owner had already asked for less of
+  this), which also fixed the page-2 density the reviewer flagged.
+
+  **TRIED AND REVERTED:** a forced page break before "The model". It produced 5
+  pages with a short page 1; without it the condensing alone balances the
+  document at 4. The layout complaint was real but the proposed fix was not the
+  right one.
+
+  **HALL OF SHAME:** the "close to a third" clause was rhetorical glue between two
+  numbers I liked the look of together. **Nothing in the pipeline can catch a
+  false equivalence between two correctly-computed figures** — no gate, no null,
+  no test. It survived because it sounded like corroboration, and it took an
+  outside reader to ask what the denominators were.
+
+  [SCOPE: `docs/REVIEW.md` four corrections + condensed feature paragraph;
+  `scripts/d209_make_review_pdf.py` PageBreak support added (currently unused);
+  PDF rebuilt, 4 pages, 0 unembedded fonts; no computed number changed]
