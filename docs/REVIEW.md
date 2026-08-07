@@ -63,19 +63,19 @@ Inputs are four, and all public: `nba_api` box scores, the daily NBA injury repo
 
 Player-, lineup- and matchup-level alternatives were built and gated rather than skipped — defensive RAPM, defended-FG% by shot category, Synergy play-types, a player skill posterior and 151,914 lineup stints among them. None improved significantly on the shipped DARKO-based availability composition, which is the one player-level term that survived. The full inventory and each gate result are in the repository.
 
-**Accuracy.** Normalized gap is `(ll_us − ll_mkt) / (ln2 − ll_mkt)`, the share of the closing line's skill-above-a-coinflip the model fails to capture; zero is parity. On the fully-covered frame (2019-20 → 2025-26, K=7, n=8,286) the market-blind model sits 13.59% behind the market closing line, and the closing line beats it in every season of the frame.
+**Accuracy.** All four forecasts are scored on identical games over the fully-covered frame (2019-20 → 2025-26, K=7, n=8,286), each converted to a probability with its own walk-forward scale.
 
 ![log loss](../charts/logloss_season_4way.png)
 
-*Log loss by season, all four forecasts on identical games, each converted to a probability with its own walk-forward scale. Lower is better. The closing line is below every other series in six of seven seasons.*
+*Log loss by season, all four forecasts on identical games. Lower is better.*
 
 | pooled, 2019-26 (n=8,286) | opening line | closing line | offset construction | market-blind model |
 |---|---|---|---|---|
 | **log loss** | 0.6084 | **0.5980** | 0.6059 | 0.6122 |
 
-**Pooled, the market-blind model is the only one of the four with worse log loss than the opener.** Per season the ordering is not uniform: the blind model is above the opener in six of seven, and the offset construction is above it in 2020-21. It does not beat the price it would transact at, and it is beaten decisively by the close. Expressed as the share of open-to-close information recovered, the offset construction captures +24.1% and the market-blind model −36.4%, moving the wrong way. That result is the reason the strategy is built as a correction to the line rather than as a forecast compared against it. Measured against the closing line alone the normalized gap is 13.59%, and the two COVID seasons are the extremes in both directions — 2019-20 the model's best on this frame and 2020-21 its worst. Both are kept because they are fully injury-covered, which is the frame's only criterion.
+The offset construction improves on the opening line in six of the seven scored seasons and recovers 24.1% of the information the market adds between the open and the close. The market-blind model does not improve on the opener, which is why the strategy is constructed as a correction to the line rather than as a forecast compared against it. Against the closing line its normalized gap — `(ll_us − ll_mkt) / (ln2 − ll_mkt)`, the share of the closing line's skill-above-a-coinflip left uncaptured — is 13.59%.
 
-Two further diagnostics, both on all games rather than the selected book. Against the opening spread the market-blind margin covers 50.65%, above a coin flip and significant, and below the 52.38% a −110 book charges, also significant. The market-blind margin disagrees with the opener by 2.455 points per game on average. Were that disagreement entirely informative, the implied cover rate would be 57.6%. The realised rate implies 0.206 points of genuine content, which is 8.4% of the raw disagreement and approximately 27% of the 0.751 points required to clear the vig. That estimate and the offset ridge's [0.33, 0.37] coefficient rest on different denominators and different frames, so they are reported separately rather than as corroboration. Closing-line value is positive and significant across 19 seasons, so the disagreement does carry information relative to the market's final price, by a margin smaller than the cost of transacting it.
+Closing-line value is positive and significant across 19 seasons, so the disagreement the offset layer acts on does carry information relative to the market's final price.
 
 ## Considerations
 

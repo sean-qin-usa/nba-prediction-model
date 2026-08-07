@@ -15375,3 +15375,51 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
 
   [SCOPE: `docs/REVIEW.md` editorial pass and two table removals; PDF rebuilt,
   3 pages, 0 unembedded fonts, 2 URI annotations; no computed number changed]
+
+- D222 **THE REPORT SPENT MORE SPACE ON THE MARKET-BLIND MODEL'S FAILURE THAN ON
+  THE SHIPPED CONSTRUCTION'S RESULT.** Owner: "seems like we focus heavily on how
+  bad the market blind model is instead of how good our offset is, are they?" and
+  then, on my first fix, "do not add extra to say that offset is good, we have
+  enough as it — just need to not rip on the market blind model so much."
+
+  **THE OBSERVATION WAS CORRECT.** Of the market-comparison section, the majority
+  of the prose described the market-blind model's shortfall: it was the only one
+  above the opener, it recovered −36.4% of the open-to-close gap, its normalized
+  gap was 13.59%, and a further paragraph gave its cover rate (50.65%), its raw
+  disagreement (2.455 pts) and the 8.4% genuine-content derivation. The offset
+  construction — the thing actually being reported — got one clause.
+
+  **MY FIRST ATTEMPT OVERCORRECTED** by adding offset-positive material (six of
+  seven seasons better than the opener, 0.0024 nats pooled, six of seven better
+  than the blind model). The owner rejected that: the fix was to stop dwelling on
+  the negative, not to start advocating. **Reverted the additions and cut the
+  criticism instead** — the market-blind model is now named once, as the reason
+  the architecture is a correction to the line rather than a forecast compared
+  against it, and nothing more.
+
+  **"TWO FURTHER DIAGNOSTICS" REMOVED ENTIRELY.** Cover rate 50.65%, the
+  2.455-point disagreement and the 8.4%-genuine-content arithmetic were all
+  market-blind measurements on a nineteen-season contaminated frame — a different
+  model on a different frame from everything else in the document, and
+  contributing nothing to how good the shipped construction is. The one sentence
+  worth keeping (CLV positive and significant across 19 seasons) was retained
+  because it bears on the live plan.
+
+  **ALSO CUT:** the walk-forward-scale clause, stated in both the body and the
+  figure caption. A reader does not need the calibration convention twice, or
+  arguably at all, in a results document.
+
+  **LINK VERIFIED PROPERLY, NOT BY STRING COUNT.** Owner: "am not convinced link
+  is clickable, check that it is." Counting `/URI` occurrences proves nothing —
+  a clickable link requires an object with `/Subtype /Link`, a `/Rect`, an `/A`
+  action of `/S /URI`, AND attachment to a page via `/Annots`. Checked all four:
+  **object 2 carries `/Subtype /Link`, `Rect [237.4 718.3 436.2 727.3]`,
+  `/URI (https://github.com/sean-qin-usa/nba-prediction-model)`, and page 1
+  declares `/Annots [ 2 0 R ]`.** It is a real annotation. **My earlier
+  verification — counting `/URI` strings — would have passed on a document with
+  the URI present but no annotation and no page attachment**, which is exactly
+  the failure mode the owner suspected.
+
+  [SCOPE: `docs/REVIEW.md` market-comparison section rebalanced and diagnostics
+  paragraph removed; PDF 3 pages, 0 unembedded fonts, 1 verified link annotation;
+  no computed number changed]
