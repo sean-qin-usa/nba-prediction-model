@@ -403,6 +403,7 @@ def fit_production(con, season: str, before=None, w_comp: float = 0.7):
     kept only so existing callers passing w_comp=0.7 keep working."""
     from .composition import CompositionModel
     from .four_factors import FourFactors
+    from . import absence as _absence
     comp = CompositionModel(con, before=before)
     import os as _os
     # D84-A OCTOBER BRIDGE: when the comp rotation is EMPTY for a game (the
@@ -552,8 +553,15 @@ def fit_production(con, season: str, before=None, w_comp: float = 0.7):
             # weights beat fitted — GBM/logistic challengers rejected).
             # ff.ready is guaranteed by the fit-time guard in fit_production.
             fm = ff.margin_neutral(home_id, away_id)
+            # D232 absence-response: the SECOND-ORDER cost of missing players,
+            # over and above each absent player's own talent x minutes, which
+            # the composition leg has already removed. 0.0 when the two sides'
+            # expected absences are BIT-equal; when they are only arithmetically
+            # equal the residue is ~1e-16, i.e. three orders under the D230b
+            # margin floor and not a claim of exactness.
+            ab = _absence.term(out_home, out_away)
             return {"ff": 0.5 * fm, "comp": 0.5 * cm, "sched": sched,
-                    "tank": tk, "late": lt}
+                    "tank": tk, "late": lt, "absence": ab}
 
         def margin(self, home_id: int, away_id: int, out_home: set | None = None,
                    out_away: set | None = None, game_date=None,
@@ -563,8 +571,11 @@ def fit_production(con, season: str, before=None, w_comp: float = 0.7):
                                        game_date, b2b_home, b2b_away,
                                        dead_home, dead_away)
             # SAME ASSOCIATION as the pre-D230 expression
-            # `0.5*fm + 0.5*cm + sched + tk + lt`, so this is bit-identical.
-            return c["ff"] + c["comp"] + c["sched"] + c["tank"] + c["late"]
+            # `0.5*fm + 0.5*cm + sched + tk + lt`; the D232 absence term is
+            # appended LAST so that with ABSENCE_TERM=0 it contributes an exact
+            # 0.0 and the sum is unchanged in every bit.
+            return (c["ff"] + c["comp"] + c["sched"] + c["tank"] + c["late"]
+                    + c["absence"])
 
         def p_home(self, home_id: int, away_id: int, out_home: set | None = None,
                    out_away: set | None = None, game_date=None,

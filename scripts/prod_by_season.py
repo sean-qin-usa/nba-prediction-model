@@ -56,6 +56,11 @@ OPEN_TIME_OUTS = os.environ.get("OPEN_TIME_OUTS") == "1"
 # calibration veto passed). Set SOFT_AVAIL=0 to fall back to the hard out-set.
 SOFT_AVAIL = os.environ.get("SOFT_AVAIL", "1") == "1"
 COMPONENT_OUT = os.environ.get("COMPONENT_OUT", "")  # D230 channel dump
+
+
+def _eout(o):
+    """EXPECTED absences: sum of P(out) for a soft dict, |set| for a hard set."""
+    return float(sum(o.values())) if isinstance(o, dict) else float(len(o))
 if SOFT_AVAIL:
     OPEN_TIME_OUTS = True
 
@@ -251,8 +256,11 @@ def season_run(season):
                     # ~30 min pre-tip and cannot inform a bet at the open.
                     o=o | (inact.get(gid,set()) & rot[t])
                 outs[t]=o                               # empty where no feed covers
-        # n_out is a headcount for the tier sanity line; under SOFT_AVAIL it is
-        # the EXPECTED number out, which is the honest analogue.
+        # n_out is a HEADCOUNT: under SOFT_AVAIL `outs[t]` is a dict over every
+        # rostered player carrying ANY out-probability, so len() counts players
+        # under doubt, NOT the expected number absent (D232 — the previous
+        # comment here claimed otherwise and was wrong: len != sum). Both are
+        # emitted now; `eo_*` is the expected count, sum of P(out).
         y.append(int(h.wl=="W"))
         # dead-team flags NOT passed: term failed the paired gate (ns, D47) —
         # infra kept for the post-injury-feed reconstruction
@@ -292,6 +300,8 @@ def season_run(season):
         rows.append((season,gid,str(gd)[:10],h.team_abbrev,a.team_abbrev,
                      y[-1],float(pp[-1]),float(pmv),
                      len(outs[h.team_id]),len(outs[a.team_id]),
+                     round(_eout(outs[h.team_id]),6),
+                     round(_eout(outs[a.team_id]),6),
                      round(float(tsd),6),round(float(model.tank_k),4)))
         for _t in (h.team_id, a.team_id):
             _o = outs[_t]
@@ -343,7 +353,8 @@ if __name__=="__main__":
     with open(dest,"w",newline="") as f:
         wtr=csv.writer(f)
         wtr.writerow(["season","game_id","game_date","home","away","y",
-                      "p_us","p_mkt","n_out_home","n_out_away","tsd","k"])
+                      "p_us","p_mkt","n_out_home","n_out_away",
+                      "eo_home","eo_away","tsd","k"])
         for o in out:
             wtr.writerows(o.pop("rows"))
     if COMPONENT_OUT:

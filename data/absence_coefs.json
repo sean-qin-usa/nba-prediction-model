@@ -1,0 +1,20 @@
+{
+ "features": [
+  "out_diff"
+ ],
+ "coefs": [
+  -0.828405138935344
+ ],
+ "definition": "expected absences home minus away; sum of P(out) over each roster",
+ "n": 8239,
+ "fitted_through": "2026-04-12",
+ "walk_forward_betas": [
+  -0.2798239491833818,
+  -0.6161248357842707,
+  -0.7120981477984214,
+  -0.7085790804816426,
+  -0.8135453718706201,
+  -0.7387802394751113
+ ],
+ "gate": "D232 season-clustered -0.002174 CI[-0.003299,-0.001048] t=-4.96 6/6"
+}

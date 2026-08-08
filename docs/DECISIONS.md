@@ -15778,9 +15778,15 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   (new, gated, default off) dump the five channels per game with
   `sum(channels) == margin()` ASSERTED on every game; measured max deviation
   7.11e-15 over 8,286 games, 2019-20..2025-26. **`m_late` (the D90 late-state
-  layer) is IDENTICALLY ZERO on 100% of games in this frame** — the production
-  margin is four live channels, not five, and `d_late` is an unidentifiable zero
-  column. `m_tank` is nonzero on only 27.5%. The fitted `b` averages 0.346
+  layer) is IDENTICALLY ZERO on 100% of games in this frame** — so the margin is
+  four live channels, not five, and `d_late` is an unidentifiable zero column.
+  **ATTRIBUTION CORRECTED (D233): that is not a discovery, it is the documented
+  D112 state.** D112 demoted the layer on a pre-registered rule (held-out
+  21-23 +0.00014 ns against dev 24-26 +0.00267, DiD +0.00253 SIG — it helped
+  measurably more on the seasons it was developed on), and `LATE_STATE` has
+  defaulted to off ever since, so `late is None` and the term is exactly 0.0 by
+  construction. The original wording here read like a find; it was a
+  confirmation. `m_tank` is nonzero on only 27.5%. The fitted `b` averages 0.346
   across folds, independently reproducing the shipped 0.3564.
 
   **WHY THIS WAS WORTH RUNNING EVEN THOUGH THE NULL WAS PREDICTED.** A NO-SHIP
@@ -15819,3 +15825,149 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   noise floor being reported as if it were a measurement. The right claim for
   such controls is "below the pipeline's reproducibility floor of ~1e-14", and
   D230's own refactor control is now stated that way.
+
+- D231 **THE MINUTES-TO-POINTS BRIDGE, AND A DIAGNOSTIC THAT POINTED THE WRONG
+  WAY.** Owner relayed a research program built on D144's mechanism: promoted
+  players do not preserve per-minute production, so the remaining error is in
+  the minutes-to-points bridge. Tested on 190,197 player-games, 1,063 players,
+  2018-19..2025-26.
+
+  **(A) DIAGNOSTIC — and it came out with the OPPOSITE SIGN to D144.** Building
+  each player's trailing minutes and points as EWMA (half-life 8 games, strictly
+  prior) and scoring the shipped bridge `pts_hat = minutes x trailing_rate`, the
+  residual is MONOTONE INCREASING in the minutes deviation across all ten
+  deciles (-0.704 at the bottom to +1.066 at the top; OLS slope **+0.0787 pts
+  per extra minute above a player's trailing norm**). Read naively this says
+  players who exceed their usual minutes produce MORE per minute, not less.
+
+  **THAT READING IS WRONG AND I ACTED ON IT FOR ONE STEP BEFORE CATCHING IT.**
+  Minutes and production are jointly determined inside a game: blowouts, foul
+  trouble and mid-game injuries all produce low minutes at depressed value,
+  which manufactures the whole gradient without any promotion effect existing.
+  The endogeneity was flagged in the script's own docstring and I still drew a
+  causal inference from it. **A second measurement in the same script (B) was
+  ALSO mislabelled**: it reports a walk-forward improvement of -0.028 RMSE,
+  7/7 seasons, CI excluding zero — but it conditions on ACTUAL minutes, so it
+  answers "if the minutes forecast were perfect" and is **NOT USABLE AT BET
+  TIME.** It is retained as a bridge diagnostic and must never be quoted as a
+  shippable gain.
+
+  **THE CLEAN TEST IS D231b, AND IT VINDICATES D144.** See below: measured
+  bet-time, the model UNDER-penalises absences, which is exactly what "promoted
+  replacements underperform" predicts. The lesson is that (A)'s association and
+  the causal question have opposite signs, and only the second one is decidable
+  from bet-time data.
+
+- D231b **THE MODEL UNDER-PENALISES ABSENCES, 7/7 SEASONS.** Regressing the
+  production margin residual on the expected-absence differential, with expected
+  outs taken from the walk-forward as-of-open P(out) artifact (D201) so nothing
+  reads tonight's minutes:
+
+      pooled     residual = -0.2577 - 0.5653 * out_diff   t = -7.39, n = 8,239
+      clustered  slope -0.5367, 95% CI [-0.7348, -0.3385], SAME SIGN 7/7
+
+  Monotone across buckets: at out_diff <= -2 the residual is +1.373, at
+  out_diff > +1 it is -2.040. **An absence costs about half a point of margin
+  MORE than the departing player's own `talent x minutes`, which the composition
+  leg has already removed.** That second-order cost is exactly what D133 arm C
+  and D144 diagnosed and never priced.
+
+- D232 **GATE: SHIP. THE ABSENCE-RESPONSE TERM.** Prereg `data/d232_prereg.md`
+  sha256 `fe77ff1eba18b1dba5740be59fc53803941ecc49b87b2f1e2435b41f6b6b5cc8`,
+  hashed before any challenger log loss existed, with four numbered predictions.
+
+      margin += beta * (E[absences_home] - E[absences_away])
+
+  beta = 0 IS the shipped model, so the null is the incumbent (D198's rule).
+
+  | | main arm | + strength control |
+  |---|---|---|
+  | season-clustered mean delta | **-0.002174** | -0.002318 |
+  | 95% CI (5 dof) | **[-0.003299, -0.001048]** | [-0.003610, -0.001027] |
+  | t | **-4.96** | -4.62 |
+  | better in | **6/6** | 6/6 |
+  | mean beta | -0.6448 | **-0.7035** |
+  | calibration veto | PASS | PASS |
+  | MDE80 (stated first) | 0.00107 | — |
+
+  **ALL FOUR PREDICTIONS CONFIRMED, INCLUDING THE ONE THAT COULD HAVE KILLED
+  IT.** T3 asked whether `out_diff` was really TEAM STRENGTH in disguise — bad
+  teams rest and tank more. Under an arm that also regresses on the model's own
+  margin, beta does not shrink, **it grows** (-0.645 -> -0.704). The effect is
+  availability.
+
+  **A FEATURE-DEFINITION BUG I SHIPPED INTO MY OWN FIRST RUN.** The prereg
+  specifies EXPECTED absences (sum of P(out)). `prod_by_season.py` emitted
+  `n_out = len(outs[t])`, and under SOFT_AVAIL `outs[t]` is a DICT over every
+  rostered player carrying ANY out-probability — so len() is a HEADCOUNT (mean
+  1.70/team) not an expectation (mean 0.96/team). **The code comment asserting
+  it "is the EXPECTED number out" was wrong: len != sum.** The first gate run
+  used the headcount and was materially weaker (t -2.82, CI upper -0.000221)
+  than the pre-registered quantity (t -4.96, CI upper -0.001048). Both are now
+  emitted (`eo_*` alongside `n_out_*`) and both are reported; the prereg governs
+  which is the arm.
+
+  **SHIPPED** as `nbapred/model/absence.py`, wired as a sixth channel of
+  `margin_components()`. Frozen coefficient **-0.8284** (full-frame fit, which is
+  what the walk-forward rule "fit on all prior seasons" prescribes for 2026-27);
+  per-fold betas -0.28/-0.62/-0.71/-0.71/-0.81/-0.74 are kept in the artifact so
+  the upward trend stays visible rather than being averaged away. `ABSENCE_TERM=0`
+  restores the pre-D232 margin. **CONTROL: with the switch off, max|d p_us| =
+  3.830e-15 against the pre-D232 run — at the D230b reproducibility floor, which
+  is now the correct form for such a claim.** With it on, 7,349 of 8,286 games
+  move, mean |dp| 0.0215. NOTE: the certified per-season numbers from a
+  production run use the FROZEN full-frame coefficient and are therefore
+  IN-SAMPLE; the walk-forward gate above is the evidence, not those.
+
+- D233 **MULTI-STATE AVAILABILITY: THE MINUTES LADDER IS REAL, MONOTONE, STABLE
+  8/8 SEASONS — AND 200x TOO SMALL FOR THE SIDES MODEL.** For 187,261
+  player-games that were actually PLAYED, attenuation = actual minutes /
+  trailing minutes, conditioned on the last status published STRICTLY BEFORE
+  game day:
+
+      (none)        n=182,623   1.0086
+      Available     n=    366   1.0043   -0.4%
+      Probable      n=  1,691   0.9805   -2.8%
+      Questionable  n=  2,404   0.9490   **-6.0%**
+      Doubtful      n=     60   0.8824   -12.6%
+      Out (played)  n=    117   0.8204   -18.8%
+
+  Perfectly ordered by severity. The Questionable effect is season-clustered
+  **-0.0629, 95% CI [-0.0870, -0.0388], same sign 8/8.** So `weight = 1 - P(out)`
+  really does over-credit a player who plays through doubt: the shipped leg has
+  no way to express "plays, but restricted".
+
+  **AND THEN THE EXPOSURE ARITHMETIC KILLS IT FOR SIDES.** Minutes-weighted
+  across the whole status distribution the effect is **0.127% of team
+  minutes-value = ~0.0041 pts of margin**, against the D232 absence term's
+  -0.83 pts per expected absence — **200x smaller.** Questionable player-games
+  are 1.28% of the sample. NOT GATED into the sides model: an effect three
+  orders of magnitude under the D232 term cannot clear a log-loss gate, and
+  running one anyway would only manufacture a second-look opportunity.
+
+  **WHERE IT DOES BELONG IS PROPS**, which is also where the owner's own roadmap
+  puts validation: a 6% minutes haircut on a Questionable starter moves HIS
+  points line directly, un-diluted by nine team-mates. Recorded as a props input
+  with the ladder above ready to use.
+
+  **NOT BUILT, AND WHY.** The constrained replacement graph needs rotation
+  transitions; there is NO `game_rotation` table, and `lineup_stints` covers
+  48% / 20% / 27% / 47% / 103% / 66% / 107% of games by season — too patchy to
+  learn who absorbs whose minutes without the coverage itself selecting the
+  sample. The owner's own note that backfilling those seasons "would be
+  worthwhile" is confirmed, and it is a data-acquisition task, not a modelling
+  one.
+
+- D233b **CERTIFICATION MANIFEST — the instrument D230b said was needed.**
+  `scripts/cert_manifest.py` records the code rollup hash over 81 files, hashes
+  of every input artifact, the shipped coefficients, library and python versions,
+  git HEAD, and **the 14 environment switches that change the numbers** — because
+  an unset switch is a silent default and D229 is an entire entry about silent
+  defaults. `--check` re-derives and diffs. Crucially it records the MEASURED
+  NUMERIC FLOOR (p_us 3.3e-15, margin 2.2e-13) and states in the artifact that
+  controls must be compared against that floor and never against zero. This is
+  the honest replacement for a `max|dp| = 0` control that was never achievable.
+  `docs/OCTOBER_CAPTURE_SPEC.md` freezes the 2026-27 capture schema, the
+  30-minute event-pairing window, the RESPONSE-vs-CATCH-UP split that quote age
+  now makes possible, four pre-registered predictions, and the go/no-go rule —
+  all decided while no 2026-27 price exists.
