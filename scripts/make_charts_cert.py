@@ -1,7 +1,8 @@
 """Certification charts from the certified capstone per-game CSV
 (data/capstone_pergame.csv, written by scripts/prod_by_season.py with current
 defaults: LATE_STATE=0, TANK_TERM=1, T2-HONEST availability OUT tier —
-official 5PM injury report UNION official inactives, per D158).
+official 5PM injury report UNION official inactives, per D158; re-certified
+as D171 on the D170-backfilled feeds with the Clippers name fix).
 
 Produces (150 dpi, charts/):
   - logloss_by_season_normalized.png   one panel per season, rolling-100 LL,
@@ -117,13 +118,16 @@ def main():
     np.atleast_1d(axes)[0].legend(loc="lower left", fontsize=8.5,
                                   frameon=False)
     p_us, p_mk, n = season_lls(cert)
+    # D171 label-collision pass: the one-line suptitle overflowed the figure at
+    # both ends once "CERTIFIED D171" was added — split it in two and give the
+    # rect the extra headroom rather than shrinking the type.
     fig.suptitle(
-        "Rolling log loss by season — certified production stack "
-        f"(LATE_STATE=0, TANK_TERM=1, availability T2-HONEST)  |  pooled LL "
-        f"{p_us:.4f} vs mkt {p_mk:.4f}, "
-        f"normalized gap {100*norm_gap(p_us, p_mk):.2f}% of market skill (n={n})",
+        "Rolling log loss by season — CERTIFIED D171 "
+        "(availability T2-HONEST on all 5 seasons, LATE_STATE=0, TANK_TERM=1)\n"
+        f"pooled LL {p_us:.4f} vs market {p_mk:.4f}   |   normalized gap "
+        f"{100*norm_gap(p_us, p_mk):.2f}% of market skill   |   n={n:,}",
         fontsize=11.5)
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    fig.tight_layout(rect=(0, 0, 1, 0.90))
     fig.savefig(charts / "logloss_by_season_normalized.png", dpi=150)
     plt.close(fig)
 
@@ -150,7 +154,7 @@ def main():
         stages.append(label)
         for s in mod3:
             vals[s].append(season_lls(rows, s)[0])
-    stages.append("8. CERTIFIED NOW\nhonest availability\nD158 · Aug 3")
+    stages.append("8. CERTIFIED NOW\nT2-HONEST all 5 seasons\nD171 · Aug 4")
     for s in mod3:
         vals[s].append(season_lls(cert, s)[0])
     mkts = {s: season_lls(cert, s)[1] for s in mod3}
@@ -179,7 +183,8 @@ def main():
                 "sequence above):  " + "   |   ".join(hold),
                 transform=ax.transAxes, fontsize=8.5, color=INK2)
     ax.set_title("Model progress in chronological ship order (step 1 = oldest, "
-                 "step 8 = certified today)", fontsize=12.5)
+                 "step 8 = CERTIFIED D171 — full availability backfill + Clippers fix)",
+                 fontsize=12.5)
     fig.tight_layout()
     fig.savefig(charts / "progress_by_ship.png", dpi=150,
                 bbox_inches="tight")
@@ -212,8 +217,8 @@ def main():
     ax.legend(loc="lower left", frameon=False, fontsize=9.5)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
-    ax.set_title("Continuous log loss — certified production "
-                 f"(late-state OFF, tank ON, availability T2-HONEST)  |  pooled norm gap "
+    ax.set_title("Continuous log loss — CERTIFIED D171 production "
+                 f"(late-state OFF, tank ON, availability T2-HONEST all seasons)  |  pooled norm gap "
                  f"{100*norm_gap(p_us, p_mk):.2f}%", fontsize=12.5)
     fig.tight_layout()
     fig.savefig(charts / "logloss_continuous_current.png", dpi=150)

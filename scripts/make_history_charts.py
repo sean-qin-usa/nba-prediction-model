@@ -77,14 +77,15 @@ def chart_logloss(res):
     if len(ci):
         ax.axvspan(ci[0] - 0.5, ci[-1] + 0.5, color=CERT_BAND, zorder=0)
         ax.text((ci[0] + ci[-1]) / 2, 0.985,
-                "CERTIFIED EVAL CORPUS (D132)\nevery gate in the campaign was "
+                "CERTIFIED EVAL CORPUS (D171)\nevery gate in the campaign was "
                 "denominated here",
                 transform=ax.get_xaxis_transform(), ha="center", va="top",
                 fontsize=8.8, color="#2f5f96", linespacing=1.35)
     hi = np.where(~cert)[0]
     if len(hi):
         ax.text(hi[: len(hi) // 2 + 1].mean(), 0.985,
-                "NEWLY SCORABLE (D152) — never touched ANY decision",
+                "SCORED AT THE BEST TIER EACH SEASON CAN REACH (D171) — "
+                "never touched ANY decision",
                 transform=ax.get_xaxis_transform(), ha="center", va="top",
                 fontsize=8.8, color=INK2)
 
@@ -125,7 +126,8 @@ def chart_logloss(res):
            "hollow squares = separate strata (2011-12 lockout, 2019-20 E0+bubble,"
            " 2020-21 no-crowd) — plotted, never pooled")
     ax.set_title(
-        "The certified stack scored on every scorable season — "
+        "The CERTIFIED D171 stack scored on every scorable season, each at the "
+        "best availability tier it can reach — "
         f"{len(seasons)} seasons, {sum(tab[s]['n'] for s in seasons):,} games\n"
         + sub, fontsize=10.6, linespacing=1.55)
     txt = []
@@ -158,13 +160,19 @@ def chart_normgap(res):
     # era bands
     i = 0
     shade = True
-    while i < len(seasons):
-        j = i
-        while j + 1 < len(seasons) and era[j + 1] == era[i]:
+    narrow = 0          # D171: single-season era bands (E3/E4/E5) are narrower
+    while i < len(seasons):     # than their own labels — stagger them vertically
+        j = i                   # instead of letting "post-COVID" and "PPP+IST+CBA"
+        while j + 1 < len(seasons) and era[j + 1] == era[i]:   # run together.
             j += 1
         if shade:
             ax.axvspan(i - 0.5, j + 0.5, color=BAND, zorder=0)
-        ax.text((i + j) / 2, 0.995, ERA_LABEL.get(era[i], era[i]),
+        if j - i < 1:
+            ytxt = 0.995 if narrow % 2 == 0 else 0.905
+            narrow += 1
+        else:
+            ytxt = 0.995
+        ax.text((i + j) / 2, ytxt, ERA_LABEL.get(era[i], era[i]),
                 transform=ax.get_xaxis_transform(), ha="center", va="top",
                 fontsize=8.4, color=INK3, linespacing=1.25)
         ax.axvline(j + 0.5, color=GRID, lw=1.0, zorder=0)
@@ -208,15 +216,25 @@ def chart_normgap(res):
                         fontsize=8.6, color=c)
     ax.set_xticks(x, seasons, rotation=45, ha="right", fontsize=9.2)
     ax.set_xlim(-0.5, len(seasons) - 0.5)
-    ax.set_ylim(0, max(ng) * 1.28)
+    # D171: the gap is no longer non-negative — 2008-09 at T2 BEATS the market
+    # (-2.01%), and a floor of 0 silently clipped the single most important
+    # point on the chart. Floor below the minimum and draw the zero line.
+    lo = min(0.0, ng.min())
+    ax.set_ylim(lo - 0.10 * (max(ng) - lo), max(ng) * 1.28)
+    if ng.min() < 0:
+        ax.axhline(0.0, color=C_BEAT, lw=1.2, zorder=2)
+        ax.annotate("we BEAT the market below this line", (len(seasons) - 0.6, 0.0),
+                    textcoords="offset points", xytext=(0, -13), ha="right",
+                    fontsize=8.8, color=C_BEAT, fontweight="bold")
     ax.set_ylabel("normalized gap: share of the market's skill we still give away")
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     ax.set_title(
-        "Are we getting closer to the market across 15 years?  "
-        "Normalized gap = (ll_us − ll_mkt) / (ln2 − ll_mkt), lower = better\n"
-        "era bands from docs/ERAS.md;  blue band = the corpus every gate was "
-        "built on;  hollow squares = strata, plotted but never pooled",
+        "Are we getting closer to the market across 19 years?  CERTIFIED D171, "
+        "each season at the best availability tier it can reach\n"
+        "normalized gap = (ll_us − ll_mkt)/(ln2 − ll_mkt), lower = better;  "
+        "era bands from docs/ERAS.md;  blue band = the certified corpus;  "
+        "hollow squares = strata, plotted but never pooled",
         fontsize=10.8, linespacing=1.55)
     fig.tight_layout()
     out = ROOT / "charts" / "history_normalized_gap.png"

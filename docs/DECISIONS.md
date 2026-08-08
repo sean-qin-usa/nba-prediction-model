@@ -15566,3 +15566,127 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
 
   [SCOPE: README.md rewritten, 715 -> 251 lines; no numbers changed, no model
   default changed; all links and chart paths checked to resolve]
+
+- D228 **THE ODDS LOGGER WOULD NOT HAVE PRODUCED THE DATASET IT EXISTS FOR.**
+  Owner asked for a roadmap audit; the logger is the only irreversible item on
+  it, so it was audited against the four-snapshot spec before any modelling.
+
+  **FINDING 1 — PROPS WERE UNREACHABLE, NOT MERELY UNUSED.** `.env` sets
+  `ODDS_MONTHLY_BUDGET=500`; `odds_logger.py` gated prop polling on
+  `MONTHLY_BUDGET == 0`, so `poll_props()` was **dead code in the shipped
+  configuration**. Documented as deliberate ("they'd eat it in one evening") and
+  correct on a 500-credit tier — but the consequence is that 2026-27 would have
+  yielded ZERO prop prices, leaving "market-offset props" unexplored in 2027 for
+  exactly the reason it is unexplored today. **The gap was a live config
+  decision reproducing itself, not a historical accident.**
+
+  **FINDING 2 — BOTH CREDIT GUARDS WERE INERT.** `ODDS_CREDIT_FLOOR=50` gated
+  only the (already dead) props branch, and the main-polling brake sat in an
+  `elif` AFTER `if MONTHLY_BUDGET:` — unreachable whenever a budget is set.
+
+  **FINDING 3 — THE BURST BYPASSED THE PACER, AND THE ARITHMETIC DID NOT CLOSE.**
+  `sleep_min = min(paced, CLOSE_WINDOW_MIN/3)` applied whenever any tip was
+  within 90 min. At 3 credits/poll (h2h,spreads,totals x us) and ~9 polls on a
+  staggered 10-game night that is 27 credits/night, **675 across 25 game nights
+  against a 500 budget — a 35% overdraw.** On exhaustion `_get` raises, the
+  handler retries every 2 min forever, and the unit stays `active` while
+  capturing nothing. The paced cadence was confirmed by observation, not only
+  arithmetic: the log ran 08:32 -> 12:04 -> 15:35 -> 19:05 -> 22:34, ~3.5h apart,
+  matching `(498/24)/3` polls/day exactly.
+
+  **THE SPEC ITSELF WAS ANCHORED TO THE WRONG CLOCK.** The proposed "pre-report /
+  post-report" pair is clock-anchored, but `scripts/wlm_chart.py` measured the
+  within-day move: **76% complete at T-4h, 80% at T-2h, 91% at T-1h, and ~75%
+  ALREADY GONE at the 5PM ET report for early AND late games**, with the only
+  burst at T-2h -> tip. Tips are staggered 19:00-22:30 ET, so a 5PM-anchored pair
+  straddles a different completion fraction for every game. **The ladder is
+  therefore TIP-relative** (`nbapred/ingest/odds_sched.py`, pure and unit-tested):
+  OPEN / T-4h / T-2h / T-1h / CLOSE(T-15m), generated per game and MERGED, since
+  one `/odds` call serves the whole slate — ~40 marks collapse to ~14 calls.
+
+  **THE LEVER WAS MARKET TIERING, NOT MONEY.** Credits are priced per market per
+  region and the sides strategy transacts on SPREADS ONLY (nothing in `nbapred/`
+  or `bet_engine.py` reads h2h or totals from the live feed). Core poll 3 -> **1
+  credit**, extras ride along once a day. **A 3x cadence increase for no money**,
+  which is what makes the full ladder affordable.
+
+  **MEASURED ON A SIMULATED MONTH, 28 DENSE 10-GAME NIGHTS FROM 500 CREDITS:**
+      old policy   27 cr/night   ran dry ~day 18, remaining nights lost
+      **new        16-18 cr/night   483/500 spent, 28/28 nights captured, 17 left**
+  Degradation is graceful and self-correcting (allowance is recomputed from the
+  live `x-requests-remaining`, not the nominal budget): at 480 credits the full
+  ladder plus extras, at 250 the extras and a rung drop, at 90 it falls back to
+  **open + close only** and stops there. Trimming is priority-ordered and can
+  never drop OPEN or CLOSE — the transaction price and the CLV reference.
+
+  **TWO OF MY OWN BUGS WERE CAUGHT BY THE SIMULATION, BOTH THE CLASS BEING
+  FIXED.** (a) `want_extra` was gated on `allowance >= 999`, silently dropping
+  h2h/totals whenever any budget was set — the same silent-config-disable as
+  finding 1. (b) The nightly prop cap was applied PER ITERATION, so each main
+  poll sampled that many MORE events: 2/night became 10/night and **a 2.4x
+  overdraw**. Neither was visible by reading; both appeared on the first
+  end-to-end run. A third defect — polling on a CAPPED wake when no target was
+  due — broke the invariant the budget argument rests on (polls == plan targets)
+  and cost a credit per long quiet stretch.
+
+  **PROPS ARE NOW RATIONED, NOT SWITCHED OFF:** one market (`player_points`, 1
+  credit/event) under a nightly event cap against genuine leftover allowance, so
+  they degrade first and can never starve the sides ladder. On the maximally
+  dense simulated month that is 15 prop events across 8 of 28 nights — small, but
+  the first prop prices this project would ever hold.
+
+  **`scripts/logger_canary.py`** checks the OUTPUT, not the process, because
+  `systemctl is-active` stays green through every failure that matters —
+  exhausted credits, revoked key, wrong sport key, a season that started while
+  the poller sat in its offseason idle. Current: 3 pass / 5 warn / 0 fail, the
+  warns all "offseason, no events". Tests: `tests/test_odds_sched.py`, 14 cases,
+  the central one being that a real night fits the real budget.
+
+- D229 **THE PUBLIC MIRROR SHIPPED HARD AVAILABILITY WHILE THE README CLAIMED
+  SOFT. THE GATES STAND; THE PUBLICATION DID NOT.** Raised by an external reader
+  against `origin/main`, with a reproduction. **THE CLAIM WAS CORRECT.**
+
+  **WHAT WAS ACTUALLY BROKEN.** `nba_model/` (private, where every gate ran) and
+  `nba-prediction-model/` (public) are two SEPARATE DIRECTORIES, not a worktree
+  pair — the public repo is a curated copy, so code changes never propagate
+  unless copied by hand. `prod_by_season.py` had been pushed (it passes
+  `{player_id: p_out}`) but `composition.py` had not (it still did `pid in out`).
+  **That combination is worse than either policy**: it is not the pre-D202 hard
+  rule, which received a set of ACTUAL outs, and it is not soft availability —
+  it drops every player carrying ANY probability, at any probability.
+
+      input            private (gates)   public (mirror)
+      nobody out           144.0             144.0
+      P(out)=0             144.0 OK           96.0  WRONG — dropped at 0%
+      P(out)=0.5           120.0 OK           96.0  WRONG
+      P(out)=1              96.0 OK           96.0  right by accident
+      hard set {p}          96.0 OK           96.0  right by accident
+
+  **THE GATES ARE UNAFFECTED, AND THIS WAS CHECKED RATHER THAN ASSERTED.** The
+  soft implementation landed in the private tree at **2026-08-06 22:18**;
+  `data/offset_coefs.json`, the D225 production fit that D224 gates, was written
+  **2026-08-07 00:42** — after it. D202/D224, the log-loss table, ROI and Sharpe
+  all stand. **The defect was in what a reader could reproduce, not in what was
+  measured** — which is the less alarming failure but the more embarrassing one,
+  since the repository is the evidence.
+
+  **THE READER WAS ALSO RIGHT THAT THE IDENTITY CHECKS WERE NEVER COMMITTED.**
+  D202 recorded that 0 / 0.5 / 1.0 had been verified; they had been, but
+  interactively. `tests/test_soft_availability.py` now asserts them, 13 cases.
+  **The test that catches this class of bug is the INTERIOR probability** — a
+  membership check passes 0.0 and 1.0 by accident and can only fail at 0.5. Run
+  against the pre-fix public code the file gives **10 failed / 3 passed**, and
+  the 3 that pass are exactly the accidental ones.
+
+  **THE DIVERGENCE WAS WIDER THAN THE FILE REPORTED**, which is the part worth
+  remembering: `slate.py` was missing the D178 live-path game-type filter (the
+  All-Star/preseason exclusion the owner explicitly asked for), `injury_pdf.py`
+  the D178 modern-layout parser (+204 lines), `tanking.py`/`teams.py` the D171
+  abbreviation fix, and 70 scripts including **`d224_gate_offset.py` — the gate
+  behind a headline claim.** All synced; `nbapred/` and `tests/` now diff clean.
+  KNOWN AND NOT FIXED: 7 DB-backed tests cannot run in a clone (`nba.duckdb` is
+  262 MB and correctly uncommitted), so a cloner gets 27 pass / 7 error.
+
+  **THE PROCESS FAILURE, STATED PLAINLY:** two directories, one remote, and a
+  manual copy step with nothing asserting they agree. The identity tests now fail
+  loudly in whichever tree is wrong, which is the only durable fix.

@@ -3,6 +3,16 @@
 Reads Kaggle cookies from the Chrome profile that's signed in (auto-detected)
 and hits the web download endpoint. Falls back to the official `kaggle` CLI if
 ~/.kaggle/kaggle.json exists. Downloads land in data/raw/kaggle/<slug>/.
+
+D177: the Chrome-cookie route is DEAD on this box (`no logged-in Kaggle Chrome
+profile found`) and `docs/OPENING_LINES.md` §4 already recorded that. But
+Kaggle's own **public API needs no auth at all** for search, metadata and the
+full-dataset zip: `GET https://www.kaggle.com/api/v1/datasets/{list,view,
+download}/...` all return 200 anonymously. `_anon_session` is therefore the
+fallback, and `search`/`view` are exposed so a dataset can be EVALUATED before
+72 MB is pulled. (kaggle.com serves no robots.txt — `/robots.txt` soft-404s to
+the SPA shell — and `/api/v1/` is Kaggle's own documented public API, whose
+entire purpose is dataset download.)
 """
 from __future__ import annotations
 
@@ -46,14 +56,53 @@ def _find_session() -> requests.Session:
     raise RuntimeError("no logged-in Kaggle Chrome profile found")
 
 
+def _anon_session() -> requests.Session:
+    """A plain session against Kaggle's public API - no cookie, no token."""
+    s = requests.Session()
+    s.headers.update(UA)
+    return s
+
+
+def _session() -> requests.Session:
+    """Logged-in Chrome session if one exists, else the anonymous public API."""
+    try:
+        return _find_session()
+    except Exception as exc:  # noqa: BLE001
+        log.info("no Chrome kaggle session (%s); using anonymous public API", exc)
+        return _anon_session()
+
+
+def search(term: str, page: int = 1, page_size: int = 100) -> list[dict]:
+    """Public dataset search. Works with no auth. Returns the raw JSON rows."""
+    r = _anon_session().get("https://www.kaggle.com/api/v1/datasets/list",
+                            params={"search": term, "page": page,
+                                    "pageSize": page_size}, timeout=60)
+    r.raise_for_status()
+    return r.json()
+
+
+def view(slug: str) -> dict:
+    """Public dataset metadata (title, licence, size, description, versions).
+
+    Use this to EVALUATE a candidate before downloading it. NOTE the file list
+    comes back EMPTY from this endpoint for most datasets - the only reliable
+    way to see file names is to download the zip and read its namelist.
+    """
+    r = _anon_session().get(f"https://www.kaggle.com/api/v1/datasets/view/{slug}",
+                            timeout=60)
+    r.raise_for_status()
+    return r.json()
+
+
 def download_dataset(slug: str) -> list[str]:
     """Download+extract a dataset (owner/name). Returns extracted file paths."""
     out_dir = RAW_KAGGLE / slug.replace("/", "__")
     out_dir.mkdir(parents=True, exist_ok=True)
     zip_path = out_dir / "dataset.zip"
 
-    s = _find_session()
-    with s.get(f"https://www.kaggle.com/datasets/{slug}/download", timeout=180, stream=True) as r:
+    s = _session()
+    url = f"https://www.kaggle.com/api/v1/datasets/download/{slug}"
+    with s.get(url, timeout=600, stream=True) as r:
         r.raise_for_status()
         if "zip" not in r.headers.get("content-type", ""):
             raise RuntimeError(f"unexpected content-type for {slug}: {r.headers.get('content-type')}")

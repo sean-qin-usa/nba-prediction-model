@@ -7,6 +7,7 @@ good green / bad red, recessive grid, direct labels, no dual axes), 150dpi.
 Reads data/hc_honestclv.json (written by scripts/hc_honestclv.py).
 """
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -35,7 +36,8 @@ LAB = {"R4_LOWT": "R4_LOWT", "T20_D03_10": "T20_D03_10",
 
 
 def main():
-    d = json.load(open(ROOT / "data" / "hc_honestclv.json"))
+    d = json.load(open(ROOT / "data" /
+                       f"hc_honestclv{os.environ.get('HC_TAG', '')}.json"))
     A = d["clv"]["ML_open"]
     B = d["clv"]["SP_open_policies"]
     dec = d["clv_decomposition"]
@@ -75,7 +77,13 @@ def main():
     ax.set_xticks(xs, [LAB[r] for r in ORDER], fontsize=8.5, rotation=14,
                   ha="right")
     ax.set_xlim(-0.55, 4.55)
-    ax.set_ylim(-0.017, 0.0255)
+    # D173 (D171's charting bug class): a hard ylim silently clips a real
+    # datum.  Derive from the data, keep the D121 bands in view, never clip.
+    _all = [A[r][k][b] for r in ORDER for k in ("leaky", "honest")
+            for b in ("tlo", "thi", "mean")]
+    _lo, _hi = min(_all + [-0.0131]), max(_all + [0.0200])
+    _pad = 0.09 * (_hi - _lo)
+    ax.set_ylim(min(-0.017, _lo - _pad), max(0.0255, _hi + _pad))
     ax.set_ylabel("CLV per bet at the open   (p_close - p_open, our side)")
     ax.legend(frameon=False, fontsize=8.8, loc="lower left",
               bbox_to_anchor=(0.02, 0.09))
@@ -108,7 +116,11 @@ def main():
                   ["worst of 2\nbooks", "one book\n(avg)", "best of 2\nbooks"],
                   fontsize=9)
     ax.set_xlim(-0.55, 2.55)
-    ax.set_ylim(0, 0.0405)
+    _all2 = [B["UNION"][pp][k][b] for pp in pols for k in ("leaky", "honest")
+             for b in ("lo", "hi", "mean")]
+    _lo2, _hi2 = min(_all2 + [0.0]), max(_all2 + [0.0200])
+    _pad2 = 0.13 * (_hi2 - _lo2)
+    ax.set_ylim(min(0.0, _lo2 - _pad2), max(_hi2 + _pad2, 0.0405))
     ax.set_ylabel("UNION CLV per bet at the open")
     ax.legend(frameon=False, fontsize=9, loc="upper left")
     ax.set_title("D142's line shopping, re-priced honestly\n"
@@ -141,7 +153,11 @@ def main():
     ax.axhline(0, color=INK2, lw=1.0)
     ax.set_xticks(range(len(steps)), [s[0] for s in steps], fontsize=8.8)
     ax.set_xlim(-0.6, 3.6)
-    ax.set_ylim(0, 0.0205)
+    _wv = [u["registered"], u["honest"], u["registered"] + u["frame_drift"],
+           u["registered"] + u["frame_drift"] + u["leak"]]
+    _lo3, _hi3 = min(_wv + [0.0]), max(_wv)
+    _pad3 = 0.13 * (_hi3 - _lo3)
+    ax.set_ylim(min(0.0, _lo3 - _pad3), max(_hi3 + _pad3, 0.0205))
     ax.set_ylabel("UNION CLV per bet at the open")
     ax.set_title("Where the registered CLV went\n"
                  f"{100*u['leak']/u['total']:.0f}% leak / "
@@ -150,9 +166,12 @@ def main():
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
 
-    fig.suptitle("DOES THE CLV SURVIVE THE D158 AVAILABILITY FIX?   YES — the "
-                 "union keeps +0.0120 of CLV per bet at the open, 87% of the "
-                 "same-corpus leaky level and 75% of the registered one",
+    _uh, _ul, _ur = u["honest"], u["honest"] - u["leak"], u["registered"]
+    fig.suptitle("DOES THE CLV SURVIVE THE AVAILABILITY FIX?   YES — RE-RUN ON "
+                 "THE D170/D171 BACKFILLED DATA (D173), the union keeps "
+                 f"{_uh:+.5f} of CLV per bet at the open, "
+                 f"{100*_uh/_ul:.0f}% of the same-corpus leaky level and "
+                 f"{100*_uh/_ur:.0f}% of the registered one",
                  fontsize=12.5, y=0.985)
     fig.text(0.5, 0.005,
              "LEAKY = data/capstone_pergame_oracle_ceiling.csv (played-set "
@@ -160,7 +179,13 @@ def main():
              "(T2, report UNION inactives).  Same script, same corpus, same "
              "weekly refit — availability is the only difference.  "
              "Whiskers: panel A K-1 cluster-mean t at K=3, panels B/C "
-             "season-clustered bootstrap.   D159, 2026-08-03.",
+             "season-clustered bootstrap.\n"
+             "D173 RE-RUN, 2026-08-04: HONEST is the D171 artifact "
+             "(md5 695d40a3545e889267cad403b7acdce8) on the D170-backfilled DB. "
+             "LEAKY is the frozen D158 oracle-ceiling arm, unchanged, so the "
+             "honest-minus-leaky contrast is no longer a same-vintage pair and "
+             "the leak share is an UPPER bound.  Axis limits are data-driven: "
+             "no point is clipped.",
              ha="center", va="bottom", fontsize=8.2, color=INK2)
     fig.savefig(ROOT / "charts" / "honest_clv.png", dpi=150,
                 bbox_inches="tight")

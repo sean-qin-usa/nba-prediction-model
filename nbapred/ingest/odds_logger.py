@@ -3,15 +3,30 @@
 Uptime-critical component: it does exactly one thing — poll and append raw JSON
 to data/raw/odds/YYYY-MM-DD.jsonl. It never opens DuckDB (single-writer rule);
 scripts/load_odds.py batch-loads the JSONL later. Crash-safe by construction:
-every poll is one appended line, partial lines impossible (single write+flush).
+every poll is one appended line, partial lines impossible (write+flush+fsync).
 
-Cadence policy (H-A needs open, moves, close):
-  - main lines (h2h/spreads/totals): every MAIN_INTERVAL_MIN minutes, tightened
-    to CLOSE_INTERVAL_MIN when any event starts within CLOSE_WINDOW_MIN.
-  - player props: per-event calls (credit-priced) only within PROP_WINDOW_HRS
-    of tip, at PROP_INTERVAL_MIN cadence.
-  - credit guard: if x-requests-remaining falls below CREDIT_FLOOR, props stop
-    first, then main polling degrades to hourly. Never silently dies.
+CADENCE (D228). Poll times come from `odds_sched.plan()`, a pure function of the
+slate's tip times and the credits actually left. See that module for why the
+ladder is tip-relative rather than anchored to the 5PM ET report clock.
+
+WHAT THIS REPLACES, AND WHY IT MATTERED.  The previous policy computed a
+budget-paced sleep and then did
+
+    if a tip is within CLOSE_WINDOW_MIN:
+        sleep_min = min(sleep_min, CLOSE_WINDOW_MIN / 3)
+
+so the evening burst OVERRODE the pacer.  At 3 credits a poll and ~9 polls a
+night that is 27 credits/night, or 675 across 25 game nights against a 500
+budget — a 35% overdraw.  When the credits ran out `_get` raised, the handler
+retried every 2 minutes forever, and the unit stayed `active` while capturing
+nothing.  Now the budget bounds the plan and the plan bounds the polling, so
+the burst cannot escape it; when credits get tight the ladder degrades to
+open + close and stops there rather than running the month dry.
+
+PROPS.  Previously gated on `MONTHLY_BUDGET == 0`, i.e. unreachable in the
+shipped configuration and the reason no prop price has ever been logged. Now
+rationed against leftover daily allowance under a nightly event cap, so they
+degrade first and never starve the sides ladder.
 """
 from __future__ import annotations
 
@@ -28,27 +43,35 @@ import requests
 from ..config import (
     ODDS_API_BASE,
     ODDS_API_KEY,
+    ODDS_MARKETS_CORE,
     ODDS_MARKETS_MAIN,
+    ODDS_PROP_EVENTS_PER_NIGHT,
     ODDS_PROP_MARKETS,
     ODDS_REGIONS,
     ODDS_SPORT,
     RAW_ODDS,
 )
+from .odds_sched import (
+    ET,
+    UTC,
+    daily_allowance,
+    next_target,
+    plan,
+    prop_candidates,
+    sleep_minutes,
+)
 
 log = logging.getLogger("odds_logger")
 
-MAIN_INTERVAL_MIN = float(os.environ.get("ODDS_MAIN_INTERVAL_MIN", 30))
-CLOSE_INTERVAL_MIN = float(os.environ.get("ODDS_CLOSE_INTERVAL_MIN", 5))
-CLOSE_WINDOW_MIN = float(os.environ.get("ODDS_CLOSE_WINDOW_MIN", 90))
-PROP_WINDOW_HRS = float(os.environ.get("ODDS_PROP_WINDOW_HRS", 24))
-PROP_INTERVAL_MIN = float(os.environ.get("ODDS_PROP_INTERVAL_MIN", 60))
-CREDIT_FLOOR = int(os.environ.get("ODDS_CREDIT_FLOOR", 500))
+PROP_WINDOW_HRS = float(os.environ.get("ODDS_PROP_WINDOW_HRS", 6))
+IDLE_SLEEP_MIN = float(os.environ.get("ODDS_IDLE_SLEEP_MIN", 720))  # offseason
 # Free-tier pacing: total credits per calendar month (0 = paid tier, no pacing).
-# When set, the sleep between main polls is stretched so the month's budget
-# lasts: polls/day = (remaining/days_left)/cost_per_poll. Props are disabled
-# whenever the monthly budget is set (they'd eat it in one evening).
 MONTHLY_BUDGET = int(os.environ.get("ODDS_MONTHLY_BUDGET", 0))
-_MAIN_POLL_COST = len(ODDS_MARKETS_MAIN.split(",")) * len(ODDS_REGIONS.split(","))
+
+_N_REGIONS = len(ODDS_REGIONS.split(","))
+COST_CORE = len(ODDS_MARKETS_CORE.split(",")) * _N_REGIONS
+COST_EXTRA = (len(ODDS_MARKETS_MAIN.split(",")) * _N_REGIONS) - COST_CORE
+COST_PROP_EVENT = len(ODDS_PROP_MARKETS.split(",")) * _N_REGIONS
 
 _stop = False
 
@@ -60,7 +83,7 @@ def _handle_sig(signum, frame):  # noqa: ARG001
 
 
 def _utcnow() -> dt.datetime:
-    return dt.datetime.now(dt.timezone.utc)
+    return dt.datetime.now(UTC)
 
 
 def _append(record: dict) -> Path:
@@ -86,18 +109,24 @@ def _get(endpoint: str, params: dict) -> tuple[object, dict]:
     return r.json(), quota
 
 
-def poll_main() -> tuple[list, dict]:
-    """Snapshot featured markets for all upcoming NBA events (1 credit/market-region)."""
+def poll_main(markets: str, target_kind: str = "main") -> tuple[list, dict]:
+    """Snapshot featured markets for all upcoming NBA events.
+
+    `target_kind` is stamped into the record so the ladder position (open /
+    t4h / t2h / t1h / close) survives into the JSONL and does not have to be
+    re-derived against tip times at load time.
+    """
     body, quota = _get(
         f"/sports/{ODDS_SPORT}/odds",
-        {"regions": ODDS_REGIONS, "markets": ODDS_MARKETS_MAIN, "oddsFormat": "decimal"},
+        {"regions": ODDS_REGIONS, "markets": markets, "oddsFormat": "decimal"},
     )
     _append({
         "snapshot_ts": _utcnow().isoformat(),
         "kind": "main",
+        "target_kind": target_kind,
         "sport": ODDS_SPORT,
         "regions": ODDS_REGIONS,
-        "markets": ODDS_MARKETS_MAIN,
+        "markets": markets,
         "quota": quota,
         "data": body,
     })
@@ -107,11 +136,13 @@ def poll_main() -> tuple[list, dict]:
 def poll_props(event_id: str) -> dict:
     body, quota = _get(
         f"/sports/{ODDS_SPORT}/events/{event_id}/odds",
-        {"regions": ODDS_REGIONS, "markets": ODDS_PROP_MARKETS, "oddsFormat": "decimal"},
+        {"regions": ODDS_REGIONS, "markets": ODDS_PROP_MARKETS,
+         "oddsFormat": "decimal"},
     )
     _append({
         "snapshot_ts": _utcnow().isoformat(),
         "kind": "props",
+        "target_kind": "props",
         "event_id": event_id,
         "regions": ODDS_REGIONS,
         "markets": ODDS_PROP_MARKETS,
@@ -121,31 +152,27 @@ def poll_props(event_id: str) -> dict:
     return quota
 
 
-def _budget_paced_sleep_min(remaining: int) -> float:
-    """Minutes between main polls so `remaining` credits last through the month."""
-    now = _utcnow()
-    if now.month == 12:
-        month_end = now.replace(year=now.year + 1, month=1, day=1)
-    else:
-        month_end = now.replace(month=now.month + 1, day=1)
-    month_end = month_end.replace(hour=0, minute=0, second=0, microsecond=0)
-    days_left = max((month_end - now).total_seconds() / 86400, 0.25)
-    polls_per_day = max((remaining / days_left) / _MAIN_POLL_COST, 1.0)
-    return max(1440.0 / polls_per_day, CLOSE_INTERVAL_MIN)
+def _tip(ev: dict) -> dt.datetime | None:
+    try:
+        return dt.datetime.fromisoformat(ev["commence_time"].replace("Z", "+00:00"))
+    except (KeyError, ValueError, AttributeError):
+        return None
 
 
-def _minutes_to_next_tip(events: list) -> float | None:
-    now = _utcnow()
-    best = None
-    for ev in events:
-        try:
-            t = dt.datetime.fromisoformat(ev["commence_time"].replace("Z", "+00:00"))
-        except (KeyError, ValueError):
-            continue
-        mins = (t - now).total_seconds() / 60
-        if mins > -240 and (best is None or mins < best):  # ignore long-finished games
-            best = mins
-    return best
+def next_slate(events: list, now: dt.datetime) -> tuple[list, dict]:
+    """Tips of the earliest ET game-date that still has a future game.
+
+    Planning one slate at a time is what keeps the daily allowance meaningful:
+    generating targets for every event the API returns (often days ahead) would
+    inflate the day's cost and over-trim tonight's ladder.
+    """
+    fut = [(t, ev) for ev in events
+           if (t := _tip(ev)) is not None and t > now - dt.timedelta(hours=4)]
+    if not fut:
+        return [], {}
+    date0 = min(t for t, _ in fut).astimezone(ET).date()
+    sel = [(t, ev) for t, ev in fut if t.astimezone(ET).date() == date0]
+    return [t for t, _ in sel], {ev["id"]: t for t, ev in sel if ev.get("id")}
 
 
 def run_forever() -> None:
@@ -153,44 +180,101 @@ def run_forever() -> None:
         raise SystemExit("ODDS_API_KEY not set (put it in .env) — refusing to start.")
     signal.signal(signal.SIGTERM, _handle_sig)
     signal.signal(signal.SIGINT, _handle_sig)
-    last_props: dict[str, float] = {}  # event_id -> monotonic ts of last prop poll
-    remaining = None
+    log.info("cadence: core=%s (%d cr) extra=+%d cr props=%s (%d cr/event) "
+             "budget=%s", ODDS_MARKETS_CORE, COST_CORE, COST_EXTRA,
+             ODDS_PROP_MARKETS, COST_PROP_EVENT, MONTHLY_BUDGET or "none")
+
+    kind, want_extra = "open", False        # the first poll of a run
+    props_done: dict[str, set] = {}         # ET date -> event ids sampled
+    plan_cache: list = []
+    need_poll = True
 
     while not _stop:
         try:
-            events, quota = poll_main()
-            remaining = int(quota["requests_remaining"] or 0)
-            log.info("main snapshot: %d events, %s credits left", len(events), remaining)
+            now = _utcnow()
+            if not need_poll:
+                # A CAPPED WAKE, NOT AN ARRIVAL. `sleep_minutes` bounds a sleep at
+                # MAX_SLEEP_MIN so the loop re-plans on a long quiet stretch, but
+                # waking is not the same as a target falling due -- polling here
+                # would spend a credit for nothing and break the invariant the
+                # budget rests on, that polls == plan targets.
+                sleep_min, why = sleep_minutes(now, plan_cache)
+                nxt = next_target(now, plan_cache)
+                need_poll = nxt is not None and \
+                    sleep_min >= (nxt.when - now).total_seconds() / 60 - 1e-9
+                if nxt is None:
+                    need_poll = True
+                else:
+                    kind, want_extra = nxt.kind, bool(nxt.extra)
+                log.info("waiting %.0fm — %s", sleep_min, why)
+                for _ in range(int(sleep_min * 60)):
+                    if _stop:
+                        break
+                    time.sleep(1)
+                continue
 
-            if MONTHLY_BUDGET == 0 and remaining > CREDIT_FLOOR:
-                now_mono = time.monotonic()
-                for ev in events:
-                    t = dt.datetime.fromisoformat(ev["commence_time"].replace("Z", "+00:00"))
-                    hrs = (t - _utcnow()).total_seconds() / 3600
-                    if 0 <= hrs <= PROP_WINDOW_HRS:
-                        if now_mono - last_props.get(ev["id"], 0) >= PROP_INTERVAL_MIN * 60:
-                            q = poll_props(ev["id"])
-                            last_props[ev["id"]] = now_mono
-                            remaining = int(q["requests_remaining"] or 0)
-                            if remaining <= CREDIT_FLOOR:
-                                log.warning("credit floor hit (%s) — props paused", remaining)
-                                break
-            mins_next = _minutes_to_next_tip(events)
-            if MONTHLY_BUDGET:
-                sleep_min = _budget_paced_sleep_min(remaining)
-                # spend a burst near tip (close capture) even on a tight budget,
-                # by taking the paced sleep only when no close window is near
-                if mins_next is not None and 0 <= mins_next <= CLOSE_WINDOW_MIN:
-                    sleep_min = min(sleep_min, CLOSE_WINDOW_MIN / 3)
-            elif remaining is not None and remaining <= CREDIT_FLOOR:
-                sleep_min = 60.0
-            elif mins_next is not None and mins_next <= CLOSE_WINDOW_MIN:
-                sleep_min = CLOSE_INTERVAL_MIN
+            markets = ODDS_MARKETS_MAIN if want_extra else ODDS_MARKETS_CORE
+            events, quota = poll_main(markets, target_kind=kind)
+            remaining = int(quota["requests_remaining"] or 0)
+            now = _utcnow()
+            tips, tips_by_event = next_slate(events, now)
+            log.info("%s snapshot: %d events, %d on the next slate, %s credits left",
+                     kind, len(events), len(tips), remaining)
+
+            if not events:
+                plan_cache = []
+                sleep_min, why = IDLE_SLEEP_MIN, "no events listed (offseason)"
+                kind, want_extra, need_poll = "open", False, True
             else:
-                sleep_min = MAIN_INTERVAL_MIN
+                allowance = daily_allowance(remaining, now, MONTHLY_BUDGET)
+                p = plan(tips, allowance=allowance,
+                         cost_core=COST_CORE, cost_extra=COST_EXTRA)
+
+                # Props ride on GENUINE leftovers: whatever the sides ladder did
+                # not claim. They therefore vanish first as credits tighten and
+                # can never starve open/close.
+                if allowance is not None:
+                    spent = sum(COST_CORE + (COST_EXTRA if t.extra else 0)
+                                for t in p)
+                    left = allowance - spent
+                else:
+                    left = float("inf")
+                day = now.astimezone(ET).date().isoformat()
+                done = props_done.setdefault(day, set())
+                # NIGHTLY cap, so it must be net of what tonight already spent:
+                # `prop_candidates` only excludes events already sampled, so a
+                # raw cap here would sample that many MORE on every main poll --
+                # 2/night became 10/night and a 2.4x budget overdraw.
+                budget_events = (ODDS_PROP_EVENTS_PER_NIGHT
+                                 if left == float("inf")
+                                 else int(left // COST_PROP_EVENT))
+                cap = min(ODDS_PROP_EVENTS_PER_NIGHT - len(done), budget_events)
+                for eid in prop_candidates(tips_by_event, now,
+                                           window_hrs=PROP_WINDOW_HRS,
+                                           cap=cap, already=done):
+                    q = poll_props(eid)
+                    done.add(eid)
+                    remaining = int(q["requests_remaining"] or 0)
+                    log.info("props: event %s sampled, %s credits left",
+                             eid, remaining)
+
+                plan_cache = p
+                sleep_min, why = sleep_minutes(now, p)
+                nxt = next_target(now, p)
+                kind = nxt.kind if nxt else "open"
+                want_extra = bool(nxt.extra) if nxt else False
+                # only the NEXT wake that actually reaches the target may poll
+                need_poll = nxt is None or \
+                    sleep_min >= (nxt.when - now).total_seconds() / 60 - 1e-9
+                if len(props_done) > 3:      # keep the dict from growing forever
+                    for k in sorted(props_done)[:-3]:
+                        props_done.pop(k, None)
+
+            log.info("sleeping %.0fm — %s", sleep_min, why)
         except Exception:
             log.exception("poll failed; retrying in 2 min")
             sleep_min = 2.0
+            kind, want_extra, need_poll = "open", False, True
 
         for _ in range(int(sleep_min * 60)):
             if _stop:

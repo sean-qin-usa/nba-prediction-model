@@ -63,11 +63,19 @@ import bo_lineshop as ls                                          # noqa: E402
 import lb_exploit as lx                                           # noqa: E402
 from lb_longshot import cluster_boot, cluster_mean_t, icc_oneway  # noqa: E402
 
-HONEST = os.path.join(ROOT, "data", "capstone_pergame.csv")
+# --- PATH OVERRIDES ONLY (D173 re-run on the D170/D171 backfilled data).
+# --- Defaults are byte-identical to D159's; no rule, price convention or
+# --- statistic is touched.  NOTE capstone_pergame.csv is ALREADY the D171
+# --- artifact, so the HONEST arm re-runs on the new data by default.
+_TAG = os.environ.get("HC_TAG", "")
+HONEST = os.environ.get("HC_HONEST") or os.path.join(
+    ROOT, "data", "capstone_pergame.csv")
 LEAKY_PAIR = os.path.join(ROOT, "data", "capstone_pergame_oracle_ceiling.csv")
 LEAKY_REG = os.path.join(ROOT, "data", "ds_rt1_pergame.csv")
 LB_EXPLOIT = os.path.join(ROOT, "data", "lb_exploit.json")
-OUT = os.path.join(ROOT, "data", "hc_honestclv.json")
+OUT = os.path.join(ROOT, "data", f"hc_honestclv{_TAG}.json")
+PBS = os.environ.get("HC_PBS") or os.path.join(ROOT, "data",
+                                               "prod_by_season.json")
 
 SEED = 20260803
 N_BOOT = 4000
@@ -198,7 +206,7 @@ def main():
     print("[0] CONTROL ARTIFACTS (D134 control-hash field)")
     for k, v in res["md5"].items():
         print(f"    {v}  {k}")
-    pbs = json.load(open(os.path.join(ROOT, "data", "prod_by_season.json")))
+    pbs = json.load(open(PBS))
     print("\n    availability tier ACTUALLY IN FORCE per season "
           "(data/prod_by_season.json, the honest run):")
     for o in pbs:

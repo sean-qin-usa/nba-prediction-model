@@ -199,8 +199,7 @@ def comp_c_shutdown(con, tg: pd.DataFrame, pm: pd.DataFrame) -> pd.DataFrame:
     """Distinct (player, game_date) rest/management/maintenance 'Out'
     listings on mpg>=25 players in the trailing 14 days, report_date < d.
     NaN when the report feed has no coverage in the trailing 7 days."""
-    from nba_api.stats.static import teams as _t
-    name2ab = {t["full_name"]: t["abbreviation"] for t in _t.get_teams()}
+    from nbapred.teams import abbrev_for     # D171: "LA Clippers" resolves
     ent = con.execute("""
         SELECT DISTINCT i.report_date, i.game_date, i.team, p.player_id
         FROM injury_reports_pit i
@@ -214,7 +213,7 @@ def comp_c_shutdown(con, tg: pd.DataFrame, pm: pd.DataFrame) -> pd.DataFrame:
                OR lower(i.reason) LIKE '%maintenance%')""").fetchdf()
     ent["report_date"] = pd.to_datetime(ent["report_date"])
     ent["game_date"] = pd.to_datetime(ent["game_date"])
-    ent["team_ab"] = ent["team"].map(name2ab)
+    ent["team_ab"] = ent["team"].map(abbrev_for)     # D171
     ent = ent.dropna(subset=["team_ab", "player_id"])
     by_team: dict[str, pd.DataFrame] = {
         ab: sub.sort_values("game_date") for ab, sub in ent.groupby("team_ab")}

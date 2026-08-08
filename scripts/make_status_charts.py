@@ -1,7 +1,7 @@
 """Two head-to-head status charts for the owner (2026-08-02).
 
   charts/status_logloss_h2h.png   model vs market: where we stand, by season and
-                                  across the season, on the CERTIFIED D158 stack (honest availability)
+                                  across the season, on the CERTIFIED D171 stack (T2-HONEST on all 5 seasons)
   charts/status_trading_h2h.png   trading: ROI vs breakeven per execution policy,
                                   and CLV per rule against the D121 monthly bands
 
@@ -120,14 +120,28 @@ def main():
                  fontsize=11, pad=14)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
-    fig.suptitle("MODEL vs MARKET — prediction accuracy (certified stack D158, honest availability, n=6,148)",
-                 fontsize=13, y=0.99)
+    # D171 label-collision pass: a two-line suptitle overlaps BOTH panel
+    # titles here (tight_layout cannot reserve for it — the left panel is a
+    # barh with its own multi-line title), so this stays ONE line.
+    fig.suptitle("MODEL vs MARKET — prediction accuracy "
+                 "(certified D171 · T2-HONEST all 5 seasons · n=6,148)",
+                 fontsize=13, y=1.02)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(charts / "status_logloss_h2h.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
     # ---------------------------------------------------------- CHART 2
     d = json.load(open(ROOT / "data" / "bo_lineshop.json"))
+    # D173: the CLV panel is re-sourced onto the D170/D171 BACKFILLED data via
+    # the honest-CLV re-run (scripts/hc_honestclv.py, HONEST arm =
+    # capstone_pergame.csv md5 695d40a3...).  The EXECUTION panel on the left
+    # still comes from bo_lineshop.json, which prices the MARKET rather than us
+    # and was ranked last for re-running (D171 ?9 item 6) — it is labelled as
+    # not-re-run rather than silently republished.
+    import os as _os
+    hc = json.load(open(ROOT / "data" /
+                        f"hc_honestclv{_os.environ.get('HC_TAG', '')}.json"))
+    HCP = hc["clv"]["SP_open_policies"]
     fig, (axL, axR) = plt.subplots(1, 2, figsize=(15, 6.2), dpi=150,
                                    gridspec_kw={"wspace": 0.26})
 
@@ -159,7 +173,7 @@ def main():
     for sp in ("top", "right"):
         axL.spines[sp].set_visible(False)
 
-    # right: CLV per rule with the D121 monthly bands
+    # right: CLV per rule with the D121 monthly bands  (D173 honest re-run)
     clv = d["clv"]
     order = ["R4_LOWT", "T20_D03_10", "T20_D03_10_W", "STAR_FAV_SHARPER", "UNION"]
     lab = {"R4_LOWT": "R4_LOWT\n(primary)", "T20_D03_10": "T20_D03_10",
@@ -172,9 +186,9 @@ def main():
     for j, (key, col, nm) in enumerate((("WORST2", C_BAD, "worst of 2"),
                                         ("ONEBOOK", C_MODEL, "one book (avg)"),
                                         ("BEST2", C_GOOD, "best of 2"))):
-        vals = [clv[r][key]["clv"] for r in order]
-        los = [clv[r][key]["lo"] for r in order]
-        his = [clv[r][key]["hi"] for r in order]
+        vals = [HCP[r][key]["honest"]["mean"] for r in order]
+        los = [HCP[r][key]["honest"]["lo"] for r in order]
+        his = [HCP[r][key]["honest"]["hi"] for r in order]
         off = (j - 1) * 0.26
         axR.errorbar(xs + off, vals,
                      yerr=[np.array(vals) - np.array(los), np.array(his) - np.array(vals)],
@@ -194,13 +208,26 @@ def main():
     axR.set_xticks(xs, [lab[r] for r in order], fontsize=9)
     axR.set_ylabel("closing line value per bet")
     axR.legend(frameon=False, fontsize=9, loc="upper left")
-    axR.set_title("CLV — the asset we actually own\n"
-                  "every rule positive, and shopping 2 books lifts it ~49%",
+    _u1 = HCP["UNION"]["ONEBOOK"]["honest"]["mean"]
+    _u2 = HCP["UNION"]["BEST2"]["honest"]["mean"]
+    axR.set_title("CLV — the asset we actually own   [RE-RUN ON THE D170/D171 "
+                  "BACKFILLED DATA]\n"
+                  f"every rule still positive; shopping 2 books lifts the union "
+                  f"{100*(_u2/_u1-1):.0f}%  ({_u1:+.5f} -> {_u2:+.5f})",
                   fontsize=11)
     for sp in ("top", "right"):
         axR.spines[sp].set_visible(False)
-    fig.suptitle("MODEL vs MARKET — trading (frozen rules, real opening prices)",
-                 fontsize=13, y=0.99)
+    # D171: the trading panels are computed from bo_lineshop.json, which was
+    # produced BEFORE D170's availability/talent backfill. They are therefore
+    # CONSERVATIVE by an unmeasured amount and are labelled as such rather than
+    # silently re-published as current.
+    # D171: the trading panels come from bo_lineshop.json, produced BEFORE
+    # D170's availability/talent backfill — CONSERVATIVE by an unmeasured
+    # amount, and labelled so rather than silently re-published as current.
+    fig.suptitle("MODEL vs MARKET — trading (frozen rules, real opening prices)   "
+                 "·   RIGHT PANEL RE-RUN ON THE D170/D171 BACKFILLED DATA (D173);   "
+                 "LEFT PANEL still D163 execution-side, NOT re-run",
+                 fontsize=12, y=1.02)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(charts / "status_trading_h2h.png", dpi=150, bbox_inches="tight")
     plt.close(fig)

@@ -79,9 +79,14 @@ import bo_openbacktest as bo                                    # noqa: E402
 import lb_exploit as lx                                         # noqa: E402
 from lb_longshot import cluster_boot, cluster_mean_t, icc_oneway  # noqa: E402
 
-K19 = os.path.join(ROOT, "data", "k19_pergame.csv")
+# --- PATH OVERRIDES ONLY (added for the D173 re-run on the D170/D171 backfilled
+# --- data).  Defaults are byte-identical to D161's; no rule, threshold, price
+# --- convention or statistic is touched.
+K19 = os.environ.get("K19_PERGAME") or os.path.join(ROOT, "data",
+                                                    "k19_pergame.csv")
+_TAG = os.environ.get("K19_RULES_TAG", "")
 LB_EXPLOIT = os.path.join(ROOT, "data", "lb_exploit.json")
-OUT = os.path.join(ROOT, "data", "k19_rules.json")
+OUT = os.path.join(ROOT, "data", f"k19_rules{_TAG}.json")
 
 SEED = 20260803
 N_BOOT = 4000
@@ -112,6 +117,13 @@ WINDOWS = [("POOL19", set(SEASONS19)),
            ("DEV", DEV),
            ("NONDEV", NONDEV),
            ("NOCOVID", set(SEASONS19) - COVID)]
+# OWNER-SCOPED ADDITIONAL WINDOW (D173), OFF BY DEFAULT so D161's five windows
+# reproduce byte-identically when unset.  2018-19..2025-26 is the era in which
+# injury reports exist (they begin 2018-12-17) — a frame the owner named in
+# advance, NOT one chosen by looking at results.
+REPORT8 = set(SEASONS19[11:])
+if os.environ.get("K19_REPORT_ERA"):
+    WINDOWS.append(("REPORT8", REPORT8))
 
 TQ = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365,
       8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179, 13: 2.160,

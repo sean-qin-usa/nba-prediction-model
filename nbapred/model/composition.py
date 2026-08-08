@@ -75,21 +75,43 @@ class CompositionModel:
             "WHERE snapshot_date = (SELECT max(snapshot_date) FROM darko_dpm)"
         ).fetchall())
 
-    def strength(self, team_id: int, out: set | None = None,
+    def strength(self, team_id: int, out=None,
                  game_date: dt.date | None = None) -> float:
+        """Team strength = sum over rostered players of talent x minutes / 48,
+        weighted by availability.
+
+        `out` accepts EITHER form, and the set form is byte-identical to the
+        pre-D201 behaviour:
+          * a SET of player_ids            -> hard availability, weight 0 or 1
+          * a DICT {player_id: p_out}      -> SOFT availability, weight 1-p_out
+
+        The soft form exists because at the OPEN we do not know tonight's
+        out-set (D199: 18.1% of it is published after the line). A player last
+        listed Questionable is out ~28.9% of the time; the hard rule scores him
+        0.0 and the hard rule is wrong in both directions (D200).
+        """
         out = out or set()
+        soft = isinstance(out, dict)
         ref = game_date or self.asof or dt.date.today()
         s = 0.0
         for pid, p in self.players.items():
-            if p["team_id"] != team_id or pid in out:
+            if p["team_id"] != team_id:
                 continue
+            if soft:
+                w = 1.0 - float(out.get(pid, 0.0))
+                if w <= 0.0:
+                    continue
+            elif pid in out:
+                continue
+            else:
+                w = 1.0
             if (ref - p["last_played"]).days > ROSTER_DAYS:
                 continue   # not currently in rotation (long-term out / departed)
-            s += p["talent"] * p["trail_min"] / 48.0
+            s += w * p["talent"] * p["trail_min"] / 48.0
         return s
 
-    def margin(self, home_id: int, away_id: int, out_home: set | None = None,
-               out_away: set | None = None, game_date: dt.date | None = None,
+    def margin(self, home_id: int, away_id: int, out_home=None,
+               out_away=None, game_date: dt.date | None = None,
                home_edge: float = HOME_EDGE) -> float:
         return (self.strength(home_id, out_home, game_date)
                 - self.strength(away_id, out_away, game_date) + home_edge)

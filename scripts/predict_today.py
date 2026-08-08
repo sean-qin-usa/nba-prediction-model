@@ -24,7 +24,8 @@ from nbapred.db import connect
 from nbapred.engine.props import (player_rates_from_stats, prop_prob,
                                   simulate_player)
 from nbapred.engine import starout
-from nbapred.engine.slate import slate_context, todays_games
+from nbapred.engine.slate import (filter_regular_season, slate_context,
+                                  todays_games)
 
 MODEL_WEIGHT = 0.3   # blend: final = w*model + (1-w)*market (shift toward model
                      # inside flagged lineup windows once injury feed is live)
@@ -35,9 +36,13 @@ def main(season=None):
     season = season or current_season()   # Oct 2026 -> '2026-27' (was a
     # hardcoded '2025-26', which would have mislabeled every virtual tank row
     # AND fit the whole production stack on last season at the October opener)
-    games = todays_games()
+    # D178 FIX 1: REGULAR SEASON ONLY (game_id prefix 002).  The nba_api
+    # scoreboard returns preseason games in early October and All-Star games in
+    # February; the model is fit and priced on 002 only.
+    games = filter_regular_season(todays_games(), where="predict_today")
     if not games:
-        print(f"No NBA games scheduled today ({dt.date.today()}). "
+        print(f"No NBA regular-season games scheduled today "
+              f"({dt.date.today()}). "
               "(Offseason — entrypoint is armed for October.)")
         return
     con = connect(read_only=True)
@@ -96,18 +101,28 @@ def main(season=None):
             # Rank rotation by seconds in the team's LAST 15 games (all-time
             # totals surfaced departed players / years-old rosters), and keep
             # only players whose CURRENT team (arg_max by date) is this team.
+            # D178 FIX 1: both CTEs now carry `game_id LIKE '002%'`.  Without
+            # it (a) `recent` could spend slots of the 15-game rotation window
+            # on preseason/All-Star box scores, and (b) `current_team`'s
+            # arg_max could resolve a player's CURRENT team to an All-Star or
+            # exhibition side (team_ids that are not NBA franchises at all —
+            # 315 such spine rows, 97 codes), which drops every player on that
+            # roster from the printout. Same filter as `star_out_live` and the
+            # `last_team` departed filter in slate.py.
             top = con.execute("""
                 WITH recent AS (
                   SELECT DISTINCT g.game_id, g.game_date
                   FROM player_game_stats s
                   JOIN (SELECT DISTINCT game_id, game_date FROM nba_games) g
                     USING (game_id)
-                  WHERE s.team_id=? ORDER BY g.game_date DESC LIMIT 15
+                  WHERE s.team_id=? AND s.game_id LIKE '002%'
+                  ORDER BY g.game_date DESC LIMIT 15
                 ), current_team AS (
                   SELECT s.player_id, arg_max(s.team_id, g.game_date) ct
                   FROM player_game_stats s
                   JOIN (SELECT DISTINCT game_id, game_date FROM nba_games) g
                     USING (game_id)
+                  WHERE s.game_id LIKE '002%'
                   GROUP BY 1
                 )
                 SELECT s.player_id, sum(s.seconds) sec

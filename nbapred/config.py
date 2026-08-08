@@ -33,14 +33,28 @@ _load_dotenv()
 ODDS_API_KEY = os.environ.get("ODDS_API_KEY", "")
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 
-# Featured markets logged on every snapshot; props are per-event calls (credit-priced).
+# MARKETS ARE TIERED BECAUSE CREDITS ARE PRICED PER MARKET PER REGION (D228).
+# The old single "h2h,spreads,totals" cost 3 credits on EVERY poll, which is what
+# made the four-snapshot ladder unaffordable on the free tier. The sides strategy
+# transacts on SPREADS ONLY -- nothing in nbapred/ or bet_engine reads h2h or
+# totals from the live feed -- so the core poll is 1 credit and the extras ride
+# along once a day for the record. That is a 3x cadence increase for no money.
 ODDS_SPORT = "basketball_nba"
-ODDS_MARKETS_MAIN = "h2h,spreads,totals"
+ODDS_MARKETS_CORE = os.environ.get("ODDS_MARKETS_CORE", "spreads")
+ODDS_MARKETS_EXTRA = os.environ.get("ODDS_MARKETS_EXTRA", "h2h,totals")
+ODDS_MARKETS_MAIN = ",".join(x for x in (ODDS_MARKETS_CORE, ODDS_MARKETS_EXTRA) if x)
 ODDS_REGIONS = os.environ.get("ODDS_REGIONS", "us")
-ODDS_PROP_MARKETS = os.environ.get(
-    "ODDS_PROP_MARKETS",
-    "player_points,player_rebounds,player_assists,player_threes,player_points_rebounds_assists",
-)
+# Props are per-EVENT, so they are the only unbounded cost in the logger. They
+# are rationed by a nightly event cap against genuine leftover allowance rather
+# than switched off wholesale -- the wholesale switch is why no prop price has
+# ever been logged, and why "market-offset props" is still unexplored.
+# ONE market by default, because a prop event costs markets x regions: at three
+# markets an event is 3 credits and props lose every leftover contest against the
+# sides ladder, which is how they end up at zero again. player_points is the most
+# liquid line and the one the offset-on-props test needs first; widen only when
+# the budget is observed to carry it.
+ODDS_PROP_MARKETS = os.environ.get("ODDS_PROP_MARKETS", "player_points")
+ODDS_PROP_EVENTS_PER_NIGHT = int(os.environ.get("ODDS_PROP_EVENTS_PER_NIGHT", 2))
 
 def current_season(today=None) -> str:
     """NBA season label for a date (default: today). Oct-Dec -> the season

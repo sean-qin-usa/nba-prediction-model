@@ -84,15 +84,51 @@ def _slate():
     return slate
 
 
+# D178 RE-PIN. These were read out of data/apr_tank_stats.csv, a GATE TABLE
+# generated under a DB VINTAGE THAT NO LONGER EXISTS. D170 backfilled 97
+# report-days (2026-01-01..2026-04-12) that the injury-PDF filename regex had
+# been silently dropping, and D171 fixed the "LA Clippers" team-name join; both
+# move the availability inputs the tank composite is built from, so every
+# tank_score at CUTOFF moved. The composite is a POOLED EXPANDING z, so a shift
+# on any team moves every team — this is a DATA change, not a code regression,
+# and the test was failing on it rather than on anything it means to protect.
+#
+# The values below are the CURRENT CERTIFIED ones (D171 data, TANK_SEASON_FLOOR
+# pinned to OLD_FLOOR), read out of the same construction the test exercises
+# and pinned INLINE so the fixture can no longer rot behind a stale CSV. gp
+# is unchanged from the CSV on all 18 teams — only the scores moved.
+# A FUTURE drift is again detectable: any change to the composite, the floor,
+# or the availability corpus fails this test loudly.
+GATE_TANK_AT_CUTOFF = {
+    # team_id: (tank_score, gp_before)      # apr_tank_stats.csv had
+    1610612737: (-0.7246109034725781, 77),  # -0.6387576031689266
+    1610612738: (-0.35339370637005574, 76),  # -0.4715955781303872
+    1610612740: (0.23357908046646425, 77),  # +0.1151733266144479
+    1610612741: (0.5636923295239912, 76),  # +0.6439536441917186
+    1610612742: (0.9551191571210208, 76),  # +1.0332283637815385
+    1610612745: (-0.1833235878476916, 76),  # -0.1041635307245802
+    1610612749: (0.9683806879092056, 76),  # +1.0474905071805594
+    1610612750: (-0.3958247676882797, 76),  # -0.3108677738488913
+    1610612751: (1.4928642570982016, 76),  # +1.3671292013960180
+    1610612752: (-0.45145837127081256, 77),  # -0.5693805222252403
+    1610612753: (0.4668075545846391, 76),  # -0.5258858206070522
+    1610612754: (1.0250694518325216, 76),  # +0.7036399382176841
+    1610612755: (-0.2739818201055343, 76),  # -0.1890942065614996
+    1610612758: (1.601688470023284, 77),  # +1.0705443950755575
+    1610612761: (0.13530712110851761, 76),  # -0.1882312343384422
+    1610612762: (1.972259909296611, 77),  # +1.0333646252408828
+    1610612763: (1.2057645020348007, 76),  # +1.0817061527416870
+    1610612766: (-0.2969946186363601, 77),  # -0.2150152277037201
+}
+
+
 def test_live_virtual_rows_match_gate_table():
     """D68 live parity AND the D112 refactor no-op: pinned to the old floor
-    because data/apr_tank_stats.csv was generated under it."""
-    import pandas as pd
+    (data/apr_tank_stats.csv was generated under it) and, since D178, to the
+    CURRENT certified values in GATE_TANK_AT_CUTOFF rather than to that CSV,
+    which is a D170/D171-superseded vintage."""
     from nbapred.model.tanking import TankModel
     slate = _slate()
-    apr = pd.read_csv(ROOT / "data/apr_tank_stats.csv", dtype={"game_id": str})
-    apr["game_date"] = pd.to_datetime(apr["game_date"])
-    ref = apr[apr.game_date == pd.Timestamp(CUTOFF)]
     with floor(OLD_FLOOR):
         mem = _truncated_mem_db()
         tm = TankModel(mem, virtual_games=[(s, t, CUTOFF) for s, t in slate])
@@ -100,11 +136,11 @@ def test_live_virtual_rows_match_gate_table():
     assert tm.floor == OLD_FLOOR
     checked = 0
     for s, tid in slate:
-        row = ref[ref.team_id == tid]
-        if row.empty:
+        exp = GATE_TANK_AT_CUTOFF.get(int(tid))
+        if exp is None:
             continue
         got_t, got_gp = tm.score(int(tid), CUTOFF)
-        exp_t, exp_gp = float(row.tank_score.iloc[0]), int(row.gp_before.iloc[0])
+        exp_t, exp_gp = exp
         assert got_gp == exp_gp, (tid, got_gp, exp_gp)
         assert abs(got_t - exp_t) < 1e-9, (tid, got_t, exp_t)
         checked += 1
@@ -203,9 +239,22 @@ def test_gp55_window_gating_and_lookup_miss():
 
 def test_fit_k_walkforward_old_floor_is_unchanged():
     """D112 refactor no-op proof: pinned to the old floor, fit_k must still
-    return the pre-D112 registered ship value."""
+    return the registered ship value at that floor.
+
+    D178 RE-PIN. The old literal was -2.26990, the PRE-D112 ship. It has drifted
+    twice on DATA, not code:
+        -2.26990  pre-D112 / D131 vintage      (the literal that was here)
+        -2.17831  after D170 (97 injury-report days backfilled — the PDF
+                  filename regex had been dropping 2026-01-01..2026-04-12)
+        -2.08251  after D171 (the "LA Clippers" team-name join fix)
+    k is fit on the availability-driven composite, so widening the availability
+    corpus moves it; the test was red on a data change it was never meant to
+    catch. Re-pinned to the CURRENT CERTIFIED value with the D171 tolerance
+    kept at 1e-4 so a FUTURE drift — including a further backfill — is again
+    detectable, loudly, on the next run."""
     from nbapred.db import connect
     from nbapred.model.tanking import K_CLIP, get_tank_model
+    K26_D171 = -2.08251078599815          # current certified, D171 data
     with floor(OLD_FLOOR):
         con = connect(read_only=True)
         tm = get_tank_model(con)
@@ -215,7 +264,7 @@ def test_fit_k_walkforward_old_floor_is_unchanged():
         k_24 = tm.fit_k(dt.date(2024, 10, 1))
         k_26 = tm.fit_k(dt.date(2026, 4, 9))
     assert -K_CLIP <= k_24 < 0 and -K_CLIP <= k_26 < 0  # negative, clipped
-    assert abs(k_26 - (-2.2699)) < 0.01                 # pre-D112 ship value
+    assert abs(k_26 - K26_D171) < 1e-4                  # D171 certified value
 
 
 def test_fit_k_walkforward_derived_floor():

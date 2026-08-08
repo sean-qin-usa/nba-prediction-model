@@ -88,9 +88,13 @@ OUT_JSON = REPO / "data" / "bp_ladder_diag.json"
 # ----------------------------------------------------------- information ----
 def report_out_map(con):
     """{(game_date, team_abbrev): {player_id}} from the official 5PM report.
-    VERBATIM from scripts/prod_by_season.py::report_out_map."""
-    from nba_api.stats.static import teams as _t
-    name2ab = {t["full_name"]: t["abbreviation"] for t in _t.get_teams()}
+    VERBATIM from scripts/prod_by_season.py::report_out_map.
+
+    D171: carries the same Clippers fix (`nbapred.teams.abbrev_for`) so the
+    copy cannot drift from the canonical definition.  NOTE: this script's
+    REGISTERED OUTPUT (D160's ladder) was produced BEFORE the fix and before
+    D170's backfill and has NOT been re-run — see D171's ranked re-run list."""
+    from nbapred.teams import abbrev_for
     rows = con.execute("""
         SELECT i.game_date, i.team, p.player_id FROM injury_reports_pit i
         JOIN (SELECT player_id, lower(first_name||' '||last_name) fn FROM nba_players) p
@@ -99,7 +103,7 @@ def report_out_map(con):
     """).fetchall()
     out = {}
     for gd, team, pid in rows:
-        ab = name2ab.get(team)
+        ab = abbrev_for(team)
         if ab:
             out.setdefault((str(gd)[:10], ab), set()).add(int(pid))
     return out
