@@ -1,3 +1,4 @@
+import pytest
 import datetime as dt
 import importlib.util
 import sys
@@ -48,7 +49,12 @@ def test_flatten_odds_record():
 def test_parse_player_archived():
     from nbapred.ingest.ratings_2k import parse_player, parse_team
     day_dirs = sorted((ROOT / "data/raw/ratings_2k").glob("*/"))
-    assert day_dirs, "no archived 2K HTML yet"
+    if not day_dirs:
+        # A DATA PRECONDITION, NOT A DEFECT: this exercises the parser against
+        # archived scrapes, which are not committed, so a fresh clone has
+        # nothing to parse. Asserting here reported a missing archive as a
+        # broken parser (D229).
+        pytest.skip("no archived 2K HTML in this checkout")
     team_files = [f for d in day_dirs for f in d.glob("*.html")]
     parsed_any = False
     for f in team_files[:50]:

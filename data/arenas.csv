@@ -1,0 +1,38 @@
+team,arena,city,lat,lon,elev_m,tz
+ATL,State Farm Arena,Atlanta GA,33.7573,-84.3963,320,America/New_York
+BOS,TD Garden,Boston MA,42.3662,-71.0621,6,America/New_York
+BKN,Barclays Center,Brooklyn NY,40.6826,-73.9754,11,America/New_York
+CHA,Spectrum Center,Charlotte NC,35.2251,-80.8392,229,America/New_York
+CHI,United Center,Chicago IL,41.8807,-87.6742,181,America/Chicago
+CLE,Rocket Arena,Cleveland OH,41.4965,-81.6882,199,America/New_York
+DAL,American Airlines Center,Dallas TX,32.7905,-96.8104,131,America/Chicago
+DEN,Ball Arena,Denver CO,39.7487,-105.0077,1609,America/Denver
+DET,Little Caesars Arena,Detroit MI,42.3410,-83.0552,183,America/New_York
+GSW,Chase Center,San Francisco CA,37.7680,-122.3877,3,America/Los_Angeles
+HOU,Toyota Center,Houston TX,29.7508,-95.3621,13,America/Chicago
+IND,Gainbridge Fieldhouse,Indianapolis IN,39.7640,-86.1555,218,America/Indiana/Indianapolis
+LAC,Intuit Dome,Inglewood CA,33.9448,-118.3417,35,America/Los_Angeles
+LAL,Crypto.com Arena,Los Angeles CA,34.0430,-118.2673,89,America/Los_Angeles
+MEM,FedExForum,Memphis TN,35.1382,-90.0506,78,America/Chicago
+MIA,Kaseya Center,Miami FL,25.7814,-80.1870,2,America/New_York
+MIL,Fiserv Forum,Milwaukee WI,43.0451,-87.9173,187,America/Chicago
+MIN,Target Center,Minneapolis MN,44.9795,-93.2760,256,America/Chicago
+NOP,Smoothie King Center,New Orleans LA,29.9490,-90.0821,2,America/Chicago
+NYK,Madison Square Garden,New York NY,40.7505,-73.9934,10,America/New_York
+OKC,Paycom Center,Oklahoma City OK,35.4634,-97.5151,366,America/Chicago
+ORL,Kia Center,Orlando FL,28.5392,-81.3839,32,America/New_York
+PHI,Wells Fargo Center,Philadelphia PA,39.9012,-75.1720,5,America/New_York
+PHX,Footprint Center,Phoenix AZ,33.4457,-112.0712,331,America/Phoenix
+POR,Moda Center,Portland OR,45.5316,-122.6668,16,America/Los_Angeles
+SAC,Golden 1 Center,Sacramento CA,38.5802,-121.4997,9,America/Los_Angeles
+SAS,Frost Bank Center,San Antonio TX,29.4270,-98.4375,198,America/Chicago
+TOR,Scotiabank Arena,Toronto ON,43.6435,-79.3791,76,America/Toronto
+UTA,Delta Center,Salt Lake City UT,40.7683,-111.9011,1288,America/Denver
+WAS,Capital One Arena,Washington DC,38.8981,-77.0209,7,America/New_York
+NOH,New Orleans Arena,New Orleans LA,29.9490,-90.0821,2,America/Chicago
+NJN,Izod Center,East Rutherford NJ,40.8117,-74.0672,3,America/New_York
+SEA,KeyArena,Seattle WA,47.6221,-122.3541,34,America/Los_Angeles
+NOK,Ford Center,Oklahoma City OK,35.4634,-97.5151,366,America/Chicago
+VAN,General Motors Place,Vancouver BC,49.2778,-123.1088,5,America/Vancouver
+CHH,Charlotte Coliseum,Charlotte NC,35.1936,-80.9214,213,America/New_York
+WSB,US Airways Arena,Landover MD,38.9070,-76.8570,40,America/New_York

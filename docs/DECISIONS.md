@@ -15684,8 +15684,45 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   the D178 modern-layout parser (+204 lines), `tanking.py`/`teams.py` the D171
   abbreviation fix, and 70 scripts including **`d224_gate_offset.py` — the gate
   behind a headline claim.** All synced; `nbapred/` and `tests/` now diff clean.
-  KNOWN AND NOT FIXED: 7 DB-backed tests cannot run in a clone (`nba.duckdb` is
-  262 MB and correctly uncommitted), so a cloner gets 27 pass / 7 error.
+  **A SECOND PUBLICATION DEFECT, FOUND BY READING THE FULL TEST RUN RATHER THAN
+  ITS TAIL — AND MY FIRST NUMBER FOR IT WAS WRONG.** I initially recorded "7
+  DB-backed tests cannot run in a clone, so a cloner gets 27 pass / 7 error."
+  That came from a command piped through `tail -8`, which discarded the failure
+  list before it reached the log; the true full-suite result on the synced public
+  tree was **35 failed / 141 passed / 4 skipped**. The extra failures were not
+  the DB. `.gitignore` blanket-excludes `data/`, so the public tree shipped **2
+  data items against the private tree's 527** — and `nbapred/model/travel.py`
+  reads `data/arenas.csv` at import, giving `FileNotFoundError` rather than the
+  clean skip the tests were written to take (`test_travel_neutral.py` guards on
+  `nba.duckdb` being absent, which is the wrong guard for a missing CSV).
+  **THE CLONE EXPERIENCE, BEFORE AND AFTER:**
+      before   35 failed / 141 passed /  4 skipped   in 43 min
+      **after    0 failed / 151 passed / 29 skipped   in 33 s**
+  Four distinct causes, none of them a code defect:
+  (1) **REFERENCE DATA THE PACKAGE NEEDS TO IMPORT AT ALL** — `arenas.csv` and
+      `xwalk_overrides.csv`, 12 KB, read by `nbapred/model/travel.py`. Shipped.
+  (2) **GOLDEN FIXTURES FOR REGISTERED CONSTRUCTIONS** — `rw_early_decomp_pergame`,
+      `rw_early_signals`, `rw_week1_psroster`, ~190 KB, the corpora the October
+      bridge assertions check a construction against. Shipped, so a reader can
+      verify the claim rather than take it. The 262 MB `nba.duckdb` and every
+      computed frame stay out.
+  (3) **A 120-SECOND RETRY ON A FILE THAT WILL NEVER APPEAR.** `db.connect()`
+      retries `duckdb.IOException` for 120 s (readers) because the recurring
+      real-world fault is a lock another process holds — but a MISSING database
+      is not contention, and each guarded test burned the full deadline before
+      its `except Exception: pytest.skip` could fire. **That single wait was
+      essentially the whole 43 minutes.** `connect(read_only=True)` now fails
+      immediately when `DB_PATH` is absent; writers are exempt, since for them a
+      missing file is the ordinary create-on-first-use path.
+  (4) **PRECONDITIONS WRITTEN AS ASSERTIONS.** `tests/conftest.py` converts the
+      absent-database sentinel into a SKIP — narrowly, matching only that error
+      and only where the DB is genuinely missing, so it cannot mask a
+      regression and is unreachable in the working tree. `test_basics.py`'s 2K
+      parser test skipped rather than asserting on an uncommitted scrape
+      archive. **Both were reporting missing data as broken code.**
+  **THE LESSON IS THE SAME ONE AS THE MIRROR ITSELF: a check whose output is
+  truncated is not a check.** The first number here came from a command piped
+  through `tail -8`; the second came from reading the whole run.
 
   **THE PROCESS FAILURE, STATED PLAINLY:** two directories, one remote, and a
   manual copy step with nothing asserting they agree. The identity tests now fail

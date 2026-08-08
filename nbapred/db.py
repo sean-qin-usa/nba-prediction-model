@@ -109,6 +109,18 @@ def connect(read_only: bool = False, retry_s: float | None = None
     (backfills use 0 and poll themselves, so they can yield politely).
     """
     import time
+    # A MISSING DATABASE IS NOT CONTENTION, SO DO NOT WAIT OUT THE DEADLINE FOR
+    # IT.  The retry exists for a lock another process holds, which clears; a
+    # file that is not there will not appear.  Readers in a fresh clone (the
+    # public repo ships no `nba.duckdb` -- it is 262 MB) were spending the FULL
+    # 120 s each before their `except Exception: pytest.skip` could fire, which
+    # is what made the public test suite take 43 minutes to reach the same
+    # answer it can give instantly.  Writers are exempt: for them a missing file
+    # is the ordinary create-on-first-use path.
+    if read_only and not DB_PATH.exists():
+        raise FileNotFoundError(
+            f"{DB_PATH} does not exist — nothing to read. Build it with the "
+            f"ingest scripts, or skip DB-backed work in a fresh clone.")
     if retry_s is None:
         retry_s = 120.0 if read_only else 600.0
     deadline = time.monotonic() + retry_s
