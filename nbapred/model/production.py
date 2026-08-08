@@ -510,10 +510,27 @@ def fit_production(con, season: str, before=None, w_comp: float = 0.7):
                 return 0.0
             return tank.diff(home_id, away_id, game_date)
 
-        def margin(self, home_id: int, away_id: int, out_home: set | None = None,
-                   out_away: set | None = None, game_date=None,
-                   b2b_home: bool = False, b2b_away: bool = False,
-                   dead_home: bool = False, dead_away: bool = False) -> float:
+        def margin_components(self, home_id: int, away_id: int,
+                              out_home: set | None = None,
+                              out_away: set | None = None, game_date=None,
+                              b2b_home: bool = False, b2b_away: bool = False,
+                              dead_home: bool = False,
+                              dead_away: bool = False) -> dict:
+            """The five channels the margin is the SUM of (D230).
+
+            Exposed because the offset layer currently spends the whole
+            model-market disagreement at one trust coefficient (~0.356), and the
+            open question is whether the channels deserve different trust — the
+            opener may already price schedule efficiently while carrying less of
+            the availability signal.  Answering that needs the parts, not the
+            total.
+
+            `margin()` DELEGATES to this and sums in the original left-to-right
+            association, so the two cannot drift.  The sum is ALGEBRAICALLY the
+            pre-D230 expression and was measured inert against it by control run
+            (D230).  Do not reorder the return: float addition is not
+            associative, so a reordering would change results in the last bits.
+            """
             # schedule layer: explicit, walk-forward-estimated (home edge was
             # hardcoded 3.0 = biased; b2b was a false rejection — see
             # fit_schedule_layer docstring)
@@ -535,7 +552,19 @@ def fit_production(con, season: str, before=None, w_comp: float = 0.7):
             # weights beat fitted — GBM/logistic challengers rejected).
             # ff.ready is guaranteed by the fit-time guard in fit_production.
             fm = ff.margin_neutral(home_id, away_id)
-            return 0.5 * fm + 0.5 * cm + sched + tk + lt
+            return {"ff": 0.5 * fm, "comp": 0.5 * cm, "sched": sched,
+                    "tank": tk, "late": lt}
+
+        def margin(self, home_id: int, away_id: int, out_home: set | None = None,
+                   out_away: set | None = None, game_date=None,
+                   b2b_home: bool = False, b2b_away: bool = False,
+                   dead_home: bool = False, dead_away: bool = False) -> float:
+            c = self.margin_components(home_id, away_id, out_home, out_away,
+                                       game_date, b2b_home, b2b_away,
+                                       dead_home, dead_away)
+            # SAME ASSOCIATION as the pre-D230 expression
+            # `0.5*fm + 0.5*cm + sched + tk + lt`, so this is bit-identical.
+            return c["ff"] + c["comp"] + c["sched"] + c["tank"] + c["late"]
 
         def p_home(self, home_id: int, away_id: int, out_home: set | None = None,
                    out_away: set | None = None, game_date=None,

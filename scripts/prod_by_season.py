@@ -55,6 +55,7 @@ OPEN_TIME_OUTS = os.environ.get("OPEN_TIME_OUTS") == "1"
 # -0.002265, 95% CI [-0.0041,-0.0004] excluding zero, better 5/5 seasons,
 # calibration veto passed). Set SOFT_AVAIL=0 to fall back to the hard out-set.
 SOFT_AVAIL = os.environ.get("SOFT_AVAIL", "1") == "1"
+COMPONENT_OUT = os.environ.get("COMPONENT_OUT", "")  # D230 channel dump
 if SOFT_AVAIL:
     OPEN_TIME_OUTS = True
 
@@ -210,6 +211,7 @@ def season_run(season):
     cov={"report":0,"inactives":0,"either":0,"neither":0}  # feed coverage, scored games
     n_out=[]  # mean OUT players per team-game, the tier's own sanity check
     rows=[]   # per-game dump for residual autopsy
+    crows=[]  # D230: per-game CHANNEL dump (gated by COMPONENT_OUT)
     model=comp=None; last=None
     for gid in order:
         recs=by[gid]
@@ -272,6 +274,21 @@ def season_run(season):
         # D73 audit columns: gated tank diff + walk-forward k (term itself is
         # applied inside model.margin; nothing extra passed by this caller)
         tsd=model.tank_diff(h.team_id,a.team_id,gd)
+        if COMPONENT_OUT:
+            # D230: the five channels the margin is the SUM of. Gated, so the
+            # certified path takes no extra model call by default; when it is
+            # on, the sum is asserted against margin() on EVERY game, which is
+            # what makes the dump trustworthy as a decomposition rather than a
+            # parallel re-derivation that might drift.
+            _kw=dict(b2b_home=b2b(h.team_id,gd),b2b_away=b2b(a.team_id,gd))
+            cc=model.margin_components(h.team_id,a.team_id,outs[h.team_id],
+                                       outs[a.team_id],gd,**_kw)
+            mt=model.margin(h.team_id,a.team_id,outs[h.team_id],outs[a.team_id],
+                            gd,**_kw)
+            assert abs(sum(cc.values())-mt)<1e-12,(gid,cc,mt)
+            crows.append((season,gid,str(gd)[:10],h.team_abbrev,a.team_abbrev,
+                          y[-1],cc["ff"],cc["comp"],cc["sched"],cc["tank"],
+                          cc["late"],mt))
         rows.append((season,gid,str(gd)[:10],h.team_abbrev,a.team_abbrev,
                      y[-1],float(pp[-1]),float(pmv),
                      len(outs[h.team_id]),len(outs[a.team_id]),
@@ -296,7 +313,7 @@ def season_run(season):
             "mkt":round(log_loss(y,np.array(pmk)),4),
             "coverage":cov,"tier":tier,
             "mean_outs_per_team":round(float(np.mean(n_out)) if n_out else 0.0,3),
-            "rows":rows}
+            "rows":rows,"crows":crows}
 
 if __name__=="__main__":
     print("="*78)
@@ -315,7 +332,13 @@ if __name__=="__main__":
         dest="data/capstone_pergame_oracle_ceiling.csv"
         print(f"  *** ORACLE RUN redirected away from {CERT} -> {dest}")
     print("="*78, flush=True)
-    out=[season_run(s) for s in ("2021-22","2022-23","2023-24","2024-25","2025-26")]
+    # D230: the certified span is the default and is unchanged. PROD_SEASONS
+    # widens it (the component work needs 2019-20 onward, the first fully
+    # injury-report-covered season) without forking this script.
+    CERT_SEASONS=("2021-22","2022-23","2023-24","2024-25","2025-26")
+    seasons=tuple(os.environ.get("PROD_SEASONS","").split(",")) \
+        if os.environ.get("PROD_SEASONS") else CERT_SEASONS
+    out=[season_run(s) for s in seasons]
     import csv
     with open(dest,"w",newline="") as f:
         wtr=csv.writer(f)
@@ -323,6 +346,14 @@ if __name__=="__main__":
                       "p_us","p_mkt","n_out_home","n_out_away","tsd","k"])
         for o in out:
             wtr.writerows(o.pop("rows"))
+    if COMPONENT_OUT:
+        with open(COMPONENT_OUT,"w",newline="") as f:
+            w=csv.writer(f)
+            w.writerow(["season","game_id","game_date","home","away","y",
+                        "m_ff","m_comp","m_sched","m_tank","m_late","m_total"])
+            for o in out: w.writerows(o["crows"])
+        print(f"[D230] channel dump -> {COMPONENT_OUT}")
+    for o in out: o.pop("crows",None)
     for o in out: o["avail_tier"]=AVAIL_TIER
     print(f"[{AVAIL_TIER}] -> {dest}")
     print(out)

@@ -15727,3 +15727,95 @@ LEAKAGE.md (PIT rules), LIMITATIONS.md (caveats).
   **THE PROCESS FAILURE, STATED PLAINLY:** two directories, one remote, and a
   manual copy step with nothing asserting they agree. The identity tests now fail
   loudly in whichever tree is wrong, which is the only durable fix.
+
+- D230 **CHANNEL-WISE TRUST IN THE OFFSET LAYER — NO SHIP, AS PRE-REGISTERED.
+  THE OPENER PRICES SCHEDULE AND UNDER-PRICES AVAILABILITY, EXACTLY AS
+  PREDICTED, AND THE EFFECT IS STILL TOO SMALL TO SHIP.** Owner relayed an
+  external proposal: stop spending the whole model-market disagreement at one
+  trust coefficient and let each channel earn its own. **Prereg
+  `data/d230_prereg.md` sha256 `6ce46dcfbc6d34fbf74c4bbfa9643f10076de3178e
+  ea9f37cd9cf1016963c23a`, hashed before any challenger log loss existed**, with
+  four numbered predictions including a headline prediction of NO-SHIP.
+
+  **THE NESTING, WHICH IS WHAT MAKES THIS A TEST RATHER THAN A SEARCH.**
+  `m_off = m_open + b(m_blind - m_open) + SUM_k d_k c_k + g*rest + d*|m_open|`
+  with the L2 penalty on the `d_k` ONLY. At lam -> inf every `d_k` -> 0 and the
+  challenger IS the shipped model, so the null is the incumbent rather than
+  zero (D198's rule). `lam` is picked on an inner split of the training block;
+  both arms are refitted by the same code on the same folds.
+
+  | | |
+  |---|---|
+  | season-clustered mean delta | **-0.000093 nats** |
+  | 95% CI (5 dof) | **[-0.000346, +0.000161] — CONTAINS ZERO** |
+  | t | -0.938 |
+  | better in | 4/6 seasons |
+  | MDE80 (stated first, placebo null) | 0.00104 |
+
+  **STOP CLAUSE MET: `nbapred/market/offset.py` NOT TOUCHED, no ship diff
+  written, the single-b offset stands.** MDE80 came from a WITHIN-SEASON
+  PERMUTATION of the channel block refitted through the same folds — the null's
+  own dispersion — not from a guessed sd; my first version guessed 0.60 nats of
+  per-game loss and produced 0.01763, which was 17x too large and would have
+  made any result look underpowered.
+
+  **THE PREDICTIONS, SCORED.**
+      T1 d_sched < 0   **CONFIRMED  mean -0.0285, negative in 4/4 live folds**
+      T2 d_comp  > 0   **CONFIRMED in sign, mean +0.1154 — but see below**
+      T3 |d_k| small   PARTIAL: lam spans 1e2..1e9; d_tank reaches +0.56
+      T4 NO-SHIP       **CONFIRMED, and the magnitude too (|delta| << 0.001)**
+  **T1 IS THE ONE TO TRUST AND T2 IS NOT SEPARATELY IDENTIFIED.** `m_sched`
+  is orthogonal to the other channels (r = -0.015 vs m_ff, -0.001 vs m_comp),
+  so its coefficient is cleanly estimated: **the opener really does price rest,
+  back-to-backs and home edge, and gives them LESS than the common trust.**
+  But `m_ff` and `m_comp` correlate **0.800**, and their fitted deviations come
+  out near-equal and opposite (-0.1160 / +0.1154) — the signature of a ridge
+  trading one collinear column against the other, not of two separately
+  measured trusts. The honest reading is a JOINT ff->comp tilt, and it is not
+  evidence that availability specifically earns +0.115.
+
+  **THE FRAME, AND A CHANNEL THAT IS DEAD.** `PROD_SEASONS` + `COMPONENT_OUT`
+  (new, gated, default off) dump the five channels per game with
+  `sum(channels) == margin()` ASSERTED on every game; measured max deviation
+  7.11e-15 over 8,286 games, 2019-20..2025-26. **`m_late` (the D90 late-state
+  layer) is IDENTICALLY ZERO on 100% of games in this frame** — the production
+  margin is four live channels, not five, and `d_late` is an unidentifiable zero
+  column. `m_tank` is nonzero on only 27.5%. The fitted `b` averages 0.346
+  across folds, independently reproducing the shipped 0.3564.
+
+  **WHY THIS WAS WORTH RUNNING EVEN THOUGH THE NULL WAS PREDICTED.** A NO-SHIP
+  that was predicted in advance is evidence about the architecture; the same
+  result found afterwards is only a null. D157 said the lever is the penalty,
+  not the basis. This is the same finding on a different object: re-parameterising
+  one signal into four does not create information, and the one channel whose
+  trust is cleanly identified moves in the direction theory said it would.
+
+- D230b **THE CERTIFICATION PIPELINE WAS NEVER BIT-REPRODUCIBLE, SO EVERY
+  `max|dp| = 0` CONTROL IN THIS REGISTER HAS BEEN MEASURING A NOISE FLOOR.**
+  Found while trying to prove a refactor inert.
+
+  **THE MEASUREMENT.** Running `prod_by_season.py` TWICE, same code, same
+  settings, same machine: **max|d p_us| = 1.577e-14 on 5,616 of 6,148 games.**
+  The refactor under test differed by 1.038e-14 — **LESS than the pipeline
+  differs from itself.** A control that cannot reach zero cannot distinguish
+  "inert" from "small", and D134's discipline asks for exactly that zero.
+
+  **CAUSE: unordered aggregation feeding a floating-point reduction.** Float
+  addition is not associative, and several DuckDB scans that feed numeric
+  reductions never pinned their outer row order (the `ORDER BY` clauses sit
+  inside window functions, and DuckDB parallelises the scan). Two fixes landed:
+  `composition.strength()` now sums in `player_id` order, and the four-factors
+  aggregate got `ORDER BY 1,2`. **Floor 1.577e-14 -> 3.220e-15, games affected
+  5,616 -> 1,666.** NOT ZERO, and I stopped there rather than guess a third
+  time: per-channel localisation (using D230's new dump) shows the residue is
+  spread across ALL FOUR live channels — m_sched on 3,609 games, m_tank 1,937,
+  m_ff 571 at 2.13e-13, m_comp 238 — i.e. systemic, several more call sites, a
+  project rather than a patch.
+
+  **WHAT IT DOES AND DOES NOT THREATEN.** Gate deltas in this register are
+  ~1e-3 nats; the floor is ~1e-13 on a margin. **No conclusion anywhere is at
+  risk.** What IS wrong is the stated meaning of the controls: the reproduction
+  figure cited as `9.8e-15` was not evidence that a change was inert, it was the
+  noise floor being reported as if it were a measurement. The right claim for
+  such controls is "below the pipeline's reproducibility floor of ~1e-14", and
+  D230's own refactor control is now stated that way.

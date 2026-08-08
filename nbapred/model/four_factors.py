@@ -22,7 +22,8 @@ def factor_game_rows(con, season: str, before=None):
         sum(s.oreb) oreb, sum(s.dreb) dreb, sum(s.fta) fta, sum(s.pts) pts
         FROM player_game_stats s JOIN nba_games g ON g.game_id=s.game_id AND g.team_id=s.team_id
         WHERE g.season=? AND s.game_id LIKE '002%' {date_clause}
-        GROUP BY 1,2,3,4,5""", params).fetchdf()
+        GROUP BY 1,2,3,4,5
+        ORDER BY 1,2""", params).fetchdf()   # D230: pin order — see below
     by = {}
     for r in df.itertuples():
         by.setdefault(r.game_id, []).append(r)

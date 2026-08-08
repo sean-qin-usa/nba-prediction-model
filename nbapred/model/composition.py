@@ -94,7 +94,17 @@ class CompositionModel:
         soft = isinstance(out, dict)
         ref = game_date or self.asof or dt.date.today()
         s = 0.0
-        for pid, p in self.players.items():
+        # SORTED, BECAUSE FLOAT ADDITION IS NOT ASSOCIATIVE (D230).  `players` is
+        # populated from a DuckDB scan whose outer row order is not pinned (the
+        # ORDER BY clauses sit inside window functions), and DuckDB parallelises
+        # it, so insertion order varied BETWEEN RUNS.  Measured: the same code,
+        # same settings, two runs, differed by max|dp| 1.6e-14 on 5,616 of 6,148
+        # games.  That is harmless in size but it put a NOISE FLOOR under every
+        # control-hash check in the register — "max|dp| = 0" was unreachable, so
+        # a genuinely tiny defect had somewhere to hide.  Summing in player_id
+        # order makes the pipeline reproducible and those controls exact.
+        for pid in sorted(self.players):
+            p = self.players[pid]
             if p["team_id"] != team_id:
                 continue
             if soft:
