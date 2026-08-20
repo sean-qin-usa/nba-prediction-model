@@ -1,0 +1,119 @@
+# ---------------------------------------------------------------------------
+# nba-prediction-model — public repo
+# Code, docs and charts are tracked. Data, secrets and local state are not.
+# Anything genuinely needed can be forced in with:  git add -f <path>
+# ---------------------------------------------------------------------------
+
+# --- Secrets / credentials (public repo: keep this section first) ----------
+.env
+.env.*
+!.env.example
+secrets/
+credentials.json
+token.json
+service-account*.json
+*.pem
+*.key
+*.p12
+
+# --- Data (raw scrapes, derived tables, caches) ----------------------------
+data/
+raw/
+derived/
+cache/
+*.duckdb
+*.duckdb.*
+*.sqlite
+*.sqlite3
+*.db
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.csv.gz
+*.jsonl.gz
+*.tar.gz
+*.zip
+
+# --- Model artifacts -------------------------------------------------------
+models/
+artifacts/
+*.pkl
+*.pickle
+*.joblib
+*.pt
+*.pth
+*.onnx
+
+# --- Logs / run output -----------------------------------------------------
+logs/
+*.log
+*.err
+*.out
+*.tmp
+*.bak
+nohup.out
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+develop-eggs/
+eggs/
+.eggs/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+.installed.cfg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Test / type / lint caches
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+.pyre/
+.ruff_cache/
+
+# --- Notebooks -------------------------------------------------------------
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# --- Editors / OS ----------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Local agent / tooling state -------------------------------------------
+.*/settings.local.json
+.*/settings.json
+.priorstates/
+.agent/
+
+# D250: cached basketball-reference box scores (someone else's bandwidth,
+# ~470KB each). Regenerate with scripts/d250_availability_backfill.py.
+data/raw/bref_boxscores/

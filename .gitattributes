@@ -1,0 +1,8 @@
+# Normalise ALL text to LF in the repository. Without this a commit made through
+# the GitHub web editor rewrites files to CRLF, which would corrupt the shipped
+# reference CSVs and every .py — the editor warns about this before doing it.
+* text=auto eol=lf
+*.png binary
+*.pdf binary
+*.gz binary
+*.duckdb binary
