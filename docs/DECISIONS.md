@@ -1258,7 +1258,7 @@ the penalty-not-the-basis finding).
     slates**. robots.txt is absent (HTTP 403), but the Disney Terms of Use
     prohibit automated access "including … data mining or web scraping" and
     building "any collection of data, data set or database", and
-    `www.espn.com/robots.txt` disallows major AI crawler user-agents (**`Disallow: /`**).
+    `www.espn.com/robots.txt` names **`AI-crawler user-agents` / `Disallow: /`**.
     **RECORDED AS ToS-BLOCKED AND STOPPED; NO EXTRACTION PERFORMED.**
   * **Wayback: TOO SPARSE.** VegasInsider 380 snapshot-days, SBR 191, Covers
     131, DonBest 64. Best case ~1,500 **phase-ambiguous** observations against
@@ -1905,7 +1905,7 @@ the penalty-not-the-basis finding).
   2019-20..2022-23 on the record as EXTRAPOLATED for a **legal, not technical**
   reason: Action Network's robots.txt is `Disallow: /`, and ESPN's core API has
   the data but Disney's ToS forbids extraction while `espn.com/robots.txt` names
-  **AI crawler user-agents under `Disallow: /`**. Kaggle is public, freely downloadable and
+  **`AI-crawler user-agents / Disallow: /`**. Kaggle is public, freely downloadable and
   permitted, so it is the remaining route. **IT WAS TAKEN, IT WAS SWEPT TO
   EXHAUSTION, AND IT DOES NOT CONTAIN THE DATA.**
   (2) **ACCESS: THE CHROME ROUTE IS DEAD, THE ANONYMOUS PUBLIC API IS NOT.**
@@ -6786,7 +6786,7 @@ the penalty-not-the-basis finding).
 - D255 **THE RATINGS ARE RANK-1 AND SEAN IS RIGHT THAT THIS IS A REAL
   LIMITATION. PAIR EFFECTS DO PERSIST ACROSS SEASONS — AND ARE WORTH 0.03-0.10
   POINTS, ns.** [scripts/d255_matchup_residual.py, d255b_matchup_value.py;
-  external technical review]
+  external review: an independent external review]
 
   **HOW THE OPPONENT-ADJUSTED RATINGS ACTUALLY WORK.** One ridge regression over
   every team-game to date, `ortg = 100*pts/poss`,
@@ -6844,7 +6844,7 @@ the penalty-not-the-basis finding).
   best, indistinguishable from zero.** This is the register's recurring shape
   once more: an effect that exists and cannot be traded.
 
-  **EXTERNAL REVIEW (independent, high reasoning) — INDEPENDENTLY REACHED THE SAME
+  **EXTERNAL REVIEW (external review, high reasoning) — INDEPENDENTLY REACHED THE SAME
   PLACE.** Verdict: *"worth one falsification attempt, not worth a search
   programme."* Its reasoning, which I am recording because two points are
   sharper than mine:
@@ -6872,7 +6872,7 @@ the penalty-not-the-basis finding).
   covers 20-107% by season, i.e. unusable) this is a **team-level responsiveness
   index at best, not a coach effect**. `DATA_BLOCKED`, not refuted.
 
-  **THE MORE USEFUL CRITICISM.** The reviewer’s closing point is one this register has
+  **THE MORE USEFUL CRITICISM.** The external review’s closing point is one this register has
   not stated plainly: the stack is **mean-state** — season-average team identity
   — while the residual edge against an opener most plausibly lives in **state
   changes**: who is effectively available, what the current minute allocation
@@ -6946,3 +6946,77 @@ the penalty-not-the-basis finding).
   production change in this register is D232 (`nbapred/model/absence.py`).
   Everything since has been diagnostic, corrective, or refuted, which is the
   honest state of the work.
+
+- D257 **TENDENCIES ARE REAL AND HIGHLY RELIABLE. THEY DO *NOT* TAKE A SEASON TO
+  LAND — BUT HOW FAST DEPENDS ON WHICH TENDENCY, AND THE SPLIT IS THE USEFUL
+  PART.** [scripts/d257_tendency_persistence.py]
+
+  The composition model reduces each player to ONE scalar (`talent`, minutes-
+  weighted). A pass-first guard and a rim-runner with equal talent are
+  interchangeable in it. Before building any style representation, two questions
+  had to be answered: are tendencies measurable at all, and are they estimable
+  POINT-IN-TIME? A tendency that resets on opening night cannot be carried in
+  from prior games, and a PIT estimate of it would be stale exactly when it
+  matters.
+
+  Five rate axes, all computable from `player_game_stats` fields the model never
+  touches (`rima`, `mida`, `thra`, `ast`, `tov`, `fta`). 45,484 team-games,
+  19 seasons. Rates, so team quality divides out.
+
+  **A. RELIABILITY — odd vs even games within a season:**
+
+      fg3_rate  **+0.953** [+0.943,+0.963]      ast_rate  +0.836
+      rim_rate  **+0.927** [+0.916,+0.939]      ftr       +0.732
+      tov_rate  +0.692
+
+  These are not noise. Shot composition is measured about as reliably as
+  anything in this project.
+
+  **B. PERSISTENCE across the offseason:** fg3 +0.636, ast +0.623, rim +0.609,
+  tov +0.509, ftr +0.501. Substantial carry-over, well short of identity.
+
+  **C. WHAT PREDICTS THE REST OF THE SEASON — last year, or the first 10 games?**
+
+      axis       prior season   first 10 games   verdict
+      fg3_rate      +0.629         **+0.791**    first 10 wins clearly
+      rim_rate      +0.594         **+0.719**    first 10 wins clearly
+      ast_rate      +0.604           +0.645      tie
+      ftr           +0.496           +0.502      tie
+      tov_rate      +0.481           +0.538      first 10
+
+  **D. BIG MOVERS — the actual regime changes.** Top decile of |this season −
+  prior season|, n=54 each. Fraction of the eventual change already present in
+  games 1-10, with a **disjoint denominator** (games 21+ only, so the numerator
+  is not inside its own denominator — the naive version shared sample and read
+  0.81-0.97, which was inflated):
+
+      fg3_rate  **0.79**  [0.53, 1.07]      ftr       0.65  [0.17, 0.96]
+      rim_rate    0.62    [0.27, 0.88]      ast_rate  **0.57**  [0.22, 0.99]
+      tov_rate    0.47    [0.13, 0.91]
+
+  **THE ANSWER TO THE QUESTION AS ASKED.** Sean's intuition was that a new
+  coach's change to shooting composition "takes a while to get down". It is
+  **half right, and the half that is wrong is the one he named**:
+
+  * **Shot selection changes almost immediately.** ~79% of the eventual
+    three-point-rate change is present within ten games. A coach can order more
+    threes on night one, and the data says they do.
+  * **Ball movement and ball security change slowly.** ast_rate 0.57 and
+    tov_rate 0.47 — barely half the eventual change has landed by game ten.
+    Habit is slower than instruction.
+
+  **DESIGN CONSEQUENCE, and it is specific.** A PIT tendency estimator should
+  NOT use one window for all axes. Spacing and rim pressure should be read from
+  a SHORT current-season window (they are reliable at r 0.93-0.95 and land
+  fast); playmaking and turnover rate need a prior-season prior blended in,
+  because a short current window measures a transition rather than a level.
+  Using one trailing window for everything would be wrong in opposite directions
+  on the two groups.
+
+  **WHAT THIS DOES NOT ESTABLISH.** That any of it predicts the market. Tendency
+  reliability is a property of the measurement, not evidence of edge; D253b's
+  finding stands that 24 plausible features cost 80% of out-of-sample R^2. The
+  next test is whether the composition residual relates to lineup tendency
+  COMPLEMENTARITY, and it must clear the same bars as everything else.
+
+  **NO PRODUCTION CHANGE.**
