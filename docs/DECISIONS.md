@@ -7280,3 +7280,66 @@ the penalty-not-the-basis finding).
   itself does.
 
   **NO PRODUCTION CHANGE.**
+
+- D262 **THE COMPOSITION CHANNEL, SWEPT RATHER THAN GUESSED AT: 14 SIGNALS, 12
+  BELOW BREAK-EVEN, 14 OF 14 SLOPES ns, BEST WORTH 0.007% OF RMSE. ITEM 6 IS
+  SCREENED OUT AT -1.75.** [scripts/d262_alignment_sweep.py]
+
+  D259, D260 and D261 each screened ONE candidate and each missed. One at a time
+  cannot find a signal nobody named, and costs a script per guess. D261 showed
+  the screen is nearly free, so it was run over everything at once.
+
+  **AN IDENTITY BUG, CAUGHT BECAUSE EVERY ROW READ THE SAME.** The first pass
+  scaled each signal by the IN-SAMPLE OLS slope of error on signal. Then
+  `var(shift) = b^2 var(x)` and `cov(shift,e) = b*cov(x,e) = b^2 var(x)`, so
+  cov == var identically and **alignment = 2.000 for every signal, always**. The
+  tell was fourteen rows of `2.000`. An in-sample fitted shift trivially
+  satisfies D260's criterion; the formula presumes the shift is determined
+  INDEPENDENTLY of the error it is scored against. D261 was valid because its
+  `gap` was already in margin units and its scale was never fitted. The slope is
+  now fitted WALK-FORWARD and var/cov measured on held-out seasons.
+
+  **THE SWEEP** (21,484 games, 19 seasons, shipped margin error, RMSE 12.525;
+  alignment = cov/(var/2), break-even 1.0):
+
+      signal      align     dRMSE      slope, season-clustered
+      t_fg3      **3.385**  -0.00090   -2.7052 [-5.5311,+0.1206]  ns
+      rest_diff    1.078    -0.00016   +0.2360 [-0.1178,+0.5897]  ns
+      mean_tal     0.245    +0.00243   -0.1188 [-0.2951,+0.0576]  ns
+      avail_min    0.155    +0.00167   +0.0035 [-0.0011,+0.0082]  ns
+      top_tal     -0.077    +0.00202   -0.0412 [-0.1112,+0.0289]  ns
+      t_ast       -0.217    +0.00116   -1.0026 [-3.3265,+1.3214]  ns
+      abs_open    -0.294    +0.00026   +0.0202 [-0.0203,+0.0607]  ns
+      t_rim       -0.367    +0.00026   +1.2324 [-2.2363,+4.7012]  ns
+      n_out       -0.965    +0.00070   +0.0744 [-0.1249,+0.2737]  ns
+      depth       -0.966    +0.00176   +0.0356 [-0.0720,+0.1433]  ns
+      hhi         -0.987    +0.00148   -1.6272 [-10.623,+7.3685]  ns
+      **strain    -1.747**  +0.00105   +0.0050 [-0.0269,+0.0369]  ns
+      gap         -1.935    +0.00141   +0.0493 [-0.0877,+0.1863]  ns
+      min_out     -2.407    +0.00104   +0.0021 [-0.0057,+0.0100]  ns
+
+  **Twelve of fourteen are below break-even — several strongly negative, meaning
+  adding them makes the margin WORSE. All fourteen slopes are ns.**
+
+  **QUEUE ITEM 6 IS SCREENED OUT.** `strain` — minutes that must be absorbed
+  above a player's normal role, which is exactly the joint role-transition
+  quantity — scores **-1.747**, harmful rather than merely useless.
+
+  **A REFINEMENT TO D260's CRITERION, learned here.** `t_fg3` clears alignment at
+  3.385 and is still worth only **-0.00090 points on a 12.525 RMSE — 0.007%** —
+  and is ns besides. **Alignment is NECESSARY, NOT SUFFICIENT: it says whether a
+  change helps or harms, magnitude says whether it matters.** A signal can be
+  efficiently aligned and far too small to detect. Both must be checked, and the
+  screen should report dRMSE alongside the ratio, which it now does. `rest_diff`
+  also clears at 1.078 and is already carried by the offset and schedule legs, so
+  it is not new information at all.
+
+  **WHAT THIS SETTLES.** Three consecutive misses (D259 mix, D260 minutes
+  precision, D261 replacement quality) are now one fact rather than three
+  coincidences: **the composition channel is exhausted.** Not "these three ideas
+  failed" but "fourteen signals spanning roster structure, absence, role
+  transition, talent distribution, tendency and schedule all fail the same test
+  in the same direction." That is a statement about the channel, and it is the
+  most useful thing a negative sweep can produce.
+
+  **NO PRODUCTION CHANGE.**
