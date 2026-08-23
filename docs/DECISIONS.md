@@ -7143,3 +7143,76 @@ the penalty-not-the-basis finding).
   state CHANGES, not in a better description of the average team.
 
   **NO PRODUCTION CHANGE.**
+
+- D260 **THE SHIPPED MINUTES WINDOW IS 16th OF 32 AND A FITTED ESTIMATOR BEATS
+  IT IN 16/16 SEASONS — AND IT BUYS NOTHING, FOR A REASON MORE GENERAL THAN
+  ATTENUATION.** [scripts/d260_minutes_estimator.py, d260b_propagate.py]
+
+  `composition.py` weights every player by `trailing_min`, "avg of last 10 games
+  played (>=12 min)". Ten appears nowhere in the register as a measured choice.
+  It is the SECOND of the two things production carries per player and it
+  multiplies talent directly, so it was worth fitting.
+
+  **L1 — THE ESTIMATOR.** 392,083 player-games, 32 arms (flat windows 3-40,
+  EWMA half-lives 2-30, empirical-Bayes shrinkage k 1-64, and EWMA+shrinkage
+  hybrids), walk-forward, predicting the next game's minutes given the player
+  plays:
+
+      winner **es3_2** — EWMA half-life 3, shrunk to the prior-season mean at k=2
+      chosen in **16 of 16** walk-forward seasons
+      MSE reduction vs shipped **+5.80%**, CI [+5.48%, +6.12%], better 16/16
+      RMSE 5.781 -> 5.611 minutes
+      **the shipped 10-game window ranks 16th of 32**
+
+  Minutes are far more recency-driven than a flat 10-game mean allows: every one
+  of the top ten arms uses a half-life of 3-5 games.
+
+  **L2 — THE PROPAGATION, MEASURED (my arithmetic bound was wrong).** I estimated
+  ~0.037 margin points by sqrt(n) scaling across players. Measured on 21,587
+  games with PIT DARKO talent, the composition margin actually moves **0.1697
+  points** on average (median 0.1355, p90 0.3598) — **4.61x my envelope**. The
+  sqrt(n) assumption was wrong; minutes errors do not cancel across a roster the
+  way independent errors would.
+
+  **L3 — AND IT DOES NOT IMPROVE THE MARGIN.** Affine-recalibrated per season, as
+  D245d requires:
+
+      RMSE change **-0.00016 points**, CI [-0.00037, +0.00005], 11/19, **ns**
+      composition RMSE is ~14.06 points, so this is a **0.001% change**
+      **L1 5.80% -> L3 0.0011% — a ~5,100x attenuation**
+
+  **THE MECHANISM, AND IT IS NOT THE 4.5x BLEND ATTENUATION.** The margin moves
+  by 0.17 points and that movement is **almost orthogonal to what the margin got
+  wrong**:
+
+      implied corr(margin shift, margin error) = **+0.0086**
+
+  Nine-tenths of one percent aligned. For scale: had the shift been orthogonal,
+  RMSE would have WORSENED by +0.00173 (its own variance, delta^2/2R); had it
+  been perfectly aligned it would have improved by 0.22. The observed -0.00016
+  is a shift whose alignment barely exceeds its own variance.
+
+  **THE DURABLE LESSON, which generalises past this entry.** An input
+  improvement's value at the outcome depends on its ALIGNMENT with the outcome's
+  error, not on the size of the input improvement. The usable form:
+
+      dRMSE  ~  (var(shift) - 2*cov(shift, error)) / (2 * RMSE)
+
+  so an input change is WORTH NOTHING unless `cov(shift, error) > var(shift)/2`,
+  and is HARMFUL below that. This is computable in advance from a proposed
+  change and the outcome's RMSE, and it explains D245d's L1/L2/L3-improve-L4-null
+  pattern more fundamentally than the blend arithmetic does: the composition
+  margin's 14-point error is dominated by irreducible game noise, not by input
+  precision, so almost any input refinement lands orthogonal to it.
+
+  **L4 NOT RUN, deliberately.** The implied log-loss effect is ~1.5e-05 nats
+  against a typical MDE80 of ~1e-3 — about 68x below resolvable. A log-loss run
+  would return a null describing the TEST's power rather than the estimator, and
+  D245d already documented that failure mode.
+
+  **WHAT SURVIVES.** `es3_2` is a strictly better minutes estimator and the
+  finding that the shipped window ranks 16th of 32 stands on its own. But under
+  G1 there is nothing to ship: the gain is unmeasurable at the emitted layer.
+  Recorded so nobody re-fits this window expecting it to pay.
+
+  **NO PRODUCTION CHANGE.**
