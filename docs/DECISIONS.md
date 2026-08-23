@@ -7216,3 +7216,67 @@ the penalty-not-the-basis finding).
   Recorded so nobody re-fits this window expecting it to pay.
 
   **NO PRODUCTION CHANGE.**
+
+- D261 **THE D260 CRITERION USED AS A SCREEN, AND IT KILLS QUEUE ITEM 3 BEFORE
+  THE BUILD. REPLACEMENT QUALITY IS 15x SHORT OF THE ALIGNMENT THRESHOLD.**
+  [scripts/d261_replacement_screen.py]
+
+  First use of D260's result as a gate rather than a post-mortem. The criterion:
+
+      dRMSE  ~  (var(shift) - 2 * cov(shift, error)) / (2 * RMSE)
+      a change is worth nothing unless  cov(shift, error) > var(shift)/2
+
+  Both sides are computable from a crude version of the signal, so the screen
+  costs one script where the build costs a project.
+
+  **THE CANDIDATE, and it is a real mis-specification.** `composition.py` drops
+  absent players (`if pid in out: continue`) and never reallocates their minutes.
+  D232 prices the leftover with a FLAT charge, `beta * (E[outs_h] - E[outs_a])`,
+  beta = -0.8284 blind — so a star's absence and a tenth man's are charged
+  IDENTICALLY. The obvious fix is to scale the cost by the quality gap between
+  who is missing and who inherits the minutes:
+
+      gap_team = sum over absent rotation players of
+                     (talent_absent - talent_replacement) * trail_min / 48
+
+  residualised against the outs differential first, so the screen measures the
+  INCREMENT over D232 rather than rediscovering it.
+
+  **RESULT — FAILS, and not narrowly.** 21,484 games, 19 seasons:
+
+      against the MARKET-BLIND margin (RMSE 12.623)
+        var(signal)         3.32781
+        cov(signal, error)  0.10795
+        threshold var/2     1.66391      **cov is 15.4x below it**
+        implied dRMSE       **+0.12327 pts — HARM, not benefit**
+        implied corr        +0.0047
+
+      against the SHIPPED offset margin (RMSE 12.525): materially identical,
+        cov 0.11637 vs threshold 1.66391, dRMSE +0.12356
+
+      direct check, slope of error on signal:
+        blind **+0.0411** CI [-0.0826, +0.1648] k=19 **ns**
+        ship  **+0.0390** CI [-0.0845, +0.1626] k=19 **ns**
+
+  **The sign is the one the hypothesis predicted** — positive, meaning the model
+  under-charges for a high-quality absence — and it is both insignificant and
+  fifteen times too small to pay for its own variance. Adding it would make the
+  margin WORSE by 0.12 points.
+
+  **QUEUE ITEM 3 (box-score replacement allocator) IS CLOSED.** Not on prior, not
+  on a null from an underpowered gate, but on a measured alignment 15x short of
+  break-even. Items 2 and 6 are NOT screened by this: item 2 is about who returns
+  (the availability side) and item 6 about joint minute-and-rate role transitions,
+  and neither is the same signal. But the pattern across D259 (mix), D260
+  (minutes precision) and D261 (replacement quality) is now three for three, and
+  all three are input-side refinements to the composition channel.
+
+  **A BUG WORTH RECORDING BECAUSE IT FAILS SILENTLY.** The first pass built the
+  rotation from games players actually PLAYED, so an absent player had no row at
+  all and the signal came out identically zero — `var(signal) = 0.00000`. A
+  degenerate signal and a null result are indistinguishable in the endpoint; only
+  printing `var(signal)` separated them. The roster is now carried forward per
+  team from appearances strictly before tonight, which is what `composition.py`
+  itself does.
+
+  **NO PRODUCTION CHANGE.**
