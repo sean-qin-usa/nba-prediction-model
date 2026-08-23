@@ -7077,3 +7077,69 @@ the penalty-not-the-basis finding).
   depends on lineup tendency mix.
 
   **NO PRODUCTION CHANGE.**
+
+- D259 **TENDENCY MIX DOES NOT EXPLAIN THE ADDITIVE MODEL'S ERROR USABLY, AND IS
+  WORTH NOTHING AGAINST THE MARKET. THE SYNERGY LINE CLOSES.**
+  [scripts/d259_complementarity.py]
+
+  The payoff test for D257/D258. Features are MIX, not level — level is already
+  carried by `talent`, so only dispersion and fit are new information: weighted
+  spread of three-point rate, playmaking and rim pressure across the available
+  lineup; minutes concentration (HHI); `fit_sr`, the weighted correlation between
+  a player's spacing and his rim pressure across the lineup, where NEGATIVE is
+  the classic complementary shape (the spacers and the rim attackers are
+  different people); and playmaking supply minus shot-creation demand.
+
+  Strictly PIT: tendencies from D258's shrinkage on prior games only, weights
+  from TRAILING minutes, never minutes actually played tonight — realised minutes
+  would let the outcome choose its own weights. 43,750 team-games, 19 seasons.
+
+  **BAR 1 — does mix explain the additive model's own error?**
+
+      level only (w_fg3, w_ast, w_rim)   OOS R^2 **+0.00042**
+      MIX only   (dispersion + fit)      OOS R^2 **-0.00007**
+      level + mix                        OOS R^2  +0.00054
+      permutation null (60 draws): median -0.00035, 95th -0.00015, p = 0.017
+
+  **A DEFECT IN MY OWN VERDICT LOGIC, RECORDED BECAUSE IT ALMOST BECAME A
+  FINDING.** The script printed "MIX MATTERS" on the null comparison alone. But
+  the MIX-only R^2 is **NEGATIVE**. All p = 0.017 establishes is that mix is
+  LESS BAD than shuffled mix. **Beating a permutation null is necessary, not
+  sufficient**; a model with negative out-of-sample R^2 has no predictive value
+  however it scores against its own shuffle. The honest statement is that mix
+  carries a trace of real information and not enough to reach the mean.
+
+  Mix adds **+0.00012** on top of level. Level itself is +0.00042 — positive,
+  and about four ten-thousandths of the variance in a team's offensive residual.
+
+  **BAR 2 — against the market:**
+
+      vs CLOSE  OOS R^2 **-0.000229**      vs OPEN  OOS R^2 **-0.000082**
+
+  Both negative: worse than predicting the mean. Nothing here is tradable.
+
+  **WHAT THE WHOLE ARC ESTABLISHES.** Sean's structural criticism was correct at
+  every level and it does not pay:
+
+      D255  team pair effects persist across seasons (+0.0303) ...
+      D256  ... but 44% was a TEAM effect and the interaction is ns (+0.0170);
+            the team part is ridge shrinkage bias, zero at lambda = 0
+      D257  tendencies are real and reliable (fg3 split-half +0.953) and switch
+            at 16x different speeds by axis
+      D258  a per-axis PIT estimator, constants fitted and stable
+      D259  and mix explains neither the additive error nor the market
+
+  **The rank-1 additive form is genuinely mis-specified, and closing that
+  mis-specification does not help.** That is worth more than another null: it
+  bounds an entire family — matchup interactions, style complementarity, lineup
+  fit — rather than one feature. Item 5 of the research queue (regularised
+  matchup interactions) is now CLOSED rather than merely bounded, on measurement
+  rather than on prior.
+
+  **WHAT SURVIVES.** D258's estimator is a correct instrument and stays in the
+  repo; if a future question needs a PIT tendency it should use it rather than a
+  window. And the honest reading of the arc is the one an external review gave
+  at D255: this stack is mean-state, and the residual edge — if any — lives in
+  state CHANGES, not in a better description of the average team.
+
+  **NO PRODUCTION CHANGE.**
