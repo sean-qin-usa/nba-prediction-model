@@ -7020,3 +7020,60 @@ the penalty-not-the-basis finding).
   COMPLEMENTARITY, and it must clear the same bars as everything else.
 
   **NO PRODUCTION CHANGE.**
+
+- D258 **THE PER-AXIS TENDENCY ESTIMATOR, BUILT AND ITS CONSTANTS FITTED. THE
+  SPREAD IS 16x IN GAMES, SO ONE WINDOW REALLY IS WRONG BOTH WAYS.**
+  [scripts/d258_tendency_estimator.py]
+
+  **FIRST, THE ANSWER TO "ARE WE DOING SO": NO.** Production carries exactly two
+  things per player — the DARKO scalar and `trailing_min`, a fixed 10-game
+  minutes average — and estimates no tendency at all. D257's design consequence
+  was a specification for something that did not exist.
+
+  **THE ESTIMATOR** is empirical-Bayes shrinkage in the natural denominator
+  rather than a window:
+
+      tendency_hat = (numerator_to_date + k * base) / (denominator_to_date + k)
+
+  `base` is the player's prior-season rate where it exists, else the league rate;
+  both strictly PIT. `k` is the prior's weight in denominator units, i.e. exactly
+  how much current-season evidence it takes to match the prior. A window is
+  worse on two counts: it discards everything past its edge and weights
+  everything inside it equally, while shrinkage degrades smoothly and handles a
+  player with 4 attempts and one with 400 in the same expression.
+
+  **k IS FITTED, NOT ASSERTED**, walk-forward — chosen on seasons strictly before
+  s, scored on s — so D257's reading was falsifiable. Endpoint is
+  attempt-weighted squared error on the next game's observed rate.
+
+      axis       k        denom   games-equiv   vs prior-only   vs current-only
+      fg3_rate     8      fga        **0.7**       +24.4%           +3.6%
+      rim_rate    16      fga          1.4         +20.7%           +3.8%
+      ast_rate    32      fgm          6.2         +10.2%          +10.0%
+      ftr        128      fga         11.6          +4.4%           +8.3%
+      tov_rate   128      poss        10.0          +3.5%           +8.2%
+
+  **The prediction held.** fg3 and rim came back fastest, tov and ftr slowest,
+  in the order D257 required. The fitted k is also remarkably stable — ast_rate
+  chose 32 in all 16 walk-forward seasons, tov_rate 128 in all 16 — which is
+  itself evidence the constants are structural rather than fitted noise.
+
+  **THE GAIN PATTERN IS THE INTERESTING PART** and it is internally coherent:
+  for the FAST axes the current season carries the information (+24% over
+  prior-only, only +3.6% over current-only), while for the SLOW axes the prior
+  does (+8% over current-only, only +3.5% over prior-only). The two groups want
+  opposite estimators, which is precisely why one window cannot serve both.
+
+  **CONCRETELY.** Three-point rate reaches the prior's weight in **0.7 games** —
+  a coach's instruction is in the data essentially immediately. Turnover rate
+  takes **10 games** and free-throw rate **11.6**. Production's 10-game window,
+  if it were reused for tendencies, would be ~14x too slow for spacing and about
+  right for turnovers.
+
+  **WHAT THIS IS NOT.** It is a measurement instrument, not an edge. Nothing here
+  touches the market. D253b's result stands — 24 plausible features cost 80% of
+  out-of-sample R^2 — so the estimator earns its place only if the
+  complementarity test that follows finds the composition residual actually
+  depends on lineup tendency mix.
+
+  **NO PRODUCTION CHANGE.**
