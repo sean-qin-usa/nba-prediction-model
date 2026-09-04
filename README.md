@@ -157,7 +157,7 @@ CLV is used as a monitor rather than an objective. A divergence selector bought 
 
 Bet volume will fall. The offset layer shrinks disagreement with the market by ~65%, so margins that used to clear the betting threshold no longer do. This was caught by a test assertion rather than anticipated (`D226`).
 
-## Errata: errors made and caught
+## Errata
 
 - An availability leak in the certified backtest: the capstone built injury lists from that night's box score. The live path was clean, so no prediction was ever wrong, but the published expectation was too good by 3.8 points of normalized gap (`D158`).
 - A bet-time information leak worth 33% of the model's deficit: the availability leg used the 5PM report and pregame inactives, both published after the opening line it transacts at. Rebuilding by carry-forward widened the gap 12.87% → 17.17%; forecasting `P(out)` instead recovered 52% of that (`D199`–`D202`).
