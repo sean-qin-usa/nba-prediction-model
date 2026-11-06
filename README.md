@@ -119,6 +119,23 @@ The gain is model rather than shopping: it holds at a single book.
 
 The ladder flattens fast — 36% of the time two books post the same number, so extra books duplicate rather than add.
 
+## 2026-27 season so far, out of sample
+
+The first 121 games of 2026-27, with everything frozen before the season. Full results:
+[docs/SEASON_2026_27.md](docs/SEASON_2026_27.md).
+
+| | Result through 2026-11-04 |
+|---|---|
+| Moneyline log loss, model vs market at 10am | 0.5769 vs 0.5704, difference not significant |
+| Spread, gap 2+, first line the day before | 5-0, +4.5 units |
+| Totals, gap 2+, at the opening total | 22-13, +7.0 units, ROI +20% (95% CI -13% to +47%) |
+| Totals, gap 2+, at the first total seen on game day | 14-13, -0.3 units |
+
+This is a replay, not a live record: the live paper book ran on a broken data path for
+the first two weeks, which is documented on that page. The model does not out-forecast
+the market on average. The selection strategy is ahead at opening prices and break-even
+at the prices seen on game day, on a sample too small to settle anything.
+
 ## What the model is
 
 ```
@@ -251,6 +268,8 @@ Explicitly **not** next: further feature search on the sides model. Nineteen sea
 ## Status
 
 The offset construction and soft availability are both in production, both gated. No capital has been deployed. The question the project turns on is whether live CLV against opening prices, with two books captured, reproduces the backtested relationship.
+
+The first 2026-27 results are in [docs/SEASON_2026_27.md](docs/SEASON_2026_27.md).
 
 ## Licence & disclaimer
 
