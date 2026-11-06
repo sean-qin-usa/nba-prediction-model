@@ -117,6 +117,7 @@ The first 121 games of 2026-27, scored with coefficients fit only on earlier sea
 | Spread, gap 2+, first line the day before | 5-0, +4.5 units |
 | Totals, gap 2+, at the opening total | 22-13, +7.0 units, ROI +20% (95% CI −13% to +47%) |
 | Totals, gap 2+, at the first total seen on game day | 14-13, −0.3 units |
+| Player points log loss, 333 lines, engine vs line | 0.7147 vs 0.6904, not bettable yet |
 
 This is a replay, not a live record: the live paper book ran on a broken data path for the first two weeks, which that page documents. The model does not out-forecast the market across all games. On the games it chooses to bet it is slightly ahead, and the selection strategy is ahead at opening prices and break-even at the prices seen on game day. The sample is too small to settle any of it.
 
