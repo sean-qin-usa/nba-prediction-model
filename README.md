@@ -108,7 +108,7 @@ The ladder flattens quickly because 36% of the time two books post the same numb
 
 ## 2026-27 season so far, out of sample
 
-The first 121 games of 2026-27, with everything frozen before the season. Full results: [docs/SEASON_2026_27.md](docs/SEASON_2026_27.md).
+The first 121 games of 2026-27, scored with coefficients fit only on earlier seasons. Which rules were fixed before opening night and which were built during the season is set out on the results page: [docs/SEASON_2026_27.md](docs/SEASON_2026_27.md).
 
 | | Result through 2026-11-04 |
 |---|---|
