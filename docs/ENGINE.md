@@ -23,7 +23,7 @@ The test seasons are 2015-16 to 2025-26. Nothing from a test season is used to b
 | + side | +36.7% | +15.7% | 31% | +10.8% | 325 |
 | All rules | +53.8% | +13.7% | 32% | +10.0% | 314 |
 
-The seasonal rules beat the gap-only engine in 9 of 11 seasons, and all rules together beat it in 8. One season distorts the averages. 2024-25 returned over +1,100% and its opening lines look stale. Without it the all-rules median is +50.2% and the mean +62.0%.
+The seasonal rules beat the gap-only engine in 9 of 11 seasons, and all rules together beat it in 8. One season distorts the averages. 2024-25 returned over +1,100%, and its opening lines look stale; without it the all-rules median is +50.2% and the mean +62.0%.
 
 Larger stakes raise both the return and the risk. At half Kelly the all-rules median is +99% with a 55% drawdown. At full Kelly it is +153%, with a 75% drawdown and a worst season of -30%.
 
@@ -69,7 +69,7 @@ The simpler engine groups bets by market and gap size. It estimates each group's
 
 ## How to read +54%
 
-The figure reflects larger stakes more than extra skill. ROI per unit staked is about +10% in the full engine and +12.6% in the simple one. The full engine returns more because it places 314 bets at about twice the stake. Adding the seasonal and side rules barely improves the win-probability forecast itself, whose log loss moves from 0.68690 to 0.68673.
+The figure is leverage, not extra skill. ROI per unit staked is about +10% in the full engine and +12.6% in the simple one. The full engine returns more because it places 314 bets at about twice the stake. Adding the seasonal and side rules barely improves the win-probability forecast itself, whose log loss moves from 0.68690 to 0.68673.
 
 More bets did not mean more profit per bet. Bets per season tripled after 2020, as opening totals began moving more and the lower-gap groups came into play. Those groups win about 54%.
 
