@@ -1,10 +1,10 @@
-# Betting strategies: results and what explains them
+# Betting strategies
 
-This page lists every strategy tried on top of the model, what it returned, and why. An explanation is called tested only where a number backs it. Where a plausible story failed its check, it appears under rejected.
+This page lists every strategy tried on top of the model, what it returned, and why. Each explanation comes with the number that backs it, and the headings say where one is partial or missing. Where a plausible story failed its check, it appears under rejected.
 
 Unless stated, results are the walk-forward backtest for 2012-13 to 2025-26. Each season is scored by a model fitted on earlier seasons, bets are priced at the opening line at -110, and stakes are flat. This season's results are in [SEASON_2026_27.md](SEASON_2026_27.md).
 
-## How to read the numbers
+## ROI and cover rate
 
 ROI is per bet: it is profit divided by the amount staked, so +6% means each 1-unit bet returned 0.06 units on average. The return over a season then depends on how much is staked: ROI times the number of bets times the stake size. The totals rule earns +6.1% over about 175 bets, which at 1% of the starting bankroll per bet comes to 0.061 x 175 x 1%, or about +10.7% of bankroll.
 
@@ -36,11 +36,11 @@ All of the rules combined into one engine, tested on seasons it had not seen, ar
 
 The rule bets the model's side when its corrected margin is 2 or more points from the opening spread.
 
-### Why it works at all (tested)
+### Where the edge comes from
 
 Across 15,911 games the final margin moves 0.35 points for every point the model disagrees with the opener. A plain ratings model built from results in 20 lines of code earns 0.11, and it adds nothing once the full model is included. The player ratings, minutes and availability inputs are therefore doing the work.
 
-### Cover rises with the gap as the model implies (tested)
+### Bigger gaps cover more
 
 A gap of a given size, set against an outcome spread of 12.6 points, implies a cover rate, and actual results track it.
 
@@ -61,11 +61,11 @@ A gap of a given size, set against an outcome spread of 12.6 points, implies a c
 | Mar | 60.5% | 129 |
 | Apr | 49.3% | 142 |
 
-### Why October and November are best (tested)
+### Best in October and November
 
 The model is no more accurate per point early in the season. It earns 0.34 points of result per point of gap in October and November, against 0.41 from December to March. What changes is how far it disagrees with the opener: the spread of that disagreement is 3.2 points early and 2.5 later. As a result 7.3% of early games reach the 2-point threshold, compared with 3.2% later, and they clear it by more.
 
-### Why April loses (tested, small sample)
+### April loses (small sample)
 
 April is where the model disagrees with the opener most, at 3.5 points, and is right least, at 0.12 points of result per point of gap. April games also carry more expected absences: 2.7 a game against 1.9. On 2019-26, April bets in games with three or more expected absences covered 35.9% (39 bets), while the rest covered 58.1% (31 bets). The model is weakest when many regular players sit, although rest and tanking were not separated.
 
@@ -73,7 +73,7 @@ April is where the model disagrees with the opener most, at 3.5 points, and is r
 
 The rule bets over or under when the model's predicted final total is 2 or more points from the opening total. This model uses no player data; it reads how the market has been pricing the two teams and the league.
 
-### What drives the bets (tested)
+### What drives the bets
 
 Each bet was assigned to the input that contributed most to it.
 
@@ -87,7 +87,7 @@ Each bet was assigned to the input that contributed most to it.
 
 Most bets, and most of the profit, come from an opener that sits away from where the market itself has recently closed these teams, while bets driven mainly by rest do not pay.
 
-### Cover rises with the gap as the model implies (tested)
+### Bigger gaps cover more
 
 The implied rates use an outcome spread of 18 points.
 
@@ -97,7 +97,7 @@ The implied rates use an outcome spread of 18 points.
 | 3 to 4 | 57.4% | 57.7% | 468 |
 | 4+ | 60.8% | 65.2% | 198 |
 
-### The edge exists only while the line has not moved (tested)
+### The edge dies when the line moves
 
 Priced at the close, the bets covered 56.4% when the line stayed within 1 point of the opener. Once the line had moved with the model they covered 51.8%, and once it had moved against the model, 48.8%. The market corrects an opener within hours, sometimes minutes, so a late bet goes into a line that already holds what the model knows.
 
@@ -114,19 +114,19 @@ Priced at the close, the bets covered 56.4% when the line stayed within 1 point 
 | Mar | 54.2% | 389 | 55.9% | 127 |
 | Apr | 59.2% | 289 | 62.6% | 91 |
 
-### Why April is strong (partly tested)
+### April is strong (partly explained)
 
 April games finish 2.1 points above the opening total on average, against 0.4 in other months. Of the model's 289 April bets, 279 were overs. The model leans to the over by about half a point and follows the league when totals run high, which puts it on the right side. Why April scoring beats the opener was not tested.
 
-### Why October and November are weak (not explained)
+### Weak in October and November (unexplained)
 
 One story is that the model has too little history early, but it holds only in part. Bets placed before team ratings existed covered 49.2% (124 bets), but bets placed with ratings available still covered only 53.0% (575 bets).
 
-### February (not explained)
+### February (unexplained)
 
 February is strong in both samples, and the All-Star break is not the reason, since February bets on long-rested teams covered 56.0% and the others 58.6%.
 
-## Variations
+## Sizing and thresholds
 
 Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +9.5% to +11.4% on spreads and from +6.1% to +7.6% on totals. Losing seasons fall from 3 and 2 of 14 to none. This follows from the gap tables above, because bigger gaps cover more.
 
@@ -153,6 +153,6 @@ The monthly tables suggest spreads through November and totals from December. Th
 
 Two of these looked like improvements until they were run on seasons they had not been found on. The monthly and by-type cuts on this page have had no such check, so they only describe the backtest.
 
-## What is not known
+## Open questions
 
 The first unknown is whether the opening line can be bet in practice, since both rules lose their edge at later prices. The second is whether any of this holds live, which the paper views began recording on 2026-11-16. One season, 2024-25, also supplies about a third of the backtest profit, and its opening lines look stale.

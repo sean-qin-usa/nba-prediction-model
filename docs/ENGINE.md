@@ -1,4 +1,4 @@
-# The betting engine: every rule combined, tested on seasons it had not seen
+# The betting engine
 
 This page asks what happens when every rule on the [strategies page](STRATEGIES.md) is used at once. The engine bets by size of disagreement, by time of season and by side, and sizes each stake to the estimated edge. Each season is bet with rules learned from earlier seasons.
 
@@ -41,7 +41,7 @@ Larger stakes raise both the return and the risk. At half Kelly the all-rules me
 | 2024-25 | 497 | 61.4% | +14.7% | +1,123.5% | 23% |
 | 2025-26 | 585 | 53.5% | +4.5% | +70.6% | 30% |
 
-## What the engine learned
+## What it learned
 
 Fitted on all seasons, the engine assigns these win rates to typical bets.
 
@@ -57,7 +57,7 @@ Fitted on all seasons, the engine assigns these win rates to typical bets.
 
 These are the patterns on the strategies page, except that here each was learned from earlier seasons and then applied to the next one.
 
-## A simpler engine for comparison
+## A simpler engine
 
 The simpler engine groups bets by market and gap size. It estimates each group's win rate from earlier seasons, pulls that estimate strongly toward break-even, and bets the groups that still clear it. It stakes less and places 182 bets a season.
 
@@ -67,7 +67,7 @@ The simpler engine groups bets by market and gap size. It estimates each group's
 | Totals only | +9.0% | +25.8% | 41.5% | -3.1% | 2 of 11 | +10.0% |
 | Spread only | +4.1% | +8.2% | 16.3% | -9.6% | 3 of 11 | +20.1% |
 
-## How to read +54%
+## Where the +54% comes from
 
 The figure is leverage, not extra skill: ROI per unit staked is about +10% in the full engine and +12.6% in the simple one. The full engine returns more because it places 314 bets at about twice the stake. Adding the seasonal and side rules barely improves the win-probability forecast itself, whose log loss moves from 0.68690 to 0.68673.
 
