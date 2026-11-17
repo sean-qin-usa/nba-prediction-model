@@ -33,6 +33,12 @@ at -110, and stakes are flat. This season's results are in
 
 "Gap" is how far the model's number is from the line, in points.
 
+![cover by gap](../charts/strategy_cover_by_gap.png)
+
+![cover by month](../charts/strategy_cover_by_month.png)
+
+Every rule combined into one engine, tested on seasons it had not seen: [ENGINE.md](ENGINE.md).
+
 ## Spread rule
 
 Bet the model's side when its corrected margin is 2+ points from the opening spread.
@@ -109,6 +115,8 @@ market itself has recently closed these teams. Bets driven mainly by rest do not
 the model, 48.8% once it had moved against it. The opener is corrected by the market
 within hours, sometimes minutes, so a late bet is a bet into a line that already knows
 what the model knows.
+
+![totals by line movement](../charts/totals_line_moved.png)
 
 **By month.**
 
