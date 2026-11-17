@@ -1,23 +1,16 @@
 # Betting strategies: results and what explains them
 
-Every strategy tried on top of the model, what it returned, and why, where the why could
-be checked against the model's own inputs. An explanation is listed as **tested** only if
-a number backs it. Where a plausible story failed its check, it is listed as rejected.
+This page lists every strategy tried on top of the model, what it returned, and why. An explanation is called tested only where a number backs it. Where a plausible story failed its check, it appears under rejected.
 
-Unless stated, results are the walk-forward backtest for 2012-13 to 2025-26: each season
-is scored by a model fitted only on earlier seasons, bets are priced at the opening line
-at -110, and stakes are flat. This season's results are in
-[SEASON_2026_27.md](SEASON_2026_27.md).
+Unless stated, results are the walk-forward backtest for 2012-13 to 2025-26. Each season is scored by a model fitted on earlier seasons, bets are priced at the opening line at -110, and stakes are flat. This season's results are in [SEASON_2026_27.md](SEASON_2026_27.md).
 
 ## How to read the numbers
 
-- **ROI is per bet.** It is profit divided by the amount staked: +6% means each 1-unit
-  bet returned 0.06 units on average.
-- **Season return depends on how much is staked.** It is ROI x number of bets x stake
-  size. The totals rule at +6.1% over about 175 bets, staking 1% of the starting
-  bankroll each time, returns 0.061 x 175 x 1% = about +10.7% of bankroll in a season.
-- **Cover rate** is the share of bets won. At -110 the break-even is 52.4%.
-- **All of it assumes the opening line is actually bet.** That has not been shown live.
+ROI is per bet. It is profit divided by the amount staked, so +6% means each 1-unit bet returned 0.06 units on average. The return over a season then depends on how much is staked: ROI times the number of bets times the stake size. The totals rule earns +6.1% over about 175 bets, which at 1% of the starting bankroll per bet comes to 0.061 x 175 x 1%, or about +10.7% of bankroll.
+
+Cover rate is the share of bets won. At -110 the break-even is 52.4%.
+
+Everything here assumes the opening line is actually bet. That has not been shown live.
 
 ## Summary
 
@@ -31,25 +24,25 @@ at -110, and stakes are flat. This season's results are in
 | Moneyline, four rules frozen before the season | about 75 | not comparable | no line value | not estimated | Live; likely no edge |
 | Player points | not a rule yet | 52.6% at a 5+ point probability gap | +0.7% | not estimated | Not bettable |
 
-"Gap" is how far the model's number is from the line, in points.
+The gap is how far the model's number sits from the line, in points.
 
 ![cover by gap](../charts/strategy_cover_by_gap.png)
 
 ![cover by month](../charts/strategy_cover_by_month.png)
 
-Every rule combined into one engine, tested on seasons it had not seen: [ENGINE.md](ENGINE.md).
+All of the rules combined into one engine, tested on seasons it had not seen, are on a separate page: [ENGINE.md](ENGINE.md).
 
 ## Spread rule
 
-Bet the model's side when its corrected margin is 2+ points from the opening spread.
+The rule bets the model's side when its corrected margin is 2 or more points from the opening spread.
 
-**Why it works at all (tested).** Across 15,911 games the final margin moves 0.35 points
-for every point the model disagrees with the opener. A plain 20-line ratings model built
-from results earns 0.11, and adds nothing once the full model is included. So the player
-ratings, minutes and availability inputs are doing real work.
+### Why it works at all (tested)
 
-**Cover rises with the gap as the model implies (tested).** A gap of g points against an
-outcome spread of 12.6 points implies a cover rate. Actual results track it:
+Across 15,911 games the final margin moves 0.35 points for every point the model disagrees with the opener. A plain ratings model built from results in 20 lines of code earns 0.11, and it adds nothing once the full model is included. The player ratings, minutes and availability inputs are therefore doing the work.
+
+### Cover rises with the gap as the model implies (tested)
+
+A gap of a given size, set against an outcome spread of 12.6 points, implies a cover rate. Actual results track it.
 
 | Gap | Implied by the model | Actual | Bets |
 |---|---|---|---|
@@ -57,7 +50,7 @@ outcome spread of 12.6 points implies a cover rate. Actual results track it:
 | 2.5 to 3 | 58.5% | 58.1% | 179 |
 | 3+ | 61.6% | 63.7% | 168 |
 
-**By month.**
+### By month
 
 | Month | Cover | Bets |
 |---|---|---|
@@ -68,27 +61,21 @@ outcome spread of 12.6 points implies a cover rate. Actual results track it:
 | Mar | 60.5% | 129 |
 | Apr | 49.3% | 142 |
 
-**Why October and November are best (tested).** The model is not more accurate per point
-early: 0.34 points of result per point of gap in Oct-Nov against 0.41 from December to
-March. It simply disagrees with the opener by more. The spread of its disagreement is 3.2
-points early against 2.5 later, so 7.3% of early games reach the 2-point threshold
-against 3.2% later, and they reach it by more.
+### Why October and November are best (tested)
 
-**Why April loses (tested, small sample).** In April the model disagrees with the opener
-most (3.5 points) and is right least (0.12 points of result per point of gap). April
-games carry more expected absences, 2.7 a game against 1.9. On 2019-26, April bets in
-games with 3+ expected absences covered 35.9% (39 bets) and the rest 58.1% (31 bets).
-The model is weakest when many regular players sit. Whether that is rest, tanking or
-both was not separated.
+The model is no more accurate per point early in the season. It earns 0.34 points of result per point of gap in October and November, against 0.41 from December to March. What changes is how far it disagrees with the opener: the spread of that disagreement is 3.2 points early and 2.5 later. As a result 7.3% of early games reach the 2-point threshold, compared with 3.2% later, and they clear it by more.
+
+### Why April loses (tested, small sample)
+
+April is where the model disagrees with the opener most, at 3.5 points, and is right least, at 0.12 points of result per point of gap. April games also carry more expected absences: 2.7 a game against 1.9. On 2019-26, April bets in games with three or more expected absences covered 35.9% (39 bets), while the rest covered 58.1% (31 bets). The model is weakest when many regular players sit. Rest and tanking were not separated.
 
 ## Totals rule
 
-Bet over or under when the model's predicted final total is 2+ points from the opening
-total. This model uses no player data. It reads how the market has been pricing the two
-teams and the league.
+The rule bets over or under when the model's predicted final total is 2 or more points from the opening total. This model uses no player data. It reads how the market has been pricing the two teams and the league.
 
-**What drives the bets (tested).** Each bet was assigned to the input that contributed
-most to it:
+### What drives the bets (tested)
+
+Each bet was assigned to the input that contributed most to it.
 
 | Largest contributor | Cover | Bets |
 |---|---|---|
@@ -98,11 +85,11 @@ most to it:
 | League-wide totals have been running over or under | 54.3% | 186 |
 | Days of rest | 51.0% | 239 |
 
-Most bets, and most of the profit, come from the opener sitting away from where the
-market itself has recently closed these teams. Bets driven mainly by rest do not pay.
+Most bets, and most of the profit, come from an opener that sits away from where the market itself has recently closed these teams. Bets driven mainly by rest do not pay.
 
-**Cover rises with the gap as the model implies (tested).** Against an outcome spread of
-18 points:
+### Cover rises with the gap as the model implies (tested)
+
+The implied rates use an outcome spread of 18 points.
 
 | Gap | Implied by the model | Actual | Bets |
 |---|---|---|---|
@@ -110,15 +97,13 @@ market itself has recently closed these teams. Bets driven mainly by rest do not
 | 3 to 4 | 57.4% | 57.7% | 468 |
 | 4+ | 60.8% | 65.2% | 198 |
 
-**The edge exists only while the line has not moved (tested).** Bets priced at the close:
-56.4% when the line stayed within 1 point of the opener, 51.8% once it had moved with
-the model, 48.8% once it had moved against it. The opener is corrected by the market
-within hours, sometimes minutes, so a late bet is a bet into a line that already knows
-what the model knows.
+### The edge exists only while the line has not moved (tested)
+
+Priced at the close, the bets covered 56.4% when the line stayed within 1 point of the opener. Once the line had moved with the model they covered 51.8%, and once it had moved against the model, 48.8%. The market corrects an opener within hours, sometimes minutes. A late bet goes into a line that already holds what the model knows.
 
 ![totals by line movement](../charts/totals_line_moved.png)
 
-**By month.**
+### By month
 
 | Month | 2012-26 | Bets | 2007-12 holdout | Bets |
 |---|---|---|---|---|
@@ -129,33 +114,27 @@ what the model knows.
 | Mar | 54.2% | 389 | 55.9% | 127 |
 | Apr | 59.2% | 289 | 62.6% | 91 |
 
-**Why April is strong (partly tested).** April games finish 2.1 points above the opening
-total on average, against 0.4 in other months, and 279 of the model's 289 April bets
-were overs. The model leans to the over by about half a point and follows the league
-when totals run high, so it is on the right side of that. Why April scoring beats the
-opener was not tested.
+### Why April is strong (partly tested)
 
-**Why October and November are weak (not explained).** One story is that the model has
-too little history early. It only partly holds: bets placed before team ratings existed
-covered 49.2% (124 bets), but bets placed with ratings available still covered only
-53.0% (575).
+April games finish 2.1 points above the opening total on average, against 0.4 in other months. Of the model's 289 April bets, 279 were overs. The model leans to the over by about half a point and follows the league when totals run high, which puts it on the right side. Why April scoring beats the opener was not tested.
 
-**February (not explained).** It is strong in both samples. The All-Star break is not
-the reason: February bets on long-rested teams covered 56.0%, the others 58.6%.
+### Why October and November are weak (not explained)
+
+One story is that the model has too little history early. It holds only in part. Bets placed before team ratings existed covered 49.2% (124 bets), but bets placed with ratings available still covered only 53.0% (575 bets).
+
+### February (not explained)
+
+February is strong in both samples. The All-Star break is not the reason, since February bets on long-rested teams covered 56.0% and the others 58.6%.
 
 ## Variations
 
-- **Stake in proportion to the gap** (1 unit at 2 points, capped at 2.5). ROI rises from
-  +9.5% to +11.4% on spreads and +6.1% to +7.6% on totals, and losing seasons fall from
-  3 and 2 of 14 to none. This follows from the gap tables above: bigger gaps cover more.
-- **Higher threshold.** Spread gap 2.5+: 60.8%, +16.1%, 25 bets a season. Totals gap 3+:
-  59.9%, +14.4%, 48 a season. More ROI per bet, fewer units in total.
-- **Fraction of Kelly.** On the totals rule, quarter Kelly returned +13.0% a season on
-  average with a median of +4.2% and a standard deviation of 25.1%. Full Kelly reached a
-  66% drawdown. Details in [SEASON_2026_27.md](SEASON_2026_27.md).
-- **By calendar.** The monthly tables suggest spreads through November and totals from
-  December. The monthly cuts were made after seeing the results, so this is a
-  hypothesis for next season, not a rule.
+Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +9.5% to +11.4% on spreads and from +6.1% to +7.6% on totals. Losing seasons fall from 3 and 2 of 14 to none. This follows from the gap tables above, because bigger gaps cover more.
+
+A higher threshold gives more per bet and less in total. Spread bets at a gap of 2.5+ cover 60.8% for +16.1%, on 25 bets a season. Totals bets at 3+ cover 59.9% for +14.4%, on 48 a season.
+
+On the totals rule, quarter Kelly returned +13.0% a season on average, with a median of +4.2% and a standard deviation of 25.1%. Full Kelly reached a 66% drawdown. The detail is in [SEASON_2026_27.md](SEASON_2026_27.md).
+
+The monthly tables suggest spreads through November and totals from December. Those cuts were made after seeing the results, so this is a hypothesis for next season.
 
 ## Tried and rejected
 
@@ -172,14 +151,8 @@ the reason: February bets on long-rested teams covered 56.0%, the others 58.6%.
 | Add expected absences to the totals model | The opener already prices them |
 | Perfect knowledge of who plays, for spreads | 58.0% becomes 58.4% |
 
-Two of these looked like improvements until they were run on seasons they had not been
-found on. That is the reason every monthly and by-type cut on this page should be read
-as a description of the backtest, not a promise.
+Two of these looked like improvements until they were run on seasons they had not been found on. The monthly and by-type cuts on this page have had no such check. They describe the backtest.
 
 ## What is not known
 
-- Whether the opening line can be bet in practice. Both rules lose their edge at later
-  prices.
-- Whether any of this holds live. The paper views began recording on 2026-11-16.
-- One season, 2024-25, supplies about a third of the backtest profit, and its opening
-  lines look stale.
+The first unknown is whether the opening line can be bet in practice, since both rules lose their edge at later prices. The second is whether any of this holds live. The paper views began recording on 2026-11-16. One season, 2024-25, also supplies about a third of the backtest profit, and its opening lines look stale.
