@@ -6,13 +6,13 @@ A market-anchored NBA model for spreads and totals, together with the research r
 
 | | |
 |---|---|
-| +54% | Median season return of the full betting engine at quarter Kelly, across 11 seasons it had not seen. None of the 11 lost. |
-| 56.7% | Share of the engine's bets won. Break-even is 52.4%. The return is about +10% per unit staked, on 314 bets a season. |
-| 57.4% | Spread rule. Bets won when the model is 2 or more points from the opening spread, over 800 bets from 2012 to 2026. |
-| 55.6% | Totals rule. Bets won when the model is 2 or more points from the opening total, over 2,449 bets. It beat break-even in 12 of 14 seasons and won 55.8% on five further seasons it was never tuned on. |
+| +54% | Median season return of the full betting engine at quarter Kelly, across 11 seasons it had not seen, none of which lost. |
+| 56.7% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +10% per unit staked on 314 bets a season. |
+| 57.4% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 800 bets from 2012 to 2026. |
+| 55.6% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,449 bets; it beat break-even in 12 of 14 seasons and won 55.8% on five further seasons it was never tuned on. |
 | 28-17 | Totals rule this season, at the opening total, through 2026-11-15. |
 
-These are backtests and replays. They assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed.
+These are backtests and replays that assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed on any of it.
 
 ![season return by season](charts/engine_by_season.png)
 
@@ -30,7 +30,7 @@ These are backtests and replays. They assume the opening line is bet, which has 
 
 ## Status
 
-Two paper views began on 2026-11-16. For every spread and total they record the opening price, the price actually available and the close. They will be read at 40 spread bets and 60 totals bets.
+Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. They will be read at 40 spread bets and 60 totals bets.
 
 ## Licence & disclaimer
 
