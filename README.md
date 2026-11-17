@@ -130,6 +130,12 @@ Details for the first period:
 
 This is a replay, not a live record: the live paper book ran on a broken data path for the first two weeks, which that page documents. The model does not out-forecast the market across all games. On the games it chooses to bet it is slightly ahead, and the selection strategy is ahead at opening prices and break-even at the prices seen on game day. The sample is too small to settle any of it.
 
+## Betting strategies
+
+Every strategy tried on the model, what it returned in the backtest, and the explanation
+for each result where one could be checked against the model's inputs:
+[docs/STRATEGIES.md](docs/STRATEGIES.md).
+
 ## What the model is
 
 ```
