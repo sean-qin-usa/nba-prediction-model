@@ -374,5 +374,117 @@
     "abs_change_end": 0.7030566333929146
    }
   }
+ },
+ "forward_2026_11_05_to_15": {
+  "moneyline": {
+   "10am": {
+    "n": 75,
+    "model": 0.5164,
+    "market": 0.5099,
+    "diff": 0.0064,
+    "lo": -0.0076,
+    "hi": 0.0218
+   },
+   "after_report": {
+    "n": 74,
+    "model": 0.5248,
+    "market": 0.5199,
+    "diff": 0.0049,
+    "lo": -0.0091,
+    "hi": 0.0209
+   },
+   "before_tip": {
+    "n": 75,
+    "model": 0.5212,
+    "market": 0.5141,
+    "diff": 0.0071,
+    "lo": -0.0073,
+    "hi": 0.0234
+   },
+   "season_10am": {
+    "n": 196,
+    "model": 0.5537,
+    "market": 0.5472,
+    "diff": 0.0065,
+    "lo": -0.0029,
+    "hi": 0.0163
+   }
+  },
+  "live_book": {
+   "OPEN": {
+    "bets": 17,
+    "w": 16,
+    "l": 1,
+    "units": 4.7,
+    "clv": -0.0076
+   },
+   "POST_REPORT": {
+    "bets": 25,
+    "w": 20,
+    "l": 5,
+    "units": 3.24,
+    "clv": -0.0013
+   },
+   "PRETIP": {
+    "bets": 26,
+    "w": 22,
+    "l": 4,
+    "units": 5.69,
+    "clv": 0.0
+   },
+   "unique_games": {
+    "n": 25,
+    "w": 21,
+    "l": 4
+   },
+   "avg_implied": 0.72
+  },
+  "spread_day_before": {
+   "gap2": {
+    "w": 2,
+    "l": 4,
+    "units": -2.1,
+    "clv_pts": 1.92
+   },
+   "gap1_5": {
+    "w": 4,
+    "l": 11,
+    "units": -7.38,
+    "clv_pts": 1.03
+   },
+   "move_slope": 0.153,
+   "move_se": 0.052,
+   "ll_diff": 0.0167,
+   "lo": 0.001,
+   "hi": 0.0335
+  },
+  "totals": {
+   "opener_gap2": {
+    "w": 6,
+    "l": 4,
+    "units": 1.5,
+    "units_sized": 3.2,
+    "move": 2.6
+   },
+   "first_gap2": {
+    "w": 4,
+    "l": 4,
+    "units": -0.4
+   },
+   "season_opener_gap2": {
+    "w": 28,
+    "l": 17,
+    "units": 8.5
+   }
+  },
+  "player_points": {
+   "lines": 259,
+   "engine": 0.7097,
+   "line": 0.6918,
+   "edge20": {
+    "w": 6,
+    "l": 8
+   }
+  }
  }
 }

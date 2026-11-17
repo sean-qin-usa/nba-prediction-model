@@ -108,7 +108,16 @@ The ladder flattens quickly because 36% of the time two books post the same numb
 
 ## 2026-27 season so far, out of sample
 
-The first 121 games of 2026-27, scored with coefficients fit only on earlier seasons. Which rules were fixed before opening night and which were built during the season is set out on the results page: [docs/SEASON_2026_27.md](docs/SEASON_2026_27.md).
+The first 197 games of 2026-27, scored with coefficients fit only on earlier seasons. November 5 to 15 is the first forward test, with nothing tuned on it. Which rules were fixed before opening night and which were built during the season is set out on the results page: [docs/SEASON_2026_27.md](docs/SEASON_2026_27.md).
+
+| | Oct 20 - Nov 4, replay | Nov 5 - 15, forward |
+|---|---|---|
+| Moneyline log loss, model vs market at 10am, all games | 0.5769 vs 0.5704, not significant | 0.5164 vs 0.5099, not significant |
+| Live moneyline paper book | broken data path, not counted | 21-4, but negative line value |
+| Spread, gap 2+, first line the day before | 5-0 | 2-4 |
+| Totals, gap 2+, at the opening total | 22-13 | 6-4 |
+
+Details for the first period:
 
 | | Result through 2026-11-04 |
 |---|---|
