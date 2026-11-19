@@ -136,6 +136,40 @@ On the totals rule, quarter Kelly returned +13.0% a season on average, with a me
 
 The monthly tables suggest spreads through November and totals from December. Those cuts were made after seeing the results, so this is a hypothesis for next season.
 
+### How big a stake
+
+The table runs both rules together with sized stakes, where the base stake is a share of the current bankroll and each of the 14 seasons starts fresh. No more than 25% of the bankroll is at risk on one night.
+
+| Base stake | Median season | Worst season | Losing seasons | Worst drawdown within a season |
+|---|---|---|---|---|
+| 1% | +15.4% | -6.5% | 2 of 14 | 19% |
+| 2% | +29.2% | -17.1% | 3 of 14 | 36% |
+| 3% | +39.4% | -30.9% | 3 of 14 | 48% |
+| 5% | +47.9% | -51.5% | 2 of 14 | 67% |
+| 8% | +72.9% | -74.9% | 4 of 14 | 81% |
+
+Drawdown grows almost in step with the stake while the median return flattens, so going from 3% to 5% adds 8.5 points of median return and 19 points of drawdown. The longest losing run was 13 bets, and the busiest night carried 18 bets at once. Mean returns are far higher than the medians because of 2024-25, which is why the table leaves them out; without that season the median at 1% is +11.4%.
+
+## Why the rules win
+
+The working thesis is that the model is faster than the opening line and no smarter than the market. On spreads it prices at the opener what the market prices over the following day, which is who will play and how good they are, and the line then moves toward it. The totals model uses no player data and bets when the opener sits away from where the market itself recently closed those teams. Neither rule has an edge at later prices, and the model does not beat the closing line on any market.
+
+### Not roster or league change
+
+A model built on player ratings might be expected to win most when rosters change, since a market anchored on last season's results would be slow to adjust. That is not what the backtest shows. Turnover here is the share of a team's minutes so far played by players who were not on that team last season, which counts rookies and trades alike, and the table splits games into thirds by the two teams' combined turnover.
+
+| Combined turnover | Spread cover | Bets | Totals cover | Bets |
+|---|---|---|---|---|
+| Low | 58.9% | 270 | 55.5% | 919 |
+| Middle | 56.1% | 280 | 54.8% | 852 |
+| High | 57.2% | 250 | 56.6% | 678 |
+
+In a regression of win on gap, turnover and early season, the turnover coefficient is about zero for both rules (p = 0.81 on spreads and 0.72 on totals). The model's disagreement with the opener is also no wider when turnover is high. The early-season spread edge does not come from new rosters either, since October and November bets covered 66.7% in low-turnover games (111 bets) and 63.3% in high-turnover games (79 bets). Backing the team that was worse last season covered 58.2% (292 bets), against 56.8% for backing the better one (507 bets).
+
+Season by season the picture is the same. Spread cover is uncorrelated with league-wide turnover (-0.05) and with the year-on-year change in league scoring (+0.05). Totals cover falls with league turnover (-0.53), which is most likely a shared time trend, because turnover has drifted down over the years in which totals bets have grown.
+
+If the edge came from understanding change it should rise with turnover, and it does not. What the bets have in common is a rough opening number: bet counts tripled after 2023 as openers began moving more, and the best season is the one whose openers look stale.
+
 ## Tried and rejected
 
 | Idea | Result |
