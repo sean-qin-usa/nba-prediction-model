@@ -128,7 +128,7 @@ February is strong in both samples, and the All-Star break is not the reason, si
 
 ## Sizing and thresholds
 
-Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +9.5% to +11.4% on spreads and from +6.1% to +7.6% on totals. Losing seasons fall from 3 and 2 of 14 to none. This follows from the gap tables above, because bigger gaps cover more.
+Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +9.5% to +11.4% on spreads and from +6.1% to +7.6% on totals. This follows from the gap tables above, because bigger gaps cover more. It does not smooth the seasons much: losing seasons go from 3 of 14 to 4 on spreads, two of them by under half a unit, and from 2 to 1 on totals.
 
 A higher threshold gives more per bet and less in total. Spread bets at a gap of 2.5+ cover 60.8% for +16.1%, on 25 bets a season. Totals bets at 3+ cover 59.9% for +14.4%, on 48 a season.
 
