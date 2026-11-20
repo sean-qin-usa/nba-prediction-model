@@ -24,7 +24,7 @@ import numpy as np
 
 import mb_score as S       # reuse every convention verbatim
 
-ROOT = "/hdd/steveqin/sean_dev/nba_model"
+ROOT = "."
 R = {}
 
 

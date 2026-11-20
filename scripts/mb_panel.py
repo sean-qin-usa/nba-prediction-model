@@ -50,7 +50,7 @@ from datetime import datetime
 
 import numpy as np
 
-ROOT = "/hdd/steveqin/sean_dev/nba_model"
+ROOT = "."
 OUT = f"{ROOT}/data/mb_panel.json"
 
 ESPN_ABBR = {"GS": "GSW", "NO": "NOP", "NY": "NYK", "SA": "SAS",

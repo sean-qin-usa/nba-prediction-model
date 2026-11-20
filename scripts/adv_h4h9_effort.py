@@ -15,8 +15,8 @@ import numpy as np
 import pandas as pd
 import duckdb
 
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
-CSV = "/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_tank.csv"
+DB = "data/nba.duckdb"
+CSV = "data/capstone_pergame_tank.csv"
 RNG = np.random.default_rng(41)
 
 EAST = {"ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DET", "IND", "MIA", "MIL",

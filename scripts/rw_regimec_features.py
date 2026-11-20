@@ -18,8 +18,8 @@ import numpy as np
 import pandas as pd
 import duckdb
 
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
-CAP = "/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_tank.csv"
+DB = "data/nba.duckdb"
+CAP = "data/capstone_pergame_tank.csv"
 OUTDIR = os.environ.get(
     "RW_OUT",
     "data/scratch",

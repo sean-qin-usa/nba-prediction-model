@@ -14,7 +14,7 @@
 # archive games would be ~11 h of pure timeout for ~40% yield. Only 002 feeds
 # four_factors / continuity_map / era_measure, hence --only-regular.
 set -u
-cd /hdd/steveqin/sean_dev/nba_model || exit 1
+cd "$(dirname "$0")/.." || exit 1
 for spec in "$@"; do
   season="${spec%%:*}"
   mode="${spec#*:}"

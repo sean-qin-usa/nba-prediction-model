@@ -49,7 +49,7 @@ def main():
     darko = dict(con.execute("""SELECT player_id, dpm FROM (
         SELECT player_id, dpm, row_number() OVER (PARTITION BY player_id ORDER BY date DESC) rn
         FROM darko_history) WHERE rn=1""").fetchall())
-    cap = pd.read_csv("/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_carry2.csv",
+    cap = pd.read_csv("data/capstone_pergame_carry2.csv",
                       parse_dates=["game_date"])
     cap["gid"] = cap.game_id.apply(lambda g: f"00{g}" if len(str(g)) == 8 else str(g))
     # game -> home team_id

@@ -4,7 +4,7 @@ A PARALLEL model, explicitly NOT a replacement for the market-blind production
 stack (nbapred/model/production.py et al.), which is untouched by this file.
 
 METHOD, and the one place it differs from its ancestor.  The reference
-architecture is /hdd/steveqin/sean_dev/football_exercise/submission/
+architecture is ../football_exercise/submission/
 sean_qin_model.py: it inverts each PAST match's devigged CLOSING price into a
 strength observation and accumulates those observations in a ridge with
 geometric forgetting, on the theory that a devigged close is a lower-noise

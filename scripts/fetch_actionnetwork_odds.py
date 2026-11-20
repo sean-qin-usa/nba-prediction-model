@@ -20,7 +20,7 @@ import datetime as dt
 import urllib.request
 import urllib.error
 
-OUT = "/hdd/steveqin/sean_dev/nba_model/data/raw/sbr_ext"
+OUT = "data/raw/sbr_ext"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/122 Safari/537.36"}
 SLEEP = 0.25
 

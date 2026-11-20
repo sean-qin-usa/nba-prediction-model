@@ -76,8 +76,8 @@ except ImportError:  # pragma: no cover
     def _loads(b):
         return json.loads(b)
 
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
-PBP_DIR = "/hdd/steveqin/sean_dev/nba_model/data/raw/nba_api/playbyplayv3"
+DB = "data/nba.duckdb"
+PBP_DIR = "data/raw/nba_api/playbyplayv3"
 SCRATCH = os.environ.get(
     "EV_SCRATCH",
     "data/scratch",

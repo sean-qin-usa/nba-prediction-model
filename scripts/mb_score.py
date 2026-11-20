@@ -37,7 +37,7 @@ from datetime import datetime
 
 import numpy as np
 
-ROOT = "/hdd/steveqin/sean_dev/nba_model"
+ROOT = "."
 OUT = f"{ROOT}/data/mb_score.json"
 
 DP_PER_PT = 0.3989422804014327 / 12.574     # D162 §6

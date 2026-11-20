@@ -124,7 +124,7 @@ def season_run(con, season, until_md=(12, 15)):
 
 def main():
     con = connect(read_only=True)
-    cap = pd.read_csv("/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_carry2.csv")
+    cap = pd.read_csv("data/capstone_pergame_carry2.csv")
     cap["gid"] = cap.game_id.apply(lambda g: f"00{g}" if len(str(g)) == 8 else str(g))
     capm = {r.gid: r.p_us for r in cap.itertuples()}
     allrows = []

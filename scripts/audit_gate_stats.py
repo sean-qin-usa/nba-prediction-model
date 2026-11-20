@@ -25,7 +25,7 @@ def load(path):
     df["game_date"] = pd.to_datetime(df["game_date"])
     return df
 
-base_dir = "/hdd/steveqin/sean_dev/nba_model/data/"
+base_dir = "data/"
 cur   = load(base_dir + "capstone_pergame.csv")
 sched = load(base_dir + "capstone_pergame_sched.csv")
 leg   = load(base_dir + "capstone_pergame_legacy.csv")

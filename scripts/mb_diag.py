@@ -42,7 +42,7 @@ from datetime import datetime
 
 import numpy as np
 
-ROOT = "/hdd/steveqin/sean_dev/nba_model"
+ROOT = "."
 TR = f"{ROOT}/data/raw/teamrankings/spread_movement.jsonl"
 ESPN = f"{ROOT}/data/raw/sbr_ext/espn_nba_open_close_%s.csv"
 OUT = f"{ROOT}/data/mb_diag.json"

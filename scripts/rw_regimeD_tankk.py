@@ -34,9 +34,9 @@ import duckdb
 import numpy as np
 import pandas as pd
 
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
-CSV = "/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_tank.csv"
-TANKSTATS = "/hdd/steveqin/sean_dev/nba_model/data/apr_tank_stats.csv"
+DB = "data/nba.duckdb"
+CSV = "data/capstone_pergame_tank.csv"
+TANKSTATS = "data/apr_tank_stats.csv"
 SCALE = 7.2
 K_MIN_ACTIVE = 20
 RNG = np.random.default_rng(46)

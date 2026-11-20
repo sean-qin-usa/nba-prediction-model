@@ -168,6 +168,25 @@ In a regression of win on gap, turnover and early season, the turnover coefficie
 
 Season by season the picture is the same. Spread cover is uncorrelated with league-wide turnover (-0.05) and with the year-on-year change in league scoring (+0.05). Totals cover falls with league turnover (-0.53), which is most likely a shared time trend, because turnover has drifted down over the years in which totals bets have grown.
 
+### Not periods of change either
+
+The same question was asked of the stretches when rosters shift during a season, and of the particular teams that changed.
+
+| Cut | Spread cover | Bets | Totals cover | Bets |
+|---|---|---|---|---|
+| Rotation stable over the last 15 games | 58.7% | 126 | 56.6% | 518 |
+| Rotation churning | 54.9% | 257 | 56.6% | 708 |
+| 28 days before the trade deadline | 57.9% | 57 | 52.5% | 259 |
+| 21 days after the trade deadline | 53.3% | 75 | 62.0% | 258 |
+| First 20 games, a rebuilt team in the game | 60.7% | 122 | 51.3% | 273 |
+| First 20 games, no rebuilt team | 60.6% | 170 | 54.2% | 478 |
+| 30 days after the deadline, a traded team in the game | 55.4% | 65 | 56.8% | 213 |
+| 30 days after the deadline, no traded team | 61.0% | 41 | 62.2% | 135 |
+
+Churn compares who played a team's last 5 games with the 10 before. A rebuilt team is in the top quarter for offseason turnover, and a traded team is one whose deadline arrivals went on to play 10% or more of its minutes. When rotations are churning the spread model fires on more games (5.8% against 2.8%) but is right less per point of gap (0.87 against 1.38), so cover does not improve. The jump in totals cover after the deadline looked like a finding until it was run on the 2007-12 holdout, where it reversed to 57.5% before the deadline and 52.7% after.
+
+One pattern points the other way and is recorded here as a lead. On spreads, bets where the model backs a rebuilt team covered 59.2% (130 bets), while bets where it fades one covered 49.6% (127 bets), and the same gap appears early in the season and after the deadline. The samples overlap, though, and a single test with no thresholds is positive without being significant (p = 0.24), so it waits for a season it was not found on.
+
 If the edge came from understanding change it should rise with turnover, and it does not. What the bets have in common is a rough opening number: bet counts tripled after 2023 as openers began moving more, and the best season is the one whose openers look stale.
 
 ## Tried and rejected

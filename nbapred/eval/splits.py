@@ -330,7 +330,7 @@ def mde80(d) -> float:
 # and move every game in the season together.  An i.i.d. resample therefore
 # UNDERSTATES the SE and the gate is ANTI-CONSERVATIVE.  Same failure mode as
 # the sister football project's retracted "we beat the market" claim
-# (/hdd/steveqin/sean_dev/football_exercise, COMPARISON.md section 3:
+# (../football_exercise, COMPARISON.md section 3:
 # 0.9540 vs 0.9572 looked like a win; clustered by season it was -0.0031
 # CI[-0.0069,+0.0008] ns).
 # --------------------------------------------------------------------------

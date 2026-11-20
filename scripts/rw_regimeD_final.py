@@ -18,8 +18,8 @@ import duckdb
 import numpy as np
 import pandas as pd
 
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
-CSV = "/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_tank.csv"
+DB = "data/nba.duckdb"
+CSV = "data/capstone_pergame_tank.csv"
 SCALE = 7.2
 RNG = np.random.default_rng(46)
 DEADLINES = {"2023-24": "2024-02-08", "2024-25": "2025-02-06",

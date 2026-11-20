@@ -3849,7 +3849,7 @@ in `DECISIONS.md`.
   (5) **THE CLUSTERING DEFECT — AUDITED, MEASURED, AND SMALLER THAN FEARED ON
   SIDES, LARGER THAN ASSUMED ON PROPS** (scripts/cv_cluster_audit.py; raised by
   the coordinator, corroborated by the sister project
-  /hdd/steveqin/sean_dev/football_exercise, which RETRACTED a "we beat the
+  ../football_exercise, which RETRACTED a "we beat the
   market" claim on exactly this — 0.9540 vs 0.9572 became −0.0031
   CI[−0.0069,+0.0008] ns once clustered by season).
   AUDIT: a sweep finds **98 files resampling i.i.d. against 6 clustering**.
@@ -4546,7 +4546,7 @@ in `DECISIONS.md`.
   passing rank in the family is 27.
   (7) **§6.6 IMPLEMENTATION IDENTITY — VERIFIED BY CONSTRUCTION, NOT BY NAME**
   (the D141 lesson). (a) `fit_form_k`, FORM_GP=55, FORM_N=5, FORM_SHRINK=600,
-  FORM_WINDOW_D=730 resolve to `/hdd/steveqin/sean_dev/nba_model/scripts/
+  FORM_WINDOW_D=730 resolve to `scripts/
   ba_windowed.py` — imported, never re-typed. (b) **ARM A's walk-forward k
   trajectory is BIT-IDENTICAL to D102 RT2's stored trajectory on all six shared
   refit dates (max |diff| = 0.0)**: 0.09714 / 0.10697 / 0.10078 / 0.10232 /
@@ -7071,7 +7071,7 @@ in `DECISIONS.md`.
    lb_smooth.json, data/longshot_notes.md; charts/longshot_bias.png;
    inputs odds_open + odds_market (read-only), data/ds_rt1_pergame.csv,
    data/cm_clvmodel_rows.csv.gz (D147); reference
-   /hdd/steveqin/sean_dev/football_exercise (read-only, unmodified)]
+   ../football_exercise (read-only, unmodified)]
 - D156 THE BIGPLAYER CEILING — A PAID INJURY WIRE, BOUGHT MINUTES, A TRACKING
   FEED, A 5-8 BOOK SHOP AND AN EXCHANGE ACCOUNT, ALL AT ONCE, ON OUR MODEL.
   **ANSWER: NO. A FULLY-EQUIPPED, FULLY-CAPITALISED PROFESSIONAL RUNNING THIS

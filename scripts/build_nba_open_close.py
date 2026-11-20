@@ -9,7 +9,7 @@ choice is auditable.
 import os
 import pandas as pd
 
-OUT = "/hdd/steveqin/sean_dev/nba_model/data/raw/sbr_ext"
+OUT = "data/raw/sbr_ext"
 SEASONS = ["2023-24", "2024-25", "2025-26"]
 ABBR = {"GS": "GSW", "NO": "NOP", "NY": "NYK", "SA": "SAS", "UTAH": "UTA", "WSH": "WAS"}
 

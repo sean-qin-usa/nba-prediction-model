@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np, pandas as pd
 from nbapred.db import connect
 
-CSV = "/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_carry2.csv"
+CSV = "data/capstone_pergame_carry2.csv"
 
 def refit_schedule(con, season):
     meta = con.execute("""SELECT game_id, team_abbrev, matchup, game_date FROM nba_games

@@ -41,7 +41,7 @@ def main():
                   f"hdead={raw[3]:+.2f} adead={raw[4]:+.2f}")
 
     print("\n== G: live-path cost of dropping b2b flags ==")
-    cap = pd.read_csv("/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_carry2.csv",
+    cap = pd.read_csv("data/capstone_pergame_carry2.csv",
                       parse_dates=["game_date"])
     # team dates per season for b2b flags (same construction as harness)
     ab2id = {}

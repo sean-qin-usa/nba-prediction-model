@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import duckdb
 
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
+DB = "data/nba.duckdb"
 OUTDIR = os.environ.get(
     "RW_OUT",
     "data/scratch",

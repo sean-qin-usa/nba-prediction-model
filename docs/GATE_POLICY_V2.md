@@ -392,7 +392,7 @@ i.i.d. against 6 clustering. Per-game deltas inside a season are NOT independent
 schedule-layer betas, tank k, carry weights and the props ramp table are
 estimated from shared data and move every game in the season together. The
 i.i.d. bootstrap therefore UNDERSTATES the SE and the gate is ANTI-CONSERVATIVE.
-The sister project `/hdd/steveqin/sean_dev/football_exercise` RETRACTED a
+The sister project `../football_exercise` RETRACTED a
 headline "we beat the market" claim for exactly this reason (0.9540 vs 0.9572
 looked like a win; clustered by season it was −0.0031 CI[−0.0069,+0.0008] ns).
 

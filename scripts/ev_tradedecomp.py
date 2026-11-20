@@ -27,7 +27,7 @@ import pandas as pd
 import duckdb
 
 RNG = np.random.default_rng(7)
-DB = "/hdd/steveqin/sean_dev/nba_model/data/nba.duckdb"
+DB = "data/nba.duckdb"
 
 # ----------------------------------------------------------------------------
 # Sum-based stat definitions over a window of games.

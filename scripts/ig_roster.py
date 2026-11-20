@@ -48,7 +48,7 @@ def main():
         SELECT player_id, dpm, row_number() OVER (PARTITION BY player_id ORDER BY date DESC) rn
         FROM darko_history) WHERE rn=1""").fetchall())
     names = dict(con.execute("SELECT player_id, full_name FROM nba_players").fetchall())
-    cap = pd.read_csv("/hdd/steveqin/sean_dev/nba_model/data/capstone_pergame_carry2.csv")
+    cap = pd.read_csv("data/capstone_pergame_carry2.csv")
     cap["gid"] = cap.game_id.apply(lambda g: f"00{g}" if len(str(g)) == 8 else str(g))
     scored = set(cap.gid)
     for season in ("2023-24", "2024-25", "2025-26"):

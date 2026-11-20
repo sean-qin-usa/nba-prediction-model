@@ -23,7 +23,7 @@ from scipy.stats import norm
 EPS = 1e-12
 B = 2000
 SEED = 20260730
-DATA = "/hdd/steveqin/sean_dev/nba_model/data/"
+DATA = "data/"
 Z975 = norm.ppf(0.975)          # 1.960
 Z80 = norm.ppf(0.80)            # 0.842
 
