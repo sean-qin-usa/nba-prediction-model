@@ -224,13 +224,21 @@ Both keyless, both public, no rate-limit problems.
 - Fetchers: `scripts/fetch_espn_odds_open_close.py`,
   `scripts/fetch_actionnetwork_odds.py`, merged by
   `scripts/build_nba_open_close.py` into `data/raw/sbr_ext/nba_open_close_*.csv`.
-- **Two traps, both of which produce plausible-looking garbage:**
+- **Three traps, all of which produce plausible-looking garbage:**
   1. ESPN's `open.pointSpread.value` holds the **decimal price** (1.80, 1.87),
      *not* the handicap, in some vintages — all of 2024-25. The handicap is
      only in the display string. Parsing `value` gives corr 0.056 with Action
      Network and a fake 7.34-pt mean move.
   2. ESPN's scoreboard date is **UTC**; Action Network's is **ET**. Joining on
      the raw ESPN date matched 182 of ~1300 games.
+  3. ESPN's `open` block can hold an **alternate line**, not the main market.
+     For ESPN BET in October-November 2024 this was 40% of opening totals and
+     21% of opening spreads (under 1% from December on, none in 2025-26). The
+     only tell is the opening price: a main line opens near -110, these opened
+     from -450 to +290 and sat 7.5 points from the Action Network opener. Left
+     in, they made 2024-25 the best backtest season by a wide margin (D276).
+     `build_nba_open_close.py` now drops any opener priced below -135 or above
+     +115, so the game falls through to the Action Network opener (D277).
 - The raw feeds include preseason, All-Star and exhibition games (Melbourne
   United, Team Chuck, `EAST`/`WEST`). `build_odds_open.py` drops them for free
   by joining the unordered team pair against `odds_market`.
@@ -461,7 +469,7 @@ for **every** host before any content request.
   10 by 2022-23, 98/98 probed games). robots.txt is absent (HTTP 403), but the
   Disney Terms of Use prohibit automated access "including … data mining or web
   scraping" and building "any collection of data, data set or database", and
-  `www.espn.com/robots.txt` disallows major AI crawler user-agents (**`Disallow: /`**).
+  `www.espn.com/robots.txt` names **`AI-crawler user-agents` / `Disallow: /`**.
   **RECORDED AS ToS-BLOCKED AND STOPPED — no extraction performed.**
 - **Wayback (VegasInsider 380 snapshot-days, SBR 191, Covers 131, DonBest 64):
   TOO SPARSE** — ~1,500 phase-ambiguous observations against ~5,800 games, at

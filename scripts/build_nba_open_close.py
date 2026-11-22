@@ -24,6 +24,14 @@ for s in SEASONS:
     a = pd.read_csv(f"{OUT}/an_nba_open_close_{s}.csv")
 
     e = e[~e.provider_name.astype(str).str.contains("Live Odds", na=False)]
+    # D277: an opening line priced far from -110 is an ALTERNATE line, not the main market
+    # (ESPN BET, Oct-Nov 2024: 40% of opening totals, 21% of opening spreads). Drop it, so
+    # the median uses real openers or the game falls through to the Action Network opener.
+    def _off(o):
+        return o.notna() & ((o < -135) | (o > 115))
+    e = e.copy()
+    e.loc[_off(e.open_home_spread_odds) | _off(e.open_away_spread_odds), "open_home_spread"] = float("nan")
+    e.loc[_off(e.open_over_odds) | _off(e.open_under_odds), "open_total"] = float("nan")
     eg = (e.groupby(["event_id", "game_date_et", "start_time_utc", "season_type",
                      "home_abbr", "away_abbr", "home_team", "away_team",
                      "home_score", "away_score"], as_index=False, dropna=False)

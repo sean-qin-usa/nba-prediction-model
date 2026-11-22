@@ -7,14 +7,14 @@ A market-anchored NBA model for spreads and totals, together with the research r
 | | |
 |---|---|
 | +54% | Median season return of the full betting engine at quarter Kelly, across 11 seasons it had not seen, none of which lost. |
-| 56.1% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +10% per unit staked on 304 bets a season. |
-| 57.4% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 800 bets from 2012 to 2026 (56.4% without the mislabeled openers described below). |
-| 55.6% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,449 bets; it beat break-even in 12 of 14 seasons and won 55.8% on five further seasons it was never tuned on (55.2% on the main sample without the mislabeled openers). |
+| 56.6% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +10% per unit staked on 302 bets a season. |
+| 56.8% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 752 bets from 2012 to 2026. |
+| 55.3% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,380 bets; it beat break-even in 12 of 14 seasons and won 57.4% on five further seasons it was never tuned on. |
 | 28-17 | Totals rule this season, at the opening total, through 2026-11-15. |
 
 These are backtests and replays that assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed on any of it.
 
-One season carries a correction. Opening lines for October and November 2024 were partly mislabeled in the source feed, which had inflated the engine's 2024-25 return to +1,124%; with those games removed it is +215%, and the median season is unchanged. The [engine page](docs/ENGINE.md#why-2024-25-looked-so-large) shows why this was a data fault and not overfitting.
+The last three seasons are much the largest because the engine placed twice as many bets in them, not because it was fitted to them; the [engine page](docs/ENGINE.md#why-the-last-three-seasons-are-so-large) explains this, along with a repair made to the 2024-25 opening lines.
 
 ![season return by season](charts/engine_by_season.png)
 
