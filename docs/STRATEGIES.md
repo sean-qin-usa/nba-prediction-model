@@ -26,6 +26,8 @@ Everything here assumes the opening line is actually bet, which has not been sho
 
 The gap is how far the model's number sits from the line, in points.
 
+About 3% of these bets (107 of 3,249) were graded against 2024-25 opening lines that turned out not to be the main line, a fault in the source data that the [engine page](ENGINE.md#why-2024-25-looked-so-large) describes. Without them the spread rule covers 56.4% for +7.7% per bet on 757 bets, and the totals rule 55.2% for +5.3% on 2,385. The tables further down this page still include those bets.
+
 ![cover by gap](../charts/strategy_cover_by_gap.png)
 
 ![cover by month](../charts/strategy_cover_by_month.png)
@@ -63,7 +65,7 @@ A gap of a given size, set against an outcome spread of 12.6 points, implies a c
 
 ### Best in October and November
 
-The model is no more accurate per point early in the season. It earns 0.34 points of result per point of gap in October and November, against 0.41 from December to March. What changes is how far it disagrees with the opener: the spread of that disagreement is 3.2 points early and 2.5 later. As a result 7.3% of early games reach the 2-point threshold, compared with 3.2% later, and they clear it by more.
+The model is no more accurate per point early in the season. It earns 0.34 points of result per point of gap in October and November, against 0.41 from December to March. What changes is how far it disagrees with the opener: the spread of that disagreement is 3.2 points early and 2.5 later. As a result 7.3% of early games reach the 2-point threshold, compared with 3.2% later, and they clear it by more. A small part of the early figure was bad data: without the mislabeled 2024-25 openers, October and November cover 61.1% on 234 bets.
 
 ### April loses (small sample)
 
@@ -120,7 +122,7 @@ April games finish 2.1 points above the opening total on average, against 0.4 in
 
 ### Weak in October and November (unexplained)
 
-One story is that the model has too little history early, but it holds only in part. Bets placed before team ratings existed covered 49.2% (124 bets), but bets placed with ratings available still covered only 53.0% (575 bets).
+One story is that the model has too little history early, but it holds only in part. Bets placed before team ratings existed covered 49.2% (124 bets), but bets placed with ratings available still covered only 53.0% (575 bets). The mislabeled 2024-25 openers flatter these months too, and without them October and November cover 50.7% on 639 bets.
 
 ### February (unexplained)
 
@@ -128,7 +130,7 @@ February is strong in both samples, and the All-Star break is not the reason, si
 
 ## Sizing and thresholds
 
-Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +9.5% to +11.4% on spreads and from +6.1% to +7.6% on totals. This follows from the gap tables above, because bigger gaps cover more. It does not smooth the seasons much: losing seasons go from 3 of 14 to 4 on spreads, two of them by under half a unit, and from 2 to 1 on totals.
+Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +9.5% to +11.4% on spreads and from +6.1% to +7.6% on totals (from +7.7% to +8.7% and from +5.3% to +6.6% without the mislabeled 2024-25 openers). This follows from the gap tables above, because bigger gaps cover more. It does not smooth the seasons much: losing seasons go from 3 of 14 to 4 on spreads, two of them by under half a unit, and from 2 to 1 on totals.
 
 A higher threshold gives more per bet and less in total. Spread bets at a gap of 2.5+ cover 60.8% for +16.1%, on 25 bets a season. Totals bets at 3+ cover 59.9% for +14.4%, on 48 a season.
 
