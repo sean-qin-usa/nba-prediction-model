@@ -32,7 +32,7 @@ The last three seasons are much the largest because the engine placed twice as m
 
 ## Status
 
-Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. They will be read at 40 spread bets and 60 totals bets.
+Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. Through November 22 the totals view is 3-2 on staked bets and the spread view 1-4, with both ahead of the closing line on average; the bet-by-bet record is on the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16). They will be read at 40 spread bets and 60 totals bets.
 
 ## Licence & disclaimer
 
