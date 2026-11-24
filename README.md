@@ -2,7 +2,7 @@
 
 A market-anchored NBA model for spreads and totals, together with the research record behind it. The model does not out-forecast the market on average. What it does is pick out the games where the opening line is furthest off, and those are the only games it bets.
 
-## Results
+## Backtest results
 
 | | |
 |---|---|
@@ -10,13 +10,28 @@ A market-anchored NBA model for spreads and totals, together with the research r
 | 56.6% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +10% per unit staked on 302 bets a season. |
 | 56.8% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 752 bets from 2012 to 2026. |
 | 55.3% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,380 bets; it beat break-even in 12 of 14 seasons and won 57.4% on five further seasons it was never tuned on. |
-| 28-17 | Totals rule this season, at the opening total, through 2026-11-15. |
 
-These are backtests and replays that assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed on any of it.
+These are backtests that assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed on any of it.
 
 The last three seasons are much the largest because the engine placed twice as many bets in them, not because it was fitted to them; the [engine page](docs/ENGINE.md#why-the-last-three-seasons-are-so-large) explains this, along with a repair made to the 2024-25 opening lines.
 
 ![season return by season](charts/engine_by_season.png)
+
+## This season, 2026-27
+
+Through November 22, after 247 games. Live rows are paper bets logged as they happened; replay rows were reconstructed afterwards from the odds and injury reports stored at the time.
+
+| Rule | How recorded | Record | Units | Points ahead of the close |
+|---|---|---|---|---|
+| Totals, 2+ points from the line on screen | Live since Nov 16 | 3-2 | +0.70 | +0.2 |
+| Totals, 2+ points from the opening total | Replay, Oct 20 to Nov 15 | 28-17 | +8.45 | +1.9 |
+| Totals, 2+ points from the first line seen | Replay, Oct 20 to Nov 15 | 18-17 | -0.63 | +0.1 |
+| Day-before spread, 5+ points from the line | Live since Nov 16 | 1-4 | -3.06 | +1.2 |
+| Day-before spread, 5+ points from the line | Replay, Nov 5 to Nov 15 | 2-4 | -2.10 | +1.9 |
+| Day-before spread, 5+ points from the line | Replay, Oct 21 to Nov 4; the rule was chosen on these games | 7-2 | +4.36 | +3.3 |
+| Moneyline book, three views of 68 games | Live since Oct 21 | 149-46 | +15.6 | none |
+
+The season so far repeats the backtest's warning: the totals rule wins at the opening number and breaks even at the number actually available, and the spread rule is 3-8 on games it was not chosen on. The moneyline book has profited from favourites winning, without beating the closing price. Every sample here is too small to settle anything, and the live views will be read at 60 totals bets and 40 spread bets; the bet-by-bet record is on the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16).
 
 ## Pages
 
@@ -32,7 +47,7 @@ The last three seasons are much the largest because the engine placed twice as m
 
 ## Status
 
-Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. Through November 22 the totals view is 3-2 on staked bets and the spread view 1-4, with both ahead of the closing line on average; the bet-by-bet record is on the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16). They will be read at 40 spread bets and 60 totals bets.
+Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. A second totals arm, with coefficients refitted on the repaired 2024-25 opening lines, is logged beside the frozen one. Nothing has been bet with real money.
 
 ## Licence & disclaimer
 
