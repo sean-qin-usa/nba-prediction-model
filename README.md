@@ -19,7 +19,7 @@ The last three seasons are much the largest because the engine placed twice as m
 
 ## This season, 2026-27
 
-Through November 22, after 247 games. Live rows are paper bets logged as they happened; replay rows were reconstructed afterwards from the odds and injury reports stored at the time.
+The table runs through November 22, after 247 games; live rows are paper bets logged as they happened, and replay rows were reconstructed afterwards from the odds and injury reports stored at the time.
 
 | Rule | How recorded | Record | Units | Points ahead of the close |
 |---|---|---|---|---|
@@ -47,7 +47,7 @@ The season so far repeats the backtest's warning: the totals rule wins at the op
 
 ## Status
 
-Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. A second totals arm, with coefficients refitted on the repaired 2024-25 opening lines, is logged beside the frozen one. Nothing has been bet with real money.
+Two paper views began on 2026-11-16, and for every spread and total they record the opening price, the price actually available and the close. A second totals arm, with coefficients refitted on the repaired 2024-25 opening lines, is logged beside the frozen one, and nothing has been bet with real money.
 
 ## Licence & disclaimer
 
