@@ -16,11 +16,11 @@ Everything here assumes the opening line is actually bet, which has not been sho
 
 | Strategy | Bets per season | Cover | ROI per bet | Season return at 1% stakes | Status |
 |---|---|---|---|---|---|
-| Spread, model gap 2+ points | 54 | 56.8% | +8.4% | +4.5% | Backtest only |
+| Spread, model gap 2+ points | 54 | 58.3% | +11.3% | +6.1% | Backtest only |
 | Totals, model gap 2+ points | 170 | 55.3% | +5.5% | +9.3% | Passed a pre-declared test |
 | Totals, same rule on 2007-12 (never tuned on) | 137 | 57.4% | +9.5% | +13.0% | Holdout |
 | Totals, bet only within 1 point of the opener | about 140 | about 55.3% | about +5.5% | about +8% | Under live test |
-| Either rule, stake in proportion to the gap | same bets | same | +9.4% spread, +6.9% totals | +6.5%, +16.1% | Logged beside the flat stake |
+| Either rule, stake in proportion to the gap | same bets | same | +12.2% spread, +6.9% totals | +8.4%, +16.1% | Logged beside the flat stake |
 | Moneyline, four rules frozen before the season | about 75 | not comparable | no line value | not estimated | Live; likely no edge |
 | Player points | not a rule yet | 52.6% at a 5+ point probability gap | +0.7% | not estimated | Not bettable |
 
@@ -40,36 +40,36 @@ The rule bets the model's side when its corrected margin is 2 or more points fro
 
 ### Where the edge comes from
 
-Across 15,911 games the final margin moves 0.33 points for every point the model disagrees with the opener. A plain ratings model built from results in 20 lines of code earns 0.09, and it adds nothing once the full model is included. The player ratings, minutes and availability inputs are therefore doing the work.
+Across 15,911 games the final margin moves 0.36 points for every point the model disagrees with the opener. A plain ratings model built from results in 20 lines of code earns 0.09, and it adds nothing once the full model is included. The player ratings, minutes and availability inputs are therefore doing the work.
 
 ### Bigger gaps cover more
 
-A gap of a given size, set against an outcome spread of 12.6 points, implies a cover rate, and actual results track it.
+A gap of a given size, set against an outcome spread of 12.6 points, implies a cover rate, and actual results follow it loosely: the middle band falls short and the top band overshoots.
 
 | Gap | Implied by the model | Actual | Bets |
 |---|---|---|---|
-| 2 to 2.5 | 56.9% | 54.7% | 450 |
-| 2.5 to 3 | 58.5% | 59.9% | 162 |
-| 3+ | 61.4% | 60.0% | 140 |
+| 2 to 2.5 | 56.9% | 57.8% | 460 |
+| 2.5 to 3 | 58.5% | 55.2% | 181 |
+| 3+ | 61.7% | 65.2% | 112 |
 
 ### By month
 
 | Month | Cover | Bets |
 |---|---|---|
-| Oct-Nov | 61.3% | 238 |
-| Dec | 52.6% | 78 |
-| Jan | 54.2% | 72 |
-| Feb | 54.8% | 73 |
-| Mar | 61.1% | 126 |
-| Apr | 50.4% | 141 |
+| Oct-Nov | 63.6% | 236 |
+| Dec | 56.3% | 87 |
+| Jan | 52.4% | 63 |
+| Feb | 52.3% | 65 |
+| Mar | 60.1% | 153 |
+| Apr | 53.8% | 130 |
 
 ### Best in October and November
 
-The model is no more accurate per point early in the season. It earns 0.29 points of result per point of gap in October and November, against 0.40 from December to March. What changes is how far it disagrees with the opener: the spread of that disagreement is 3.1 points early and 2.5 later. As a result 6.4% of early games reach the 2-point threshold, compared with 3.0% later, and they clear it by more.
+The model is no more accurate per point early in the season. It earns 0.30 points of result per point of gap in October and November, against 0.42 from December to March. What changes is how far it disagrees with the opener: the spread of that disagreement is 3.1 points early and 2.6 later. As a result 6.4% of early games reach the 2-point threshold, compared with 3.2% later, and they clear it by more.
 
-### April loses (small sample)
+### April is weakest
 
-April is where the model disagrees with the opener most, at 3.5 points, and is right least, at 0.12 points of result per point of gap. April games also carry more expected absences: 2.7 a game against 1.9. On 2019-26, April bets in games with three or more expected absences covered 36.8% (38 bets), while the rest covered 61.3% (31 bets). The model is weakest when many regular players sit, although rest and tanking were not separated.
+April is where the model disagrees with the opener most, at 3.4 points, and is right least, at 0.22 points of result per point of gap, so its bets cover only 53.8%. April games also carry more expected absences: 2.7 a game against 1.9. An earlier version of this page blamed those absences, but the split does not hold on the rebuilt model: on 2019-26, April bets in games with three or more expected absences covered 55.0% (40 bets) and the rest 57.1% (28 bets). Giving April its own, lower trust did not help out of sample either, so the weak month is unexplained.
 
 ## Totals rule
 
@@ -130,9 +130,9 @@ February is strong in both samples, and the All-Star break is not the reason, si
 
 ## Sizing and thresholds
 
-Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +8.4% to +9.4% on spreads and from +5.5% to +6.9% on totals. This follows from the gap tables above, because bigger gaps cover more. It does not smooth the seasons much: losing seasons go from 2 of 14 to 4 on spreads, two of them by under half a unit, and from 2 to 1 on totals.
+Staking in proportion to the gap (1 unit at 2 points, capped at 2.5) raises ROI from +11.3% to +12.2% on spreads and from +5.5% to +6.9% on totals. This follows from the gap tables above, because bigger gaps cover more. It trims the losing seasons from 2 of 14 to 1 on each rule.
 
-A higher threshold gives more per bet and less in total. Spread bets at a gap of 2.5+ cover 59.9% for +14.4%, on 22 bets a season. Totals bets at 3+ cover 59.7% for +13.9%, on 44 a season.
+A higher threshold gives more per bet and less in total. Spread bets at a gap of 2.5+ cover 59.0% for +12.7%, on 21 bets a season. Totals bets at 3+ cover 59.7% for +13.9%, on 44 a season.
 
 On the totals rule, quarter Kelly returned +9.6% a season on average, with a median of +4.7% and a standard deviation of 14.0%. Full Kelly reached a 68% drawdown; the detail is in [SEASON_2026_27.md](SEASON_2026_27.md).
 
@@ -144,17 +144,33 @@ The table runs both rules together with sized stakes, where the base stake is a 
 
 | Base stake | Median season | Worst season | Losing seasons | Worst drawdown within a season |
 |---|---|---|---|---|
-| 1% | +19.2% | -6.5% | 2 of 14 | 20% |
-| 2% | +29.2% | -17.1% | 2 of 14 | 40% |
-| 3% | +39.4% | -30.9% | 2 of 14 | 52% |
-| 5% | +56.2% | -51.5% | 2 of 14 | 67% |
-| 8% | +72.9% | -74.9% | 3 of 14 | 81% |
+| 1% | +20.5% | -7.3% | 2 of 14 | 21% |
+| 2% | +37.8% | -17.1% | 2 of 14 | 42% |
+| 3% | +54.9% | -30.1% | 2 of 14 | 55% |
+| 5% | +79.4% | -57.5% | 3 of 14 | 70% |
+| 8% | +89.3% | -75.1% | 3 of 14 | 81% |
 
-Drawdown grows almost in step with the stake, and the median return stops growing before the drawdown does: at a 12% base stake the median is +69.0%, below the 8% row, with a 93% drawdown and five losing seasons. The longest losing run was 12 bets, and the busiest night carried 18 bets at once. Mean returns run far above the medians at the larger stakes, because a few seasons compound to several times the bankroll, which is why the table leaves them out.
+Drawdown grows almost in step with the stake, and the median return stops growing before the drawdown does: at a 12% base stake the median is +75.7%, below the 8% row, with a 91% drawdown and five losing seasons. The longest losing run was 10 bets, and the busiest night carried 17 bets at once. Mean returns run far above the medians at the larger stakes, because a few seasons compound to several times the bankroll, which is why the table leaves them out.
 
 ## Why the rules win
 
 The working thesis is that the model is faster than the opening line and no smarter than the market. On spreads it prices at the opener what the market prices over the following day, which is who will play and how good they are, and the line then moves toward it. The totals model uses no player data and bets when the opener sits away from where the market itself recently closed those teams. Neither rule has an edge at later prices, and the model does not beat the closing line on any market.
+
+### Knowing who plays
+
+The spread model is built on player ratings, so it matters how much it knows about who will play. The table reruns the same model over the same games with five levels of that knowledge, on the rule the live view uses: bet when the market-blind model is 5 or more points from the opening spread.
+
+| What the model knows about who plays | 2012-18 cover | 2018-26 cover | All 14 seasons | Bets |
+|---|---|---|---|---|
+| Nothing | 53.2% | 55.4% | 54.8% | 1,315 |
+| A synthetic feed built from box scores | 54.5% | 56.9% | 56.2% | 1,319 |
+| The injury-report feed, as of the open | not available | 58.6% | 56.9% | 1,260 |
+| Official inactive lists, 30 minutes before tip | 55.2% | 60.0% | 58.6% | 1,274 |
+| Perfect hindsight | 58.0% | 60.1% | 59.5% | 1,403 |
+
+Cover rises with every step, and so does the amount by which the bets beat the closing line, from 0.6 points with nothing to 1.8 with hindsight. The injury-report feed only exists from December 2018, so for earlier seasons the backtest uses the synthetic feed, which estimates each rotation player's chance of sitting from box scores before game day: whether he missed the last game, how many in a row, days since he played, his minutes and back-to-backs. It recovers about half of what the real feed adds, and its estimate of minutes missing per team tracks reality about as well (a correlation of 0.68 against 0.72). The last two rows cannot be bet a day ahead and are there as a ceiling.
+
+The older seasons stay behind the recent ones at every level, so the missing feed explains part of that gap and not all of it.
 
 ### Not roster or league change
 
@@ -162,13 +178,13 @@ A model built on player ratings might be expected to win most when rosters chang
 
 | Combined turnover | Spread cover | Bets | Totals cover | Bets |
 |---|---|---|---|---|
-| Low | 57.0% | 237 | 54.9% | 887 |
-| Middle | 55.7% | 271 | 54.9% | 827 |
-| High | 57.8% | 244 | 56.2% | 666 |
+| Low | 57.4% | 237 | 54.9% | 887 |
+| Middle | 57.4% | 270 | 54.9% | 827 |
+| High | 60.2% | 246 | 56.2% | 666 |
 
-In a regression of win on gap, turnover and early season, the turnover coefficient is about zero for both rules (p = 0.88 on spreads and 0.73 on totals). The model's disagreement with the opener is also no wider when turnover is high. The early-season spread edge does not come from new rosters either, since October and November bets covered 63.2% in low-turnover games (87 bets) and 64.9% in high-turnover games (77 bets). Backing the team that was worse last season covered 58.0% (269 bets), against 56.0% for backing the better one (482 bets).
+In a regression of win on gap, turnover and early season, the turnover coefficient is about zero for both rules (p = 0.48 on spreads and 0.73 on totals). The model's disagreement with the opener is also no wider when turnover is high. The early-season spread edge does not come from new rosters either, since October and November bets covered 67.1% in low-turnover games (85 bets) and 66.7% in high-turnover games (78 bets). Backing the team that was worse last season covered 58.6% (290 bets), against 58.0% for backing the better one (462 bets).
 
-Season by season the picture is the same. Spread cover is uncorrelated with league-wide turnover (+0.01) and with the year-on-year change in league scoring (+0.04). Totals cover falls with league turnover (-0.56), which is most likely a shared time trend, because turnover has drifted down over the years in which totals bets have grown.
+Season by season the picture is the same. Spread cover is uncorrelated with league-wide turnover (-0.03) and with the year-on-year change in league scoring (+0.19, on 14 seasons). Totals cover falls with league turnover (-0.56), which is most likely a shared time trend, because turnover has drifted down over the years in which totals bets have grown.
 
 ### Not periods of change either
 
@@ -176,18 +192,18 @@ The same question was asked of the stretches when rosters shift during a season,
 
 | Cut | Spread cover | Bets | Totals cover | Bets |
 |---|---|---|---|---|
-| Rotation stable over the last 15 games | 58.7% | 121 | 56.5% | 503 |
-| Rotation churning | 54.3% | 245 | 57.1% | 694 |
-| 28 days before the trade deadline | 58.2% | 55 | 53.1% | 254 |
-| 21 days after the trade deadline | 54.1% | 74 | 61.8% | 254 |
-| First 20 games, a rebuilt team in the game | 60.5% | 119 | 50.2% | 263 |
-| First 20 games, no rebuilt team | 58.9% | 141 | 52.6% | 456 |
-| 30 days after the deadline, a traded team in the game | 56.2% | 64 | 57.6% | 210 |
-| 30 days after the deadline, no traded team | 61.0% | 41 | 61.1% | 131 |
+| Rotation stable over the last 15 games | 62.2% | 119 | 56.5% | 503 |
+| Rotation churning | 56.1% | 262 | 57.1% | 694 |
+| 28 days before the trade deadline | 56.9% | 51 | 53.1% | 254 |
+| 21 days after the trade deadline | 48.4% | 64 | 61.8% | 254 |
+| First 20 games, a rebuilt team in the game | 63.9% | 119 | 50.2% | 263 |
+| First 20 games, no rebuilt team | 60.6% | 137 | 52.6% | 456 |
+| 30 days after the deadline, a traded team in the game | 48.5% | 66 | 57.6% | 210 |
+| 30 days after the deadline, no traded team | 62.5% | 32 | 61.1% | 131 |
 
-Churn compares who played a team's last 5 games with the 10 before. A rebuilt team is in the top quarter for offseason turnover, and a traded team is one whose deadline arrivals went on to play 10% or more of its minutes. When rotations are churning the spread model fires on more games (5.5% against 2.7%) but is right less per point of gap (0.80 against 1.36), so cover does not improve. The jump in totals cover after the deadline looked like a finding until it was run on the 2007-12 holdout, where it reversed to 59.8% before the deadline and 50.6% after.
+Churn compares who played a team's last 5 games with the 10 before. A rebuilt team is in the top quarter for offseason turnover, and a traded team is one whose deadline arrivals went on to play 10% or more of its minutes. When rotations are churning the spread model fires on more games (5.9% against 2.7%) but is right less per point of gap (1.02 against 1.43), so cover does not improve. The jump in totals cover after the deadline looked like a finding until it was run on the 2007-12 holdout, where it reversed to 59.8% before the deadline and 50.6% after.
 
-One pattern points the other way and is recorded here as a lead. On spreads, bets where the model backs a rebuilt team covered 58.7% (126 bets), while bets where it fades one covered 49.2% (124 bets), and the same gap appears early in the season and after the deadline. The samples overlap, though, and a single test with no thresholds is positive without being significant (p = 0.30), so it waits for a season it was not found on.
+One pattern points the other way and is recorded here as a lead. On spreads, bets where the model backs a rebuilt team covered 63.2% (125 bets), while bets where it fades one covered 54.6% (141 bets), and the same gap appears early in the season though not after the deadline. The samples overlap, though, and a single test with no thresholds is positive without being significant (p = 0.16), so it waits for a season it was not found on.
 
 If the edge came from understanding change it should rise with turnover, and it does not. What the bets have in common is a rough opening number: bet counts more than doubled from 2023, as opening totals began to sit further from the model.
 
@@ -195,16 +211,16 @@ If the edge came from understanding change it should rise with turnover, and it 
 
 | Idea | Result |
 |---|---|
-| Train the spread model on line moves instead of final scores | Worse in 11 of 14 seasons |
+| Train the spread model on line moves instead of final scores | Worse in 12 of 14 seasons |
 | Trust the spread model more early in the season | Trust is the same early and late |
-| Add rest and rookie minutes to the spread model | Better in only 5 of 14 seasons |
+| Add rest and rookie minutes to the spread model | Better in only 6 of 14 seasons |
 | Refit the spread model on recent seasons only | No gain |
 | Bet against big line moves at the close | 48% |
 | Bet with big line moves at the close | 51 to 52%, under break-even |
 | Drop the totals model's standing lean to the over | Looked good on 2012-26 (56.6%), failed on 2007-12 (51.7%) |
 | Totals bets relative to the season's running average call | 54.2% against 57.4% on 2007-12 |
 | Add expected absences to the totals model | The opener already prices them |
-| Perfect knowledge of who plays, for spreads | 58.0% becomes 58.4% (measured before the opening-line repair) |
+| A different trust in the model by gap size, by month, or fixed at another value | None beats the fitted one third |
 
 Two of these looked like improvements until they were run on seasons they had not been found on. The monthly and by-type cuts on this page have had no such check, so they only describe the backtest.
 

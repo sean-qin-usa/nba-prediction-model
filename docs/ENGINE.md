@@ -2,13 +2,13 @@
 
 This page asks what happens when every rule on the [strategies page](STRATEGIES.md) is used at once. The engine bets by size of disagreement, by time of season and by side, and sizes each stake to the estimated edge. Each season is bet with rules learned from earlier seasons.
 
-The median season return is +54% of bankroll at quarter Kelly, with no losing season in 11. Most of that comes from staking more on the same edge. All of it assumes the opening line can be bet.
+The median season return is +57% of bankroll at quarter Kelly, with ten profitable seasons in 11. Most of that comes from staking more on the same edge. All of it assumes the opening line can be bet.
 
 ![season return by season](../charts/engine_by_season.png)
 
 ## How it works
 
-The candidates are the 6,230 games from 2012-13 to 2025-26 where the spread model or the totals model is 1.5 or more points from the opening line. Each model's prediction for a season comes from a fit on earlier seasons.
+The candidates are the 6,248 games from 2012-13 to 2025-26 where the spread model or the totals model is 1.5 or more points from the opening line. Each model's prediction for a season comes from a fit on earlier seasons. The spread model knows who is expected to play from the injury-report feed where one exists (December 2018 on) and from a synthetic feed built from box scores before that; the [strategies page](STRATEGIES.md#knowing-who-plays) shows what each is worth.
 
 For each test season, a regression is fitted on the candidates of earlier seasons. It estimates whether a bet wins from the size of the gap, the market, the part of the season and the side taken. The stake is a quarter of the Kelly stake that probability implies. There is no bet at or below break-even, and no more than 25% of the bankroll is at risk on one night.
 
@@ -18,36 +18,36 @@ The test seasons are 2015-16 to 2025-26, and nothing from a test season is used 
 
 | Engine | Median season | Worst season | Largest drawdown | ROI per unit staked | Bets per season |
 |---|---|---|---|---|---|
-| Gap size only | +40.2% | +4.7% | 29% | +10.7% | 332 |
-| + time of season | +57.1% | +5.3% | 27% | +9.9% | 310 |
-| + side | +36.7% | +15.7% | 31% | +10.5% | 316 |
-| All rules | +53.8% | +13.7% | 32% | +10.0% | 302 |
+| Gap size only | +42.2% | -7.7% | 30% | +10.4% | 402 |
+| + time of season | +75.0% | -14.1% | 36% | +9.6% | 364 |
+| + side | +44.9% | +1.9% | 34% | +9.6% | 368 |
+| All rules | +57.3% | -10.8% | 34% | +9.0% | 344 |
 
-The seasonal rules beat the gap-only engine in 9 of 11 seasons, and all rules together beat it in 8. The means sit well above the medians because the last three seasons were large: the all-rules mean is +84.6%, and without 2024-25 the mean is +63.0% and the median +50.2%.
+The seasonal rules beat the gap-only engine in 8 of 11 seasons, and all rules together beat it in 7. The means sit well above the medians because the last three seasons were large: the all-rules mean is +102.5%, and without 2024-25 the mean is +69.8% and the median +55.0%.
 
-Larger stakes raise both the return and the risk. At half Kelly the all-rules median is +99% with a 55% drawdown. At full Kelly it is +153%, with a 75% drawdown and a worst season of -30%.
+Larger stakes raise both the return and the risk. At half Kelly the all-rules median is +127% with a 59% drawdown. At full Kelly it is +216%, with an 82% drawdown and a worst season of -66%.
 
 | Season | Bets | Cover | ROI per unit staked | Season return | Largest drawdown |
 |---|---|---|---|---|---|
-| 2015-16 | 211 | 58.3% | +8.1% | +26.8% | 12% |
-| 2016-17 | 228 | 55.7% | +8.6% | +41.2% | 21% |
-| 2017-18 | 248 | 52.4% | +3.0% | +13.7% | 17% |
-| 2018-19 | 160 | 56.2% | +5.7% | +15.2% | 26% |
-| 2019-20 | 195 | 56.9% | +23.1% | +87.6% | 10% |
-| 2020-21 | 251 | 59.4% | +10.7% | +53.8% | 11% |
-| 2021-22 | 349 | 57.9% | +7.3% | +60.2% | 32% |
-| 2022-23 | 219 | 58.0% | +12.6% | +46.6% | 20% |
-| 2023-24 | 514 | 54.5% | +12.3% | +205.3% | 18% |
-| 2024-25 | 429 | 58.5% | +12.4% | +300.4% | 23% |
-| 2025-26 | 518 | 54.2% | +5.9% | +80.2% | 27% |
+| 2015-16 | 218 | 57.3% | +7.2% | +21.6% | 12% |
+| 2016-17 | 266 | 55.6% | +10.3% | +52.7% | 13% |
+| 2017-18 | 332 | 52.1% | -1.9% | -10.8% | 34% |
+| 2018-19 | 229 | 53.3% | +3.0% | +9.3% | 25% |
+| 2019-20 | 250 | 56.4% | +20.2% | +91.9% | 14% |
+| 2020-21 | 270 | 58.1% | +11.1% | +57.3% | 11% |
+| 2021-22 | 379 | 58.8% | +9.9% | +107.6% | 29% |
+| 2022-23 | 245 | 57.6% | +8.9% | +41.5% | 22% |
+| 2023-24 | 559 | 54.2% | +11.2% | +204.2% | 19% |
+| 2024-25 | 479 | 58.2% | +12.4% | +429.3% | 26% |
+| 2025-26 | 554 | 55.4% | +6.8% | +123.1% | 28% |
 
 ## Why the last three seasons are so large
 
-The three largest returns are the three most recent seasons, which can look like a model fitted to recent data. It is not that: every weight used to bet a season was learned from earlier seasons only, and the return per unit staked in 2023-24 and 2024-25, at about +12%, is in line with 2022-23 and well below 2019-20.
+The three largest returns are the three most recent seasons, which can look like a model fitted to recent data. It is not that: every weight used to bet a season was learned from earlier seasons only, and the return per unit staked in 2023-24 and 2024-25, at 11 to 12%, is in line with 2020-21 and well below 2019-20.
 
-What changed is volume. The engine placed 487 bets a season from 2023-24 on, against 233 before, as opening totals began to sit further from the model, and it staked about 2% of the bankroll on each where it had staked about 1.6%. Total stakes over a season therefore rose from roughly four times the bankroll to about ten, and because each stake is a share of the current bankroll, the same edge compounds into a far larger season. The stake sizes are also why these figures should not be read as achievable: opening lines carry low limits, and nobody gets ten times their bankroll down on them in a season.
+What changed is volume. The engine placed 531 bets a season from 2023-24 on, against 274 before, as opening totals began to sit further from the model, and it staked about 2.1% of the bankroll on each where it had staked about 1.5%. Total stakes over a season therefore rose from roughly four times the bankroll to about eleven, and because each stake is a share of the current bankroll, the same edge compounds into a far larger season. The stake sizes are also why these figures should not be read as achievable: opening lines carry low limits, and nobody gets eleven times their bankroll down on them in a season.
 
-Profit per bet did not change. Across the two flat-stake rules, bets covered 55.6% for +6.2% per bet up to 2022-23 and the same 55.6% and +6.2% from 2023-24 on, while the number of bets a season went from 181 to 381, nearly all of the increase in totals. Two checks rule out the obvious objections. Rerunning the totals model on opening lines from a second source gives the same volume and a 55.4% cover rate, so the extra bets are not a quirk of one data feed; and a totals model fitted on 2007-17 and never updated still covers 56.1% in 2023-26, on 227 bets a season against 157 before, so they are not a fit to recent seasons either. The volume is still the part least likely to carry over: so far this season 11% of totals reach the 2-point threshold at the line actually on screen, against 25% in the backtest's recent seasons.
+Profit per bet barely changed. Across the two flat-stake rules, bets covered 55.8% for +6.5% per bet up to 2022-23 and 56.3% for +7.4% from 2023-24 on, while the number of bets a season went from 177 to 396, most of the increase in totals. Two checks rule out the obvious objections. Rerunning the totals model on opening lines from a second source gives the same volume and a 55.4% cover rate, so the extra bets are not a quirk of one data feed; and a totals model fitted on 2007-17 and never updated still covers 56.1% in 2023-26, on 227 bets a season against 157 before, so they are not a fit to recent seasons either. The volume is still the part least likely to carry over: so far this season 11% of totals reach the 2-point threshold at the line actually on screen, against 25% in the backtest's recent seasons.
 
 ## A repair to the 2024-25 opening lines
 
@@ -61,34 +61,34 @@ Fitted on all seasons, the engine assigns these win rates to typical bets.
 
 | Bet | Win rate | Bet? |
 |---|---|---|
-| Totals over, gap 2, Dec-Jan | 54.3% | Yes |
+| Totals over, gap 2, Dec-Jan | 54.4% | Yes |
 | Totals over, gap 2, Oct-Nov | 50.3% | No |
-| Totals under, gap 2, Dec-Jan | 57.4% | Yes |
+| Totals under, gap 2, Dec-Jan | 57.5% | Yes |
 | Totals over, gap 4, Dec-Jan | 60.4% | Yes |
-| Spread, gap 2, Oct-Nov | 55.8% | Yes |
-| Spread, gap 3, Oct-Nov | 60.1% | Yes |
-| Spread, gap 2, April | 48.0% | No |
+| Spread, gap 2, Oct-Nov | 59.1% | Yes |
+| Spread, gap 3, Oct-Nov | 63.1% | Yes |
+| Spread, gap 2, April | 52.1% | No |
 
 These are the patterns on the strategies page, except that here each was learned from earlier seasons and then applied to the next one.
 
 ## A simpler engine
 
-The simpler engine groups bets by market and gap size. It estimates each group's win rate from earlier seasons, pulls that estimate strongly toward break-even, and bets the groups that still clear it. It stakes less and places 172 bets a season.
+The simpler engine groups bets by market and gap size. It estimates each group's win rate from earlier seasons, pulls that estimate strongly toward break-even, and bets the groups that still clear it. It stakes less and places 185 bets a season.
 
 | | Median season | Mean | Volatility (sd) | Worst | Losing seasons | ROI per unit staked |
 |---|---|---|---|---|---|---|
-| Totals + spread | +19.6% | +27.1% | 31.7% | -10.2% | 2 of 11 | +12.5% |
+| Totals + spread | +13.7% | +35.9% | 58.2% | -1.5% | 1 of 11 | +11.4% |
 | Totals only | +9.0% | +19.8% | 26.7% | -3.1% | 2 of 11 | +9.8% |
-| Spread only | +4.1% | +5.6% | 9.6% | -9.6% | 3 of 11 | +19.6% |
+| Spread only | +4.0% | +11.6% | 26.3% | -6.9% | 1 of 11 | +14.7% |
 
-## Where the +54% comes from
+## Where the +57% comes from
 
-The figure is leverage, not extra skill: ROI per unit staked is about +10% in the full engine and +12.5% in the simple one. The full engine returns more because it places 302 bets a season at larger stakes. Adding the seasonal and side rules barely improves the win-probability forecast itself, whose log loss moves from 0.68770 to 0.68759.
+The figure is leverage, not extra skill: ROI per unit staked is about +9% in the full engine and +11.4% in the simple one. The full engine returns more because it places 344 bets a season at larger stakes. Adding the seasonal and side rules does not improve the win-probability forecast itself, whose log loss goes from 0.68647 to 0.68680.
 
 More bets did not mean more profit per bet. Bets per season more than doubled after 2022, as opening totals began moving more and the lower-gap groups, which win about 54%, came into play.
 
-The figure also assumes every opening line is bet at -110 with 2 to 4% of the bankroll. First lines carry low limits, and the most mispriced ones move within minutes.
+The figure also assumes every opening line is bet at -110 with 2 to 4% of the bankroll. First lines carry low limits, and most of their move toward the close happens overnight and on game day.
 
-The most recent season was among the weakest for skill. In 2025-26 the engine won 54.2% of its bets and returned +5.9% per unit staked, with a 27% drawdown.
+The engine is not safe from a bad year. In 2017-18 it won 52.1% of its bets, lost 1.9% per unit staked and finished down 10.8% after a 34% drawdown, and the gap-only and seasonal versions each have a losing season too.
 
 None of this has been shown live; the paper views began recording the price actually available on 2026-11-16.
