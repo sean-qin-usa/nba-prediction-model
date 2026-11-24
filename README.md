@@ -1,6 +1,6 @@
 # NBA Prediction Model
 
-A market-anchored NBA model for spreads and totals, together with the research record behind it. The model does not out-forecast the market on average. What it does is pick out the games where the opening line is furthest off, and those are the only games it bets.
+A market-anchored NBA model for spreads and totals, together with the research record behind it. The shipped spread forecast is an ensemble: about two-thirds the market's opening line and one-third a market-blind model built from player ratings, minutes and availability. The model does not out-forecast the market on average. What it does is pick out the games where the opening line is furthest off, and those are the only games it bets.
 
 ## Backtest results
 

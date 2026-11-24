@@ -14,6 +14,8 @@ A market-blind margin model prices every regular-season game. Its disagreement w
 m_offset = m_open + f( m_blind − m_open ,  rest differential ,  |m_open| )
 ```
 
+Written out, the shipped forecast is an ensemble of two numbers: about two-thirds the opening line and one-third the market-blind model, with small adjustments for rest and the size of the spread. Two-thirds of every shipped forecast is therefore the market's own number, which is why it can only improve on the opener by a little, and the one-third weight is where out-of-sample loss is lowest (anywhere from 0.30 to 0.40 is within 5% of the best).
+
 The market-blind model does not beat the opening line on its own, but its disagreement with the line still carries information: shrunk hard toward the market anchor, it improves on the opener in six of seven scored seasons. This asymmetry is the project's central finding and the reason the system is built as a correction rather than a standalone forecast.
 
 The offset layer and the soft-availability leg were promoted to production only after clearing pre-registered, season-clustered gates against the incumbent (`D202`, `D224`).
