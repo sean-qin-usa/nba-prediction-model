@@ -174,6 +174,20 @@ Cover rises with every step, and so does the amount by which the bets beat the c
 
 The older seasons stay behind the recent ones at every level, so the missing feed explains part of that gap and not all of it.
 
+### Retuned on other seasons
+
+The spread model was designed on 2021-22 to 2025-26, so two checks ask how much of its result depends on that. In the first, the model's five pieces (two team-strength estimates, a schedule term, a late-season tanking term and the availability adjustments) were re-weighted by a regression fitted on a random half of the 19 seasons and scored on the other half, 100 times over.
+
+| Spread rule, gap 2+ | 2012-21 | 2021-26 | All 14 seasons |
+|---|---|---|---|
+| The model as designed | 55.5% | 60.4% | 58.0% |
+| Weights retuned on random other seasons | 54.6% | 57.2% | 55.9% |
+| As designed, without the tanking term | 55.5% | 54.8% | 55.2% |
+
+Nearly all of the advantage in the development seasons comes from one piece: the tanking term, which the shipped model only switches on from 2020-21. Without it those seasons cover 54.8%, the same as the earlier ones. The second check therefore switched that term on for 2012-20 as well, seasons it was never designed on, with its coefficient learned from earlier seasons. It lifted the spread rule there from 55.9% to 57.0% on 337 bets, a gain inside the noise and far short of the five points it adds where it was built.
+
+The fair reading is a spread rule that covers about 56%, not 58%, and whose best seasons owe a good deal to a term tuned on those seasons.
+
 ### Not roster or league change
 
 A model built on player ratings might be expected to win most when rosters change, since a market anchored on last season's results would be slow to adjust. That is not what the backtest shows. Turnover here is the share of a team's minutes so far played by players who were not on that team last season, which counts rookies and trades alike, and the table splits games into thirds by the two teams' combined turnover.
