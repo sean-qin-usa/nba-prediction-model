@@ -17,6 +17,8 @@ Every season is scored with weights learned only from the seasons before it, inc
 
 ![return per unit staked by season](charts/engine_per_unit.png)
 
+![season return by season](charts/engine_by_season.png)
+
 ## This season, 2026-27
 
 Paper bets logged as they happened, through November 24 (260 games played), with no real money staked.
