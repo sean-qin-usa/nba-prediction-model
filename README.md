@@ -8,12 +8,12 @@ A market-anchored NBA model for spreads and totals, together with the research r
 |---|---|
 | +57% | Median season return of the full betting engine at quarter Kelly, across 11 seasons it had not seen, ten of them profitable. |
 | 56.1% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +9% per unit staked on 344 bets a season. |
-| 58.3% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 753 bets from 2012 to 2026. |
+| 58.3% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 753 bets from 2012 to 2026; 56.2% on the nine seasons the model was not developed on. |
 | 55.3% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,380 bets; it beat break-even in 12 of 14 seasons and won 57.4% on five further seasons it was never tuned on. |
 
 These are backtests that assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed on any of it.
 
-The last three seasons are much the largest because the engine placed twice as many bets in them, not because it was fitted to them; the [engine page](docs/ENGINE.md#why-the-last-three-seasons-are-so-large) explains this, along with a repair made to the 2024-25 opening lines.
+The last three seasons are much the largest, partly because the engine placed twice as many bets in them and partly because the spread model was developed on 2021-26, which flatters those seasons; the [engine page](docs/ENGINE.md#why-the-last-three-seasons-are-so-large) sets out both, along with a repair made to the 2024-25 opening lines.
 
 ![season return by season](charts/engine_by_season.png)
 

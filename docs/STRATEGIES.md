@@ -26,6 +26,8 @@ Everything here assumes the opening line is actually bet, which has not been sho
 
 The gap is how far the model's number sits from the line, in points.
 
+The spread model was developed on 2021-22 to 2025-26, so those seasons flatter it. On the nine seasons before, which had no part in building it, the spread rule covers 56.2% on 361 bets for +7.3% per bet, against 60.2% on 392 bets since; the earlier figure is the cleaner one. The totals model was specified before its results were looked at.
+
 The 2024-25 opening lines behind these figures were repaired after a fault in the source feed, which the [engine page](ENGINE.md#a-repair-to-the-2024-25-opening-lines) describes.
 
 ![cover by gap](../charts/strategy_cover_by_gap.png)
