@@ -160,19 +160,19 @@ The working thesis is that the model is faster than the opening line and no smar
 
 ### Knowing who plays
 
-The spread model is built on player ratings, so it matters how much it knows about who will play. The table reruns the same model over the same games with five levels of that knowledge, on the rule the live view uses: bet when the market-blind model is 5 or more points from the opening spread.
+The spread model is built on player ratings, so it matters how much it knows about who will play. The table reruns the same model over the same games with five levels of that knowledge, with its pieces weighted as everywhere else on this page, on the rule the live view uses: bet when the market-blind model is 5 or more points from the opening spread.
 
 | What the model knows about who plays | 2012-18 cover | 2018-26 cover | All 14 seasons | Bets |
 |---|---|---|---|---|
-| Nothing | 53.2% | 55.4% | 54.8% | 1,315 |
-| A synthetic feed built from box scores | 54.5% | 56.9% | 56.2% | 1,319 |
-| The injury-report feed, as of the open | not available | 58.6% | 56.9% | 1,260 |
-| Official inactive lists, 30 minutes before tip | 55.2% | 60.0% | 58.6% | 1,274 |
-| Perfect hindsight | 58.0% | 60.1% | 59.5% | 1,403 |
+| Nothing | 54.3% | 54.2% | 54.2% | 1,204 |
+| A synthetic feed built from box scores | 55.6% | 55.4% | 55.5% | 1,110 |
+| The injury-report feed, as of the open | not available | 56.2% | 55.5% | 1,109 |
+| Official inactive lists, 30 minutes before tip | 56.4% | 57.9% | 57.4% | 1,090 |
+| Perfect hindsight | 58.4% | 59.4% | 59.1% | 1,083 |
 
-Cover rises with every step, and so does the amount by which the bets beat the closing line, from 0.6 points with nothing to 1.8 with hindsight. The injury-report feed only exists from December 2018, so for earlier seasons the backtest uses the synthetic feed, which estimates each rotation player's chance of sitting from box scores before game day: whether he missed the last game, how many in a row, days since he played, his minutes and back-to-backs. It recovers about half of what the real feed adds, and its estimate of minutes missing per team tracks reality about as well (a correlation of 0.68 against 0.72). The last two rows cannot be bet a day ahead and are there as a ceiling.
+Within each period cover rises with every step, and so does the amount by which the bets beat the closing line, from 0.5 points with nothing to 1.9 with hindsight. The injury-report feed only exists from December 2018, so for earlier seasons the backtest uses the synthetic feed, which estimates each rotation player's chance of sitting from box scores before game day: whether he missed the last game, how many in a row, days since he played, his minutes and back-to-backs. It recovers a little over half of what the real feed adds in the seasons that have both, and its estimate of minutes missing per team tracks reality about as well (a correlation of 0.68 against 0.72). The last two rows cannot be bet a day ahead and are there as a ceiling.
 
-The older seasons stay behind the recent ones at every level, so the missing feed explains part of that gap and not all of it.
+With the same information the older seasons are level with the recent ones in the first two rows and a point or so behind in the last two, so what the model knows about who plays accounts for most of the difference between the periods.
 
 ### How the pieces are weighted
 
