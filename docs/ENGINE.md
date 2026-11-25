@@ -4,9 +4,9 @@ This page asks what happens when every rule on the [strategies page](STRATEGIES.
 
 Per unit staked the engine returns about +10%, and between +1% and +16% in every one of the 11 seasons. Compounded at quarter Kelly that is a median season of +65% of bankroll, with all 11 seasons profitable and the weakest at +5.9%. The season returns are the same edge multiplied by stake size, and all of it assumes the opening line can be bet.
 
-![return per unit staked by season](../charts/engine_per_unit.png)
-
 ![season return by season](../charts/engine_by_season.png)
+
+![return per unit staked by season](../charts/engine_per_unit.png)
 
 ## How it works
 

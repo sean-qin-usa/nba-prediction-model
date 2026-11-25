@@ -15,9 +15,9 @@ These are backtests that assume the opening line is bet, which has not been show
 
 Every season is scored with weights learned only from the seasons before it, including the weights that combine the spread model's pieces, so no weight was fitted on the season it scores; the choice of those pieces was still made with recent seasons in view. Per unit staked the engine earned between +1% and +16% in each of them. Compounded at quarter Kelly, 2023-24 and 2024-25 come out much the largest (+207% and +447%) because the engine placed twice as many bets in them; the [engine page](docs/ENGINE.md#why-recent-seasons-are-larger) sets that out, along with a repair made to the 2024-25 opening lines.
 
-![return per unit staked by season](charts/engine_per_unit.png)
-
 ![season return by season](charts/engine_by_season.png)
+
+![return per unit staked by season](charts/engine_per_unit.png)
 
 ## This season, 2026-27
 
