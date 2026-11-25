@@ -19,17 +19,17 @@ The last three seasons are much the largest because the engine placed twice as m
 
 ## This season, 2026-27
 
-The table runs through November 22, after 247 games; live rows are paper bets logged as they happened, and replay rows were reconstructed afterwards from the odds and injury reports stored at the time.
+The table runs through November 24, after 260 games; live rows are paper bets logged as they happened, and replay rows were reconstructed afterwards from the odds and injury reports stored at the time.
 
 | Rule | How recorded | Record | Units | Points ahead of the close |
 |---|---|---|---|---|
-| Totals, 2+ points from the line on screen | Live since Nov 16 | 3-2 | +0.70 | +0.2 |
+| Totals, 2+ points from the line on screen | Live since Nov 16 | 4-2 | +1.65 | -0.3 |
 | Totals, 2+ points from the opening total | Replay, Oct 20 to Nov 15 | 28-17 | +8.45 | +1.9 |
 | Totals, 2+ points from the first line seen | Replay, Oct 20 to Nov 15 | 18-17 | -0.63 | +0.1 |
 | Day-before spread, 5+ points from the line | Live since Nov 16 | 1-4 | -3.06 | +1.2 |
 | Day-before spread, 5+ points from the line | Replay, Nov 5 to Nov 15 | 2-4 | -2.10 | +1.9 |
 | Day-before spread, 5+ points from the line | Replay, Oct 21 to Nov 4; the rule was chosen on these games | 7-2 | +4.36 | +3.3 |
-| Moneyline book, three views of 68 games | Live since Oct 21 | 149-46 | +15.6 | none |
+| Moneyline book, three views of 74 games | Live since Oct 21 | 160-52 | +13.8 | none |
 
 The season so far repeats the backtest's warning: the totals rule wins at the opening number and breaks even at the number actually available, and the spread rule is 3-8 on games it was not chosen on. The moneyline book has profited from favourites winning, without beating the closing price. Every sample here is too small to settle anything, and the live views will be read at 60 totals bets and 40 spread bets; the bet-by-bet record is on the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16).
 
