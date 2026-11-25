@@ -19,19 +19,15 @@ The last three seasons are much the largest because the engine placed twice as m
 
 ## This season, 2026-27
 
-The table runs through November 24, after 260 games; live rows are paper bets logged as they happened, and replay rows were reconstructed afterwards from the odds and injury reports stored at the time.
+Paper bets logged as they happened, through November 24 (260 games played), with no real money staked.
 
-| Rule | How recorded | Record | Win rate | Units | Units per bet | Points ahead of the close |
-|---|---|---|---|---|---|---|
-| Totals, 2+ points from the line on screen | Live since Nov 16 | 4-2 | 66.7% | +1.65 | +0.27 | -0.3 |
-| Totals, 2+ points from the opening total | Replay, Oct 20 to Nov 15 | 28-17 | 62.2% | +8.45 | +0.19 | +1.9 |
-| Totals, 2+ points from the first line seen | Replay, Oct 20 to Nov 15 | 18-17 | 51.4% | -0.63 | -0.02 | +0.1 |
-| Day-before spread, 5+ points from the line | Live since Nov 16 | 1-4 | 20.0% | -3.06 | -0.61 | +1.2 |
-| Day-before spread, 5+ points from the line | Replay, Nov 5 to Nov 15 | 2-4 | 33.3% | -2.10 | -0.35 | +1.9 |
-| Day-before spread, 5+ points from the line | Replay, Oct 21 to Nov 4; the rule was chosen on these games | 7-2 | 77.8% | +4.36 | +0.48 | +3.3 |
-| Moneyline book, three views of 74 games | Live since Oct 21 | 160-52 | 75.5% | +13.82 | +0.07 | none |
+| Bet type | Record | Win rate | Units | Per bet | Beat the close by |
+|---|---|---|---|---|---|
+| Totals (since Nov 16) | 4-2 | 66.7% | +1.65 | +0.27 | -0.3 points |
+| Day-before spread (since Nov 16) | 1-4 | 20.0% | -3.06 | -0.61 | +1.2 points |
+| Moneyline (since Oct 21) | 160-52 | 75.5% | +13.82 | +0.07 | none |
 
-A spread or totals bet at the usual price breaks even at 52.4%, while the moneyline book backs favourites and needs 71.7% at the prices taken, so its win rate is not comparable with the others. The season so far repeats the backtest's warning: the totals rule wins at the opening number and breaks even at the number actually available, and the spread rule is 3-8 on games it was not chosen on. The moneyline book has profited from favourites winning, without beating the closing price. Every sample here is too small to settle anything, and the live views will be read at 60 totals bets and 40 spread bets; the bet-by-bet record is on the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16).
+Break-even is 52.4% for totals and spreads and 71.7% for the moneyline book, which backs favourites. These samples are too small to settle anything; the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16) lists every bet, along with replays of the weeks before the live views started.
 
 ## Pages
 
