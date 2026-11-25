@@ -226,4 +226,4 @@ Two of these looked like improvements until they were run on seasons they had no
 
 ## Open questions
 
-The first unknown is whether the opening line can be bet in practice, since both rules lose their edge at later prices. The second is whether any of this holds live, which the paper views began recording on 2026-11-16. The last three seasons also supply most of the backtest profit, because they hold far more bets than the earlier ones.
+The first unknown is whether the opening line can be bet in practice, since both rules lose their edge at later prices. The second is whether any of this holds live, which the paper views began recording on 2026-11-16. The last three seasons also supply most of the backtest profit, because they hold far more bets than the earlier ones. One of them, 2024-25, accounts for 38% of the spread rule's profit on its own (68.9% on 103 bets); without it the rule covers 56.6% on 650 bets. Its rules were learned from earlier seasons and the result holds at two other sources of opening lines, but the choice of which rules to report was made with that season in view.
