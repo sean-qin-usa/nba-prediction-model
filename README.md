@@ -21,13 +21,13 @@ Every season is scored with weights learned only from the seasons before it, inc
 
 ## This season, 2026-27
 
-Paper bets logged as they happened, through November 24 (260 games played), with no real money staked.
+Paper bets logged as they happened, through November 25 (269 games played), with no real money staked.
 
 | Bet type | Record | Win rate | Units | Per bet | Beat the close by |
 |---|---|---|---|---|---|
 | Totals (since Nov 16) | 4-2 | 66.7% | +1.65 | +0.27 | -0.3 points |
-| Day-before spread (since Nov 16) | 1-4 | 20.0% | -3.06 | -0.61 | +1.2 points |
-| Moneyline (since Oct 21) | 160-52 | 75.5% | +13.82 | +0.07 | none |
+| Day-before spread (since Nov 16) | 2-4 | 33.3% | -2.25 | -0.38 | +1.0 points |
+| Moneyline (since Oct 21) | 167-52 | 76.3% | +16.42 | +0.07 | none |
 
 Break-even is 52.4% for totals and spreads and 71.7% for the moneyline book, which backs favourites. These samples are too small to settle anything; the [season page](docs/SEASON_2026_27.md#live-paper-views-from-november-16) lists every bet, along with replays of the weeks before the live views started.
 
