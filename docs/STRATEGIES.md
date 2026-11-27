@@ -185,9 +185,9 @@ With the same information the two periods sit within a point or two of each othe
 
 ### How the pieces are weighted
 
-The market-blind spread model is the sum of five pieces: a team-strength estimate from the four factors, a second one from player ratings and expected minutes, a schedule term for home court and back-to-backs, a late-season tanking term, and a set of late-season and absence adjustments. As first built the pieces were simply added, the tanking term was switched on only from 2020-21, and the whole arrangement was designed on 2021-22 to 2025-26. That flattered those seasons, and nearly all of the flattery came from the tanking term.
+The market-blind spread model is the sum of five pieces: a team-strength estimate from the four factors, a second one from player ratings and expected minutes, a schedule term for home court and back-to-backs, a late-season tanking term, and an absence adjustment that charges about half a point for each expected absence beyond the missing player's own rating. A sixth piece, built on recent form late in the season, is switched off: it helped on the seasons it was developed on and did nothing on the two it had not seen. As first built the pieces were simply added, the tanking term was switched on only from 2020-21, and the whole arrangement was designed on 2021-22 to 2025-26. That flattered those seasons, and nearly all of the flattery came from the tanking term.
 
-The backtest on this page now gives each piece a weight, refitted before every season by a regression of the final margin on the five pieces over all earlier seasons, and it switches the tanking term on throughout. Six numbers are tuned in all, the five weights and a constant, and none of them has seen the season it scores. The weights hold steady from year to year: 0.6 to 0.7 on the four-factor piece, 1.1 to 1.2 on the player piece, 0.9 to 1.0 on schedule, 0.8 to 1.2 on tanking after its first year, and 0.5 rising to 0.8 on the adjustments.
+The backtest on this page now gives each piece a weight, refitted before every season by a regression of the final margin on the five pieces over all earlier seasons, and it switches the tanking term on throughout. Six numbers are tuned in all, the five weights and a constant, and none of them has seen the season it scores. The weights hold steady from year to year: 0.6 to 0.7 on the four-factor piece, 1.1 to 1.2 on the player piece, 0.9 to 1.0 on schedule, 0.8 to 1.2 on tanking after its first year, and 0.5 rising to 0.8 on the absence adjustment.
 
 | Spread rule, gap 2+ | 2012-21 | 2021-26 | All 14 seasons |
 |---|---|---|---|
@@ -246,7 +246,29 @@ If the edge came from understanding change it should rise with turnover, and it 
 | Add expected absences to the totals model | The opener already prices them |
 | A different trust in the model by gap size, by month, or fixed at another value | None beats the fitted one third |
 
-Two of these looked like improvements until they were run on seasons they had not been found on. The monthly and by-type cuts on this page have had no such check, so they only describe the backtest.
+Two of these looked like improvements until they were run on seasons they had not been found on.
+
+### Found on one sample, checked on another
+
+Every rule and cut on this page was then put through the same check: its result on the sample it was found on, beside its result on games that played no part in finding it. For totals the fresh sample is 2007-12, for the spread model it is the seasons before the ones it was designed on, and for the monthly spread cuts, which were found on all 14 seasons, the two halves are set side by side.
+
+| Rule or cut | Where it was found | Fresh sample |
+|---|---|---|
+| Totals rule, gap 2+ | 54.5% (2,057 bets), 2012-26 | 53.8% (545), 2007-12 |
+| Totals, gap 3+ | 61.5% (522) | 58.6% (87) |
+| Totals, unders | 56.9% (325) | 57.3% (117) |
+| Totals from day 75 of the season | 57.3% (1,062) | 56.3% (279) |
+| Totals in April | 60.0% (260) | 54.2% (59) |
+| Totals in February | 57.8% (244) | 64.9% (97) |
+| Totals, days 45 to 75 | 55.0% (302) | 42.3% (52) |
+| Totals where the line then stayed within 1 point | 54.9% (344) | 45.8% (118) |
+| Spread rule, gap 2+ | 54.4% (388), 2021-26, where the model was designed | 58.0% (426), 2012-21 |
+| Spread rule in October and November | 62.5% (80), 2012-19 | 57.6% (132), 2019-26 |
+| Spread rule in April | 51.5% (68), 2012-19 | 50.0% (74), 2019-26 |
+| Spread rule in February | 69.2% (26), 2012-19 | 42.6% (61), 2019-26 |
+| Day-before spread view, this season | 7-2 on the two weeks it was designed on | 4-8 in the three weeks since |
+
+Across about thirty such comparisons one is significant at the 5% level, spreads in February, which is roughly what chance alone produces. The two headline rules, the larger-gap cuts, the under lean, the strong early spreads and the weak April all repeat. Three do not and should be read as unconfirmed: the mid-season totals stretch, totals where the line stays put, which is the cut the second live totals arm rests on, and this season's day-before spread view, whose first two weeks cannot count.
 
 ## Open questions
 
