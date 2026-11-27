@@ -29,7 +29,7 @@ The gap is how far the model's number sits from the line, in points.
 
 Every weight behind these figures was learned from seasons before the one being scored. An earlier version of this page combined the spread model's pieces as they had been designed on 2021-22 to 2025-26, which flattered those seasons (60.2% against 56.2% before); with the weights learned walk-forward the rule covers 58.0% on 426 bets in 2012-21 and 54.4% on 388 since, and [how the pieces are weighted](#how-the-pieces-are-weighted) has the detail. The totals model was specified before its results were looked at.
 
-The 2024-25 opening lines behind these figures were repaired after a fault in the source feed, which the [engine page](ENGINE.md#a-repair-to-the-2024-25-opening-lines) describes.
+The 2024-25 opening lines behind these figures were repaired after a fault in the source feed, which the [engine page](ENGINE.md#a-repair-to-the-2024-25-opening-lines) describes. Opening totals are missing for the second half of 2022-23, after their source stopped on January 16, 2023, so the totals rule covers 658 of that season's 1,230 games.
 
 ![cover by gap](../charts/strategy_cover_by_gap.png)
 
