@@ -6,14 +6,16 @@ A market-anchored NBA model for spreads and totals, together with the research r
 
 | | |
 |---|---|
-| +65% | Median season return of the full betting engine at quarter Kelly, across 11 seasons it had not seen; all 11 were profitable, the weakest at +5.9%. |
-| 56.3% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +10% per unit staked on 336 bets a season. |
-| 56.9% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 829 bets from 2012 to 2026, with every weight in the model learned from earlier seasons. |
-| 55.3% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,380 bets; it beat break-even in 12 of 14 seasons and won 57.4% on five further seasons it was never tuned on. |
+| +53% | Median season return of the full betting engine at quarter Kelly, across 11 seasons it had not seen; 10 of the 11 were profitable, and the losing one, 2017-18, finished at -15.9%. |
+| 55.9% | Share of the engine's bets won, against a break-even of 52.4%, for a return of about +9% per unit staked on 311 bets a season. |
+| 56.3% | Share of spread-rule bets won when the model is 2 or more points from the opening spread, over 814 bets from 2012 to 2026, with every weight in the model learned from earlier seasons. |
+| 54.5% | Share of totals-rule bets won when the model is 2 or more points from the opening total, over 2,057 bets; it beat break-even in 11 of 14 seasons and won 53.8% on five further seasons it was never tuned on. |
 
 These are backtests that assume the opening line is bet, which has not been shown live, and at the prices available later in the day the edge disappears. No capital has been deployed on any of it.
 
-Every season is scored with weights learned only from the seasons before it, including the weights that combine the spread model's pieces, so no weight was fitted on the season it scores; the choice of those pieces was still made with recent seasons in view. Per unit staked the engine earned between +1% and +16% in each of them. Compounded at quarter Kelly, 2023-24 and 2024-25 come out much the largest (+207% and +447%) because the engine placed twice as many bets in them; the [engine page](docs/ENGINE.md#why-recent-seasons-are-larger) sets that out, along with a repair made to the 2024-25 opening lines.
+Every game is priced with what was known the evening before, which is when the opening line is posted. An earlier version of these pages let the models see the previous night's results as well; that flattered the totals rule by about a point and hid the engine's one losing season.
+
+Every season is scored with weights learned only from the seasons before it, including the weights that combine the spread model's pieces, so no weight was fitted on the season it scores; the choice of those pieces was still made with recent seasons in view. Per unit staked the engine earned between -3% and +18% a season. Compounded at quarter Kelly, 2023-24 and 2024-25 come out much the largest (+154% and +332%) because the engine placed nearly twice as many bets in them; the [engine page](docs/ENGINE.md#why-recent-seasons-are-larger) sets that out, along with a repair made to the 2024-25 opening lines.
 
 ![season return by season](charts/engine_by_season.png)
 
